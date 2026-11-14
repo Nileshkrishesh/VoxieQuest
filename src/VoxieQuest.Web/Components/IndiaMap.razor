@@ -1,0 +1,631 @@
+@using VoxieQuest.Web.Models
+@using VoxieQuest.Web.Services
+@inject IIndiaMapService IndiaMapService
+@inject IAccessibilityService AccessibilityService
+@implements IDisposable
+
+<div class="india-map-card storybook-panel">
+    <!-- Header Banner -->
+    <div class="map-header-row">
+        <div class="map-title-group">
+            <span class="map-badge-flag">🇮🇳</span>
+            <div>
+                <h3 class="m-0 font-display">Voxie Across India</h3>
+                <p class="m-0 map-subheading">
+                    @if (MapData != null)
+                    {
+                        <span>Voxie friends learning in <strong>@MapData.StatesWithActiveLearners states</strong>!</span>
+                    }
+                    else
+                    {
+                        <span>Exploring friendly learners across the garden realm...</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="map-controls-group">
+            <!-- View Mode Switch: Visual SVG Map vs Accessible List View -->
+            <div class="view-mode-toggle" role="group" aria-label="Map display mode">
+                <button type="button" 
+                        class="toggle-btn @(!isListView ? "active" : "")" 
+                        @onclick="() => isListView = false"
+                        aria-pressed="@(!isListView)">
+                    <span>🗺️ Map View</span>
+                </button>
+                <button type="button" 
+                        class="toggle-btn @(isListView ? "active" : "")" 
+                        @onclick="() => isListView = true"
+                        aria-pressed="@isListView">
+                    <span>📋 List View</span>
+                </button>
+            </div>
+
+            <!-- Wave to India Button (Earns Sticker Only, No Chat/Messaging) -->
+            <button type="button" 
+                    class="btn-candy-yellow wave-btn" 
+                    @onclick="HandleWaveToIndia"
+                    title="Wave hello to fellow learners across India!">
+                <span>👋 Wave to India!</span>
+                @if (Consent?.HasWaved == true)
+                {
+                    <span class="waved-badge">⭐ Explorer Sticker!</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    <!-- Offline Resilience Notice -->
+    @if (MapData?.IsOfflineFallback == true)
+    {
+        <div class="offline-banner" role="status">
+            <span>🍃 Offline Garden Mode: Showing saved explorer totals across India.</span>
+        </div>
+    }
+
+    @if (!isListView)
+    {
+        <!-- Visual Interactive SVG Map -->
+        <div class="svg-map-wrapper">
+            <!-- Floating Voxie Mascot Buddy -->
+            <div class="mascot-companion @(isMascotWaving ? "mascot-waving" : "")">
+                <div class="mascot-bubble">
+                    @if (!string.IsNullOrEmpty(selectedStateMessage))
+                    {
+                        <span class="bubble-text">@selectedStateMessage</span>
+                    }
+                    else
+                    {
+                        <span class="bubble-text">Tap any state to say hello to fellow explorers! 🦊✨</span>
+                    }
+                </div>
+                <div class="mascot-character" @onclick="TriggerMascotWave" title="Voxie waves at you!">
+                    <span class="mascot-face">🦊</span>
+                    <span class="mascot-paw">👋</span>
+                </div>
+            </div>
+
+            <!-- SVG Map Canvas -->
+            <svg viewBox="0 0 1000 1050" class="india-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive map of India showing anonymous player counts by state">
+                <defs>
+                    <!-- Colorblind Accessible SVG Textures -->
+                    <pattern id="pattern-growing" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <line x1="0" y1="10" x2="10" y2="0" stroke="#2E7D32" stroke-width="2" />
+                    </pattern>
+                    <pattern id="pattern-busy" width="12" height="12" patternUnits="userSpaceOnUse">
+                        <circle cx="6" cy="6" r="2.5" fill="#C62828" />
+                    </pattern>
+
+                    <!-- Star Marker Shadow -->
+                    <filter id="starGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#FF6F00" flood-opacity="0.6" />
+                    </filter>
+                </defs>
+
+                <!-- Indian Ocean / Ambient Map Backdrop -->
+                <rect width="1000" height="1050" fill="#E0F7FA" rx="20" class="ocean-backdrop" />
+
+                <!-- Decorative Geographic Compass & Clouds -->
+                <g class="map-decorations" opacity="0.7">
+                    <g><text x="80" y="100" font-size="28">☁️</text></g>
+                    <g><text x="860" y="140" font-size="24">☁️</text></g>
+                    <g><text x="120" y="780" font-size="26">⛵</text></g>
+                    <g><text x="880" y="660" font-size="26">🐬</text></g>
+                    <g><text x="80" y="220" font-size="14" font-weight="900" fill="#006064">NORTH ↑</text></g>
+                </g>
+
+                <!-- Render 36 Indian States and Union Territories -->
+                @foreach (var (code, def) in IndiaStateRegistry.States)
+                {
+                    var isSelected = string.Equals(selectedStateCode, code, StringComparison.OrdinalIgnoreCase);
+                    var isChildState = Consent?.IsEnabled == true && string.Equals(Consent.StateCode, code, StringComparison.OrdinalIgnoreCase);
+                    var stateInfo = GetStateData(code);
+                    var fill = GetStateFillColor(stateInfo.ActivityBand, isSelected);
+
+                    <g class="state-group @(isSelected ? "state-selected" : "")"
+                       tabindex="0"
+                       role="button"
+                       aria-label="@($"{def.Name}: {stateInfo.DisplayCount}")"
+                       @onclick="() => SelectState(code, def.Name, stateInfo.DisplayCount)"
+                       @onkeydown="(e) => HandleStateKeyDown(e, code, def.Name, stateInfo.DisplayCount)">
+
+                        <!-- State Boundary Polygon -->
+                        <path d="@def.SvgPath"
+                              fill="@fill"
+                              stroke="#2C3E50"
+                              stroke-width="@(isSelected ? "4.5" : "2.5")"
+                              stroke-linejoin="round"
+                              class="state-shape" />
+
+                        <!-- Colorblind Mode Overlay Pattern -->
+                        @if (AccessibilityService.IsColorblindMode)
+                        {
+                            @if (stateInfo.ActivityBand == IndiaActivityBand.Growing)
+                            {
+                                <path d="@def.SvgPath" fill="url(#pattern-growing)" opacity="0.35" pointer-events="none" />
+                            }
+                            else if (stateInfo.ActivityBand == IndiaActivityBand.Busy)
+                            {
+                                <path d="@def.SvgPath" fill="url(#pattern-busy)" opacity="0.3" pointer-events="none" />
+                            }
+                        }
+
+                        <!-- State Abbreviation Label -->
+                        <g>
+                            <text x="@def.LabelX" y="@def.LabelY"
+                                  text-anchor="middle"
+                                  font-size="13"
+                                  font-weight="900"
+                                  fill="#1A252F"
+                                  class="state-label">
+                                @(code)
+                            </text>
+                        </g>
+
+                        <!-- Golden Star ⭐ for Child's Own State (If Parent Opted In) -->
+                        @if (isChildState)
+                        {
+                            <g class="child-state-star" filter="url(#starGlow)" transform="translate(@(def.LabelX - 10), @(def.LabelY - 26))">
+                                <text font-size="20">⭐</text>
+                            </g>
+                        }
+                    </g>
+                }
+            </svg>
+        </div>
+    }
+    else
+    {
+        <!-- Accessible Screen Reader & Keyboard Friendly List View -->
+        <div class="accessible-list-view" role="region" aria-label="List of states with learner counts">
+            <table class="state-table">
+                <thead>
+                    <tr>
+                        <th scope="col">State / Territory</th>
+                        <th scope="col">Code</th>
+                        <th scope="col">Learners Exploring</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (code, def) in IndiaStateRegistry.States)
+                    {
+                        var info = GetStateData(code);
+                        var isChildState = Consent?.IsEnabled == true && string.Equals(Consent.StateCode, code, StringComparison.OrdinalIgnoreCase);
+
+                        <tr class="@(isChildState ? "child-state-row" : "")" @onclick="() => SelectState(code, def.Name, info.DisplayCount)">
+                            <td>
+                                <strong>@def.Name</strong>
+                                @if (isChildState)
+                                {
+                                    <span class="home-state-pill" title="Your Explorer State">⭐ Your State</span>
+                                }
+                            </td>
+                            <td><code>@(def.Code)</code></td>
+                            <td>@info.DisplayCount</td>
+                            <td>
+                                <span class="band-tag band-@info.ActivityBand.ToString().ToLowerInvariant()">
+                                    @GetBandLabel(info.ActivityBand)
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- Picture-Book Legend -->
+    <div class="map-legend-bar">
+        <div class="legend-item">
+            <span class="legend-swatch swatch-starting"></span>
+            <span>Just Starting (&lt; 20 learners)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-swatch swatch-growing"></span>
+            <span>Growing (20–199 learners)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-swatch swatch-busy"></span>
+            <span>Busy (200+ learners)</span>
+        </div>
+        @if (Consent?.IsEnabled == true)
+        {
+            <div class="legend-item">
+                <span style="font-size:1.3rem;">⭐</span>
+                <span>Your Selected State</span>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .india-map-card {
+        background: #FFFDF7;
+        border: 4px solid #2C3E50;
+        border-radius: 28px;
+        box-shadow: 0 8px 0 #2C3E50;
+        padding: 1.5rem;
+        user-select: none;
+    }
+
+    .map-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .map-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .map-badge-flag {
+        font-size: 2.5rem;
+    }
+
+    .map-subheading {
+        font-size: 1rem;
+        color: #455A64;
+        font-weight: 600;
+    }
+
+    .map-controls-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .view-mode-toggle {
+        display: flex;
+        background: #ECEFF1;
+        border: 2px solid #2C3E50;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .toggle-btn {
+        background: transparent;
+        border: none;
+        padding: 0.4rem 0.85rem;
+        font-weight: 800;
+        font-size: 0.88rem;
+        cursor: pointer;
+        color: #37474F;
+        transition: background 0.15s ease;
+    }
+
+    .toggle-btn.active {
+        background: #2C3E50;
+        color: #FFFFFF;
+    }
+
+    .wave-btn {
+        padding: 0.45rem 1rem;
+        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .waved-badge {
+        font-size: 0.72rem;
+        background: #E65100;
+        color: #FFF;
+        padding: 0.15rem 0.45rem;
+        border-radius: 10px;
+        font-weight: 800;
+    }
+
+    .offline-banner {
+        background: #FFF9C4;
+        border: 2px dashed #FBC02D;
+        border-radius: 14px;
+        padding: 0.5rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.88rem;
+        color: #F57F17;
+        font-weight: 700;
+    }
+
+    .svg-map-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 880px;
+        margin: 0 auto;
+        background: #E0F7FA;
+        border: 3px solid #2C3E50;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: inset 0 0 12px rgba(0, 96, 100, 0.15);
+    }
+
+    .india-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .state-group {
+        cursor: pointer;
+        outline: none;
+    }
+
+    .state-shape {
+        transition: fill 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
+    }
+
+    .state-group:hover .state-shape,
+    .state-group:focus-visible .state-shape {
+        filter: drop-shadow(0 0 6px rgba(255, 179, 0, 0.8));
+        stroke-width: 4px;
+    }
+
+    .state-label {
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .child-state-star {
+        animation: starFloat 2s infinite ease-in-out;
+        pointer-events: none;
+    }
+
+    @@keyframes starFloat {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(0, -4px); }
+    }
+
+    .mascot-companion {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .mascot-bubble {
+        background: #FFFFFF;
+        border: 3px solid #2C3E50;
+        border-radius: 18px;
+        padding: 0.6rem 1rem;
+        max-width: 260px;
+        box-shadow: 0 4px 0 #2C3E50;
+        margin-bottom: 8px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: #2C3E50;
+        pointer-events: auto;
+    }
+
+    .mascot-character {
+        display: flex;
+        align-items: center;
+        background: #FFD54F;
+        border: 3px solid #2C3E50;
+        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        justify-content: center;
+        box-shadow: 0 4px 0 #2C3E50;
+        pointer-events: auto;
+        cursor: pointer;
+    }
+
+    .mascot-face {
+        font-size: 2rem;
+    }
+
+    .mascot-paw {
+        font-size: 1.2rem;
+        margin-left: -6px;
+        margin-top: -12px;
+    }
+
+    .mascot-waving .mascot-paw {
+        animation: pawWave 0.8s 3 ease-in-out;
+    }
+
+    @@keyframes pawWave {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(25deg); }
+    }
+
+    .accessible-list-view {
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+
+    .state-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+    }
+
+    .state-table th, .state-table td {
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid #CFD8DC;
+        text-align: left;
+    }
+
+    .state-table th {
+        background: #ECEFF1;
+        color: #2C3E50;
+        font-weight: 800;
+    }
+
+    .child-state-row {
+        background: #FFF9C4 !important;
+    }
+
+    .home-state-pill {
+        display: inline-block;
+        background: #FFD54F;
+        color: #2C3E50;
+        font-size: 0.75rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 10px;
+        font-weight: 800;
+        margin-left: 0.4rem;
+    }
+
+    .band-tag {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        border: 1px solid #2C3E50;
+    }
+
+    .band-juststarting { background: #FFF9C4; color: #F57F17; }
+    .band-growing { background: #C8E6C9; color: #1B5E20; }
+    .band-busy { background: #FFCCBC; color: #BF360C; }
+
+    .map-legend-bar {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 2px dashed #CFD8DC;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #37474F;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-swatch {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #2C3E50;
+        border-radius: 6px;
+    }
+
+    .swatch-starting { background: #FFF9C4; }
+    .swatch-growing { background: #C8E6C9; }
+    .swatch-busy { background: #FFCCBC; }
+</style>
+
+@code {
+    private IndiaPresenceConsent? Consent;
+    private IndiaMapResponse? MapData;
+    private bool isListView = false;
+    private string? selectedStateCode;
+    private string? selectedStateMessage;
+    private bool isMascotWaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Consent = await IndiaMapService.GetConsentAsync();
+        MapData = await IndiaMapService.GetMapTotalsAsync();
+        IndiaMapService.OnPresenceChanged += HandlePresenceChanged;
+    }
+
+    private void HandlePresenceChanged()
+    {
+        InvokeAsync(async () =>
+        {
+            Consent = await IndiaMapService.GetConsentAsync();
+            MapData = await IndiaMapService.GetMapTotalsAsync();
+            StateHasChanged();
+        });
+    }
+
+    private void SelectState(string code, string name, string count)
+    {
+        selectedStateCode = code;
+        selectedStateMessage = count == "Just starting here!"
+            ? $"Friends in {name} are just starting here! 🌸"
+            : $"Friends in {name} are learning too! ({count}) 🎈";
+
+        TriggerMascotWave();
+    }
+
+    private void HandleStateKeyDown(KeyboardEventArgs e, string code, string name, string count)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            SelectState(code, name, count);
+        }
+    }
+
+    private void TriggerMascotWave()
+    {
+        isMascotWaving = true;
+        StateHasChanged();
+        _ = Task.Delay(2400).ContinueWith(_ =>
+        {
+            isMascotWaving = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private async Task HandleWaveToIndia()
+    {
+        await IndiaMapService.WaveToIndiaAsync();
+        selectedStateMessage = "Hooray! You waved to friends across India and won the Golden Banyan Sticker! 🇮🇳✨";
+        TriggerMascotWave();
+    }
+
+    private IndiaStateData GetStateData(string code)
+    {
+        var data = new IndiaStateData
+        {
+            StateCode = code,
+            StateName = IndiaStateRegistry.States.TryGetValue(code, out var def) ? def.Name : code
+        };
+
+        if (MapData?.States.TryGetValue(code, out var item) == true)
+        {
+            data.DisplayCount = item.CountText;
+            data.ActivityBand = item.Band switch
+            {
+                "Busy" => IndiaActivityBand.Busy,
+                "Growing" => IndiaActivityBand.Growing,
+                _ => IndiaActivityBand.JustStarting
+            };
+        }
+
+        return data;
+    }
+
+    private string GetStateFillColor(IndiaActivityBand band, bool isSelected)
+    {
+        if (isSelected) return "#FFE082"; // Sunny gold when active
+
+        return band switch
+        {
+            IndiaActivityBand.Busy => "#FFCCBC",      // Soft Coral
+            IndiaActivityBand.Growing => "#C8E6C9",   // Garden Mint
+            _ => "#FFF9C4"                            // Gentle Butter Cream
+        };
+    }
+
+    private static string GetBandLabel(IndiaActivityBand band) => band switch
+    {
+        IndiaActivityBand.Busy => "Busy (200+)",
+        IndiaActivityBand.Growing => "Growing (20–199)",
+        _ => "Just Starting (< 20)"
+    };
+
+    public void Dispose()
+    {
+        IndiaMapService.OnPresenceChanged -= HandlePresenceChanged;
+    }
+}

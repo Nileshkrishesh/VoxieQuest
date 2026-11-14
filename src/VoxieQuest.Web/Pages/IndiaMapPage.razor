@@ -1,0 +1,114 @@
+@page "/india-map"
+@page "/across-india"
+@using VoxieQuest.Web.Components
+@using VoxieQuest.Web.Services
+@inject NavigationManager Navigation
+@inject IIndiaMapService IndiaMapService
+
+<div class="india-page-container">
+    <!-- Hero Header -->
+    <div class="storybook-card india-page-hero">
+        <div class="hero-top-row">
+            <button class="pill hero-back-btn" @onclick='() => Navigation.NavigateTo("")' type="button">
+                <span>◀ Back Home</span>
+            </button>
+            <div class="hero-flag-title">
+                <span style="font-size:2.2rem;">🇮🇳</span>
+                <div>
+                    <h2 class="m-0 font-display">Voxie Across India</h2>
+                    <p class="m-0 hero-subtitle">See where friendly adventurers are speaking and playing across the country!</p>
+                </div>
+            </div>
+            <a href="parent" class="pill hero-parent-pill">
+                <span>🛡️ Parent Privacy</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Map Component -->
+    <IndiaMap />
+
+    <!-- Privacy Note for Parents Footer -->
+    <div class="storybook-card privacy-callout-card">
+        <div class="callout-header">
+            <span style="font-size:1.6rem;">🛡️</span>
+            <div>
+                <strong style="font-size:1rem; color:#1E293B;">Safe &amp; Anonymous by Design</strong>
+                <p style="margin:0.25rem 0 0 0; font-size:0.88rem; color:#475569; line-height:1.45;">
+                    Voxie Across India is 100% anonymous. We never track GPS, IP addresses, child names, or schools.
+                    Parents can choose whether to count their state in the Parent Dashboard.
+                    All totals are rounded to protect privacy.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .india-page-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .india-page-hero {
+        background: #FFF9C4;
+        border: 4px solid #2C3E50;
+        border-radius: 28px;
+        box-shadow: 0 8px 0 #2C3E50;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .hero-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .hero-flag-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .hero-subtitle {
+        color: #546E7A;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .hero-back-btn {
+        background: #E0F2FE;
+        border-color: #0284C7;
+        color: #0369A1;
+        font-weight: 800;
+        font-size: 0.92rem;
+    }
+
+    .hero-parent-pill {
+        background: #F1F5F9;
+        border-color: #64748B;
+        color: #334155;
+        font-weight: 800;
+        font-size: 0.88rem;
+        text-decoration: none;
+    }
+
+    .privacy-callout-card {
+        background: #F8FAFC;
+        border: 2px dashed #94A3B8;
+        border-radius: 20px;
+        padding: 1.25rem;
+    }
+
+    .callout-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+</style>

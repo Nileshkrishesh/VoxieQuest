@@ -5,6 +5,7 @@
 @inject IProgressService ProgressService
 @inject IAdaptiveDifficultyService DifficultyService
 @inject IDifficultyService AdaptiveDifficulty
+@inject IIndiaMapService IndiaMapService
 @inject IAccessibilityService Accessibility
 @inject ISessionTimerService SessionTimer
 @inject IStreakService StreakService
@@ -231,6 +232,104 @@
                                     @onclick="HandleWipeLocalData">
                                 🗑️ Wipe Local Data
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voxie Across India - Community Map Privacy & Consent -->
+            <div class="storybook-card" style="background:#FFFDE7; border-color:#F59E0B;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                    <div>
+                        <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem; color:#B45309;">
+                            <span>🇮🇳</span> Voxie Across India — Map Participation &amp; Consent
+                        </h3>
+                        <p style="margin:0; font-size:0.92rem; color:#78350F;">
+                            Off by default. Count your child in the safe, anonymous community map showing learners across Indian states.
+                        </p>
+                    </div>
+                    <a href="india-map" class="pill" style="background:#FEF3C7; border-color:#D97706; color:#92400E; font-weight:800; text-decoration:none;">
+                        <span>🗺️ View Community Map</span>
+                    </a>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
+                    <!-- Participation Toggle & State Selector -->
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div class="setting-toggle-row">
+                            <div>
+                                <strong style="display:block; font-size:1.05rem;">Count My Child in the Map</strong>
+                                <span style="font-size:0.85rem; color:#6B7280;">Includes an anonymous tally in your selected state</span>
+                            </div>
+                            <button class="pill" 
+                                    style="background:@(indiaConsent?.IsEnabled == true ? "var(--color-mint)" : "white"); min-width:85px;" 
+                                    type="button"
+                                    @onclick="HandleToggleIndiaConsent">
+                                @(indiaConsent?.IsEnabled == true ? "ON ✓" : "OFF")
+                            </button>
+                        </div>
+
+                        <div>
+                            <label style="display:block; font-size:0.92rem; font-weight:700; margin-bottom:0.35rem; color:#1E293B;">
+                                Select State or Union Territory:
+                            </label>
+                            <select class="form-select" 
+                                    style="padding:0.4rem 0.6rem; font-size:0.92rem; border-radius:10px; border:2px solid #CBD5E1; width:100%;"
+                                    value="@(indiaConsent?.StateCode ?? "")"
+                                    disabled="@(indiaConsent?.IsEnabled != true)"
+                                    @onchange="(e) => HandleIndiaStateSelected(e.Value?.ToString())">
+                                <option value="">-- Choose State / UT --</option>
+                                @foreach (var (code, def) in IndiaStateRegistry.States)
+                                {
+                                    <option value="@(def.Code)">@def.Name (@(def.Code))</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="display:block; font-size:0.92rem; font-weight:700; margin-bottom:0.35rem; color:#1E293B;">
+                                Developmental Age Band:
+                            </label>
+                            <select class="form-select" 
+                                    style="padding:0.4rem 0.6rem; font-size:0.92rem; border-radius:10px; border:2px solid #CBD5E1; width:100%;"
+                                    value="@(indiaConsent?.AgeBand ?? "6-8")"
+                                    disabled="@(indiaConsent?.IsEnabled != true)"
+                                    @onchange="(e) => HandleIndiaAgeBandSelected(e.Value?.ToString())">
+                                <option value="3-5">Ages 3–5 (Early Explorers)</option>
+                                <option value="6-8">Ages 6–8 (Foundational Adventures)</option>
+                                <option value="9-12">Ages 9–12 (Curiosity Quests)</option>
+                                <option value="13+">Ages 13+ (Advanced Learning)</option>
+                            </select>
+                        </div>
+
+                        @if (indiaConsent?.IsEnabled == true)
+                        {
+                            <div style="margin-top:0.25rem;">
+                                <button type="button" 
+                                        class="storybook-btn" 
+                                        style="font-size:0.85rem !important; padding:0.4rem 0.85rem !important; min-height:38px; background:#FEE2E2; color:#B91C1C;"
+                                        @onclick="HandleDeleteIndiaPresence">
+                                    🗑️ Delete My Contribution &amp; Opt Out
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Privacy & Legal Notice Box -->
+                    <div style="background:#FFFFFF; border:2px solid #FDE68A; border-radius:16px; padding:1rem; display:flex; flex-direction:column; gap:0.6rem;">
+                        <strong style="color:#92400E; font-size:0.98rem; display:flex; align-items:center; gap:0.4rem;">
+                            <span>🛡️</span> Exact Privacy Disclosure (What is sent)
+                        </strong>
+                        <ul style="margin:0; padding-left:1.2rem; font-size:0.84rem; color:#4B5563; line-height:1.5;">
+                            <li><strong>State Code:</strong> Only the two-letter region code you choose above.</li>
+                            <li><strong>Age Band:</strong> General learning range (3–5, 6–8, 9–12, 13+).</li>
+                            <li><strong>Anonymous ID:</strong> A randomly generated install ID unlinked to your child's profile or device.</li>
+                            <li><strong>Zero Tracking:</strong> No GPS, no IP geolocation, no city, no school, no child names, no third-party cookies or ads.</li>
+                            <li><strong>K-Anonymity Threshold:</strong> States with fewer than 20 players show "Just starting here!" and never show exact counts.</li>
+                        </ul>
+
+                        <div style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:10px; padding:0.6rem; font-size:0.78rem; color:#78350F; line-height:1.4;">
+                            ⚖️ <strong>DPDP Act 2023 Consent Notice:</strong> Under the Digital Personal Data Protection Act 2023 (India), verifiable parental consent is required before processing any child-related data. Voxie Quest processes only parent-verified anonymous region data with instant one-click deletion above. Please verify compliance with your institutional legal counsel.
                         </div>
                     </div>
                 </div>
@@ -672,11 +771,53 @@
 
 @code {
     private bool isGatedUnlocked = false;
+    private IndiaPresenceConsent? indiaConsent;
 
     protected override void OnInitialized()
     {
         Accessibility.OnSettingsChanged += StateHasChanged;
         SessionTimer.OnTimerTick += StateHasChanged;
+        _ = LoadIndiaConsentAsync();
+    }
+
+    private async Task LoadIndiaConsentAsync()
+    {
+        indiaConsent = await IndiaMapService.GetConsentAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleToggleIndiaConsent()
+    {
+        if (indiaConsent == null) return;
+        bool newState = !indiaConsent.IsEnabled;
+        string? stateCode = newState ? (indiaConsent.StateCode ?? "PB") : null;
+        string ageBand = indiaConsent.AgeBand ?? (ProgressService.ActiveProfile?.AgeBand.ToString().Replace("Ages", "").Replace("To", "-") ?? "6-8");
+        await IndiaMapService.SaveConsentAsync(newState, stateCode, ageBand);
+        indiaConsent = await IndiaMapService.GetConsentAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleIndiaStateSelected(string? code)
+    {
+        if (indiaConsent == null || string.IsNullOrWhiteSpace(code)) return;
+        await IndiaMapService.SaveConsentAsync(indiaConsent.IsEnabled, code, indiaConsent.AgeBand ?? "6-8");
+        indiaConsent = await IndiaMapService.GetConsentAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleIndiaAgeBandSelected(string? band)
+    {
+        if (indiaConsent == null || string.IsNullOrWhiteSpace(band)) return;
+        await IndiaMapService.SaveConsentAsync(indiaConsent.IsEnabled, indiaConsent.StateCode, band);
+        indiaConsent = await IndiaMapService.GetConsentAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleDeleteIndiaPresence()
+    {
+        await IndiaMapService.DeleteContributionAsync();
+        indiaConsent = await IndiaMapService.GetConsentAsync();
+        StateHasChanged();
     }
 
     private void HandleGateVerified(bool verified)
