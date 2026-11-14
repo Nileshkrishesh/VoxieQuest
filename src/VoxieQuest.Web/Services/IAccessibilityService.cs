@@ -24,6 +24,18 @@ public interface IAccessibilityService
     /// <summary>Gets whether audio is muted.</summary>
     bool IsMuted { get; }
 
+    /// <summary>Gets timer duration multiplier: 1.0 (standard), 2.0 (extra time), 0.0 (timers disabled).</summary>
+    double TimerMultiplier { get; }
+
+    /// <summary>Gets whether ADHD mode is active (5-round focused bursts with enhanced progress visualization).</summary>
+    bool IsAdhdMode { get; }
+
+    /// <summary>Gets whether motor-assistance hold-to-confirm is active instead of fast single-tap.</summary>
+    bool IsHoldToConfirm { get; }
+
+    /// <summary>Gets whether oversized tap targets are active for motor assistance.</summary>
+    bool IsLargeTargets { get; }
+
     /// <summary>Fired when any accessibility setting changes.</summary>
     event Action? OnSettingsChanged;
 
@@ -47,4 +59,16 @@ public interface IAccessibilityService
 
     /// <summary>Sets the mute status.</summary>
     Task SetMutedAsync(bool muted);
+
+    /// <summary>Sets timer multiplier (1.0 = standard, 2.0 = extra time, 0.0 = disabled).</summary>
+    Task SetTimerMultiplierAsync(double multiplier);
+
+    /// <summary>Sets ADHD focused burst mode.</summary>
+    Task SetAdhdModeAsync(bool enabled);
+
+    /// <summary>Sets motor-assistance hold-to-confirm mode.</summary>
+    Task SetHoldToConfirmAsync(bool enabled);
+
+    /// <summary>Sets extra large tap target mode.</summary>
+    Task SetLargeTargetsAsync(bool enabled);
 }

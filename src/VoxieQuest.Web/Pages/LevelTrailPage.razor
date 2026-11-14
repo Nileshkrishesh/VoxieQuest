@@ -1,0 +1,166 @@
+@page "/map"
+@page "/trail"
+@page "/level-map"
+@using VoxieQuest.Web.Models
+@using VoxieQuest.Web.Services
+@inject IDifficultyService DifficultyService
+@inject NavigationManager Navigation
+
+<div class="trail-page-container">
+    <div class="storybook-card trail-page-hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-icon">🗺️</span>
+                <div>
+                    <h2 class="hero-title m-0">The Voxie Garden Trails</h2>
+                    <p class="hero-sub m-0">Follow your hand-drawn path through 10 magical stops and master each realm!</p>
+                </div>
+            </div>
+            <button class="pill home-pill-btn" @onclick='() => Navigation.NavigateTo("")' type="button">
+                <span>◀ Back Home</span>
+            </button>
+        </div>
+
+        <!-- Realm Selector Tabs -->
+        <div class="realm-tabs-bar">
+            <button type="button" class="realm-tab @(selectedSkill == SkillCategory.Letters ? "active" : "")"
+                    @onclick="SelectLetters">
+                <span>🚀 Letter Rocket</span>
+            </button>
+            <button type="button" class="realm-tab @(selectedSkill == SkillCategory.Numbers ? "active" : "")"
+                    @onclick="SelectNumbers">
+                <span>🐸 Number Jump</span>
+            </button>
+            <button type="button" class="realm-tab @(selectedSkill == SkillCategory.Colors ? "active" : "")"
+                    @onclick="SelectColors">
+                <span>🎨 Color Splash</span>
+            </button>
+            <button type="button" class="realm-tab @(selectedSkill == SkillCategory.Animals ? "active" : "")"
+                    @onclick="SelectAnimals">
+                <span>🦁 Animal Safari</span>
+            </button>
+            <button type="button" class="realm-tab @(selectedSkill == SkillCategory.Spelling ? "active" : "")"
+                    @onclick="SelectSpelling">
+                <span>🧩 Word Builder</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Trail Map Component -->
+    <LevelMap Skill="@selectedSkill" GameTitle="@selectedGameTitle" OnLevelSelected="HandleLevelSelected" />
+
+    <!-- Challenge Tier Picker -->
+    <ChallengeTierPicker Skill="@selectedSkill" />
+</div>
+
+<style>
+    .trail-page-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .trail-page-hero {
+        background: #FFF9C4;
+        border: 4px solid #2C3E50;
+        border-radius: 28px;
+        box-shadow: 0 8px 0 #2C3E50;
+        padding: 1.5rem;
+    }
+
+    .hero-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .hero-icon {
+        font-size: 2.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+        color: #2C3E50;
+    }
+
+    .hero-sub {
+        color: #546E7A;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .realm-tabs-bar {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .realm-tab {
+        background: #FFFFFF;
+        border: 2px solid #2C3E50;
+        border-radius: 18px;
+        padding: 0.6rem 1rem;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: #2C3E50;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform 0.15s ease, background 0.15s ease;
+        box-shadow: 0 3px 0 #2C3E50;
+    }
+
+    .realm-tab:hover {
+        transform: translateY(-2px);
+    }
+
+    .realm-tab.active {
+        background: #80CBC4;
+        color: #004D40;
+        box-shadow: 0 4px 0 #004D40;
+    }
+
+    .home-pill-btn {
+        background: #E0F2FE;
+        border-color: #0284C7;
+        color: #0369A1;
+        font-weight: 800;
+        font-size: 0.95rem;
+    }
+</style>
+
+@code {
+    private SkillCategory selectedSkill = SkillCategory.Letters;
+    private string selectedGameTitle = "Letter Rocket";
+    private string selectedGameUrl = "game/letter-rocket";
+
+    private void SelectLetters() => SelectRealm(SkillCategory.Letters, "Letter Rocket", "game/letter-rocket");
+    private void SelectNumbers() => SelectRealm(SkillCategory.Numbers, "Number Jump", "game/number-jump");
+    private void SelectColors() => SelectRealm(SkillCategory.Colors, "Color Splash", "game/color-splash");
+    private void SelectAnimals() => SelectRealm(SkillCategory.Animals, "Animal Safari", "game/animal-safari");
+    private void SelectSpelling() => SelectRealm(SkillCategory.Spelling, "Word Builder", "game/word-builder");
+
+    private void SelectRealm(SkillCategory skill, string title, string url)
+    {
+        selectedSkill = skill;
+        selectedGameTitle = title;
+        selectedGameUrl = url;
+    }
+
+    private void HandleLevelSelected(int levelNumber)
+    {
+        Navigation.NavigateTo($"{selectedGameUrl}?level={levelNumber}");
+    }
+}

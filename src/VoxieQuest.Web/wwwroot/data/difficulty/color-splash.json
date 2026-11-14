@@ -1,0 +1,24 @@
+{
+  "gameKey": "color-splash",
+  "gameTitle": "Color Splash",
+  "tiers": {
+    "Seedling": {
+      "palette": "Red,Blue,Yellow,Green",
+      "mode": "basic",
+      "timerSeconds": null,
+      "choicesCount": 2
+    },
+    "Sapling": {
+      "palette": "Red,Blue,Yellow,Green,Orange,Purple,Pink,Brown",
+      "mode": "extended",
+      "timerSeconds": 15,
+      "choicesCount": 3
+    },
+    "BigTree": {
+      "palette": "Cyan,Magenta,Lime,Indigo,Teal,Maroon,Gold,Coral",
+      "mode": "shades",
+      "timerSeconds": 10,
+      "choicesCount": 4
+    }
+  }
+}

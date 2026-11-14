@@ -17,6 +17,7 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddScoped<ISaveService, SaveService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IAdaptiveDifficultyService, AdaptiveDifficultyService>();
+builder.Services.AddScoped<IDifficultyService, DifficultyService>();
 builder.Services.AddScoped<IGameStateService, GameStateService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAudioService, AudioService>();

@@ -1,0 +1,24 @@
+{
+  "gameKey": "letter-rocket",
+  "gameTitle": "Letter Rocket",
+  "tiers": {
+    "Seedling": {
+      "letterPool": "A,B,C,D,E",
+      "allowLowercase": false,
+      "timerSeconds": null,
+      "choicesCount": 2
+    },
+    "Sapling": {
+      "letterPool": "A,B,C,D,E,F,G,H,I,J,K,L,M",
+      "allowLowercase": true,
+      "timerSeconds": 15,
+      "choicesCount": 3
+    },
+    "BigTree": {
+      "letterPool": "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z",
+      "allowLowercase": true,
+      "timerSeconds": 10,
+      "choicesCount": 4
+    }
+  }
+}

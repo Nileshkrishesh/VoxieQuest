@@ -1,5 +1,8 @@
 @page "/profile"
+@using VoxieQuest.Web.Models
+@using VoxieQuest.Web.Services
 @inject IProgressService ProgressService
+@inject IDifficultyService DifficultyService
 @inject IAudioService AudioService
 
 <div class="profile-page-container">
@@ -55,6 +58,11 @@
             </div>
         }
     </div>
+
+    @if (ProgressService.ActiveProfile != null)
+    {
+        <ChallengeTierPicker Skill="SkillCategory.Letters" />
+    }
 
     <!-- Create Profile Card (Visible when toggled) -->
     @if (showNewForm && ProgressService.Profiles.Count < 4)
@@ -459,6 +467,15 @@
         var created = await ProgressService.CreateProfileAsync(newName, newAvatar, newAge);
         created.AgeBand = selectedAgeBand;
         await ProgressService.UpdateProfileAsync(created);
+
+        string bandKey = selectedAgeBand switch
+        {
+            AgeBand.Ages3To5 => "3-5",
+            AgeBand.Ages6To8 => "6-8",
+            AgeBand.Ages9To12 => "9-12",
+            _ => "13+"
+        };
+        await DifficultyService.SetAgeBandDefaultsAsync(bandKey);
 
         newName = "";
         showNewForm = false;

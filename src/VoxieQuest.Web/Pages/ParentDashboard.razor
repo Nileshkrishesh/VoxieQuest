@@ -4,6 +4,7 @@
 @using System.Text.Json
 @inject IProgressService ProgressService
 @inject IAdaptiveDifficultyService DifficultyService
+@inject IDifficultyService AdaptiveDifficulty
 @inject IAccessibilityService Accessibility
 @inject ISessionTimerService SessionTimer
 @inject IStreakService StreakService
@@ -260,6 +261,114 @@
                 <StreakCalendar />
             </div>
 
+            <!-- Adaptive Difficulty & Flow Zone Management -->
+            <div class="storybook-card" style="background:#F0FDF4; border-color:#22C55E;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+                    <div>
+                        <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem; color:#15803D;">
+                            <span>🌱</span> Learning Flow &amp; Botanical Difficulty Controls
+                        </h3>
+                        <p style="margin:0; font-size:0.92rem; color:#166534;">
+                            Targeting an optimal 70–80% flow zone. Never drops abruptly, gently adds hints first, and celebrates effort.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:1rem;">
+                    @foreach (SkillCategory cat in Enum.GetValues<SkillCategory>())
+                    {
+                        var state = AdaptiveDifficulty.GetSkillState(cat);
+                        var tier = state.CurrentTier;
+                        var summary = AdaptiveDifficulty.GetParentSummary(cat);
+
+                        <div class="setting-item-box" style="background:#FFFFFF; border:2px solid #86EFAC; border-radius:18px; padding:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <strong style="font-size:1.1rem; color:#14532D;">@cat</strong>
+                                <span class="pill" style="background:#DCFCE7; border-color:#22C55E; color:#15803D; font-weight:800; font-size:0.85rem;">
+                                    @tier.ToIcon() @tier.ToFriendlyName()
+                                </span>
+                            </div>
+
+                            <!-- Micro-Level Progress Bar (1-100) -->
+                            <div style="margin-bottom:0.75rem;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.82rem; font-weight:700; color:#475569; margin-bottom:0.25rem;">
+                                    <span>Hidden Micro-Level</span>
+                                    <span>@state.MicroLevel / 100</span>
+                                </div>
+                                <div style="height:10px; background:#E2E8F0; border-radius:5px; overflow:hidden; border:1px solid #CBD5E1;">
+                                    <div style="height:100%; width:@(state.MicroLevel)%; background:linear-gradient(90deg, #4ADE80, #22C55E); border-radius:5px;"></div>
+                                </div>
+                            </div>
+
+                            <!-- 4-Week Trendline Sparkline -->
+                            <div style="margin-bottom:0.75rem;">
+                                <span style="font-size:0.8rem; font-weight:700; color:#64748B; display:block; margin-bottom:0.25rem;">
+                                    4-Week Growth Trendline:
+                                </span>
+                                <svg width="100%" height="32" viewBox="0 0 200 32" style="background:#F8FAFC; border-radius:8px; border:1px solid #E2E8F0;">
+                                    @{
+                                        var pts = state.WeeklyHistory;
+                                        var p1 = $"10,{30 - (pts[0] * 26 / 100)}";
+                                        var p2 = $"70,{30 - (pts[1] * 26 / 100)}";
+                                        var p3 = $"130,{30 - (pts[2] * 26 / 100)}";
+                                        var p4 = $"190,{30 - (pts[3] * 26 / 100)}";
+                                        var poly = $"{p1} {p2} {p3} {p4}";
+                                    }
+                                    <polyline points="@poly" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                                    <circle cx="10" cy="@(30 - (pts[0] * 26 / 100))" r="3" fill="#15803D" />
+                                    <circle cx="70" cy="@(30 - (pts[1] * 26 / 100))" r="3" fill="#15803D" />
+                                    <circle cx="130" cy="@(30 - (pts[2] * 26 / 100))" r="3" fill="#15803D" />
+                                    <circle cx="190" cy="@(30 - (pts[3] * 26 / 100))" r="4" fill="#16A34A" />
+                                </svg>
+                            </div>
+
+                            <!-- Metrics Strip -->
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#334155; margin-bottom:0.6rem; padding:0.4rem; background:#F1F5F9; border-radius:8px;">
+                                <span>🎯 Acc: <strong>@state.RecentAccuracyPercent%</strong></span>
+                                <span>⏱️ Avg: <strong>@state.AverageResponseTimeSeconds s</strong></span>
+                                <span>💡 Hints: <strong>@state.HintsUsedCount</strong></span>
+                            </div>
+
+                            <!-- Plain Language Note -->
+                            <p style="font-size:0.82rem; color:#1E293B; line-height:1.4; background:#FEF9C3; border:1px solid #FDE047; padding:0.5rem; border-radius:8px; margin:0 0 0.75rem 0;">
+                                💬 @summary
+                            </p>
+
+                            <!-- Parent Controls: Lock Tier, Unlock All, Reset -->
+                            <div style="display:flex; flex-direction:column; gap:0.4rem;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                                    <span style="font-size:0.82rem; font-weight:700;">Lock Tier:</span>
+                                    <select class="form-select form-select-sm" 
+                                            style="padding:0.2rem 0.5rem; font-size:0.82rem; border-radius:6px; border:1px solid #CBD5E1;"
+                                            value="@(state.IsTierLocked ? state.CurrentTier.ToString() : "Auto")"
+                                            @onchange="(e) => HandleTierLockChange(cat, e.Value?.ToString())">
+                                        <option value="Auto">Auto Adaptive (Recommended)</option>
+                                        <option value="Seedling">🌱 Seedling (Gentle)</option>
+                                        <option value="Sapling">🌿 Sapling (Balanced)</option>
+                                        <option value="BigTree">🌳 Big Tree (Challenge)</option>
+                                    </select>
+                                </div>
+
+                                <div style="display:flex; gap:0.4rem; margin-top:0.25rem;">
+                                    <button type="button" 
+                                            class="pill" 
+                                            style="flex:1; font-size:0.75rem; padding:0.3rem 0.5rem; background:#EFF6FF; border-color:#3B82F6; color:#1D4ED8;"
+                                            @onclick="() => AdaptiveDifficulty.UnlockAllLevelsAsync(cat)">
+                                        @(state.AllLevelsUnlocked ? "✓ All Trail Unlocked" : "🔓 Unlock 10 Levels")
+                                    </button>
+                                    <button type="button" 
+                                            class="pill" 
+                                            style="font-size:0.75rem; padding:0.3rem 0.5rem; background:#FEF2F2; border-color:#EF4444; color:#B91C1C;"
+                                            @onclick="() => AdaptiveDifficulty.ResetSkillAsync(cat)">
+                                        ↺ Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
             <!-- Accessibility & Audio Settings -->
             <div class="storybook-card">
                 <h3 style="font-size:1.35rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
@@ -317,6 +426,66 @@
                             </div>
                             <input type="range" min="0" max="1" step="0.05" value="@Accessibility.MasterVolume" 
                                    @onchange="HandleMasterVolumeChanged" style="width:100%;" />
+                        </div>
+                    </div>
+
+                    <!-- Timers & Neurodivergent Flow Controls -->
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div class="setting-toggle-row">
+                            <div>
+                                <strong style="display:block; font-size:1.05rem;">Timer Pace (No Countdown Pressure)</strong>
+                                <span style="font-size:0.85rem; color:#6B7280;">Adjust the calm moving sun timer duration</span>
+                            </div>
+                            <select class="form-select form-select-sm" 
+                                    style="padding:0.25rem 0.5rem; font-size:0.85rem; border-radius:8px; border:2px solid #CBD5E1;"
+                                    value="@Accessibility.TimerMultiplier.ToString("0.0")"
+                                    @onchange="(e) => HandleTimerMultiplierChanged(e.Value?.ToString())">
+                                <option value="1.0">Standard Sun (1.0x)</option>
+                                <option value="2.0">Extra Time (2.0x)</option>
+                                <option value="0.0">Timers Disabled (0.0x)</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div>
+                                <strong style="display:block; font-size:1.05rem;">ADHD-Friendly Short Bursts</strong>
+                                <span style="font-size:0.85rem; color:#6B7280;">5 questions per round with quick gem progress</span>
+                            </div>
+                            <button class="pill" 
+                                    style="background:@(Accessibility.IsAdhdMode ? "var(--color-mint)" : "white"); min-width:80px;" 
+                                    type="button"
+                                    @onclick="() => Accessibility.SetAdhdModeAsync(!Accessibility.IsAdhdMode)">
+                                @(Accessibility.IsAdhdMode ? "ON ✓" : "OFF")
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Motor Assistance -->
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div class="setting-toggle-row">
+                            <div>
+                                <strong style="display:block; font-size:1.05rem;">Hold-to-Confirm Taps</strong>
+                                <span style="font-size:0.85rem; color:#6B7280;">Helps prevent accidental quick taps</span>
+                            </div>
+                            <button class="pill" 
+                                    style="background:@(Accessibility.IsHoldToConfirm ? "var(--color-mint)" : "white"); min-width:80px;" 
+                                    type="button"
+                                    @onclick="() => Accessibility.SetHoldToConfirmAsync(!Accessibility.IsHoldToConfirm)">
+                                @(Accessibility.IsHoldToConfirm ? "ON ✓" : "OFF")
+                            </button>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div>
+                                <strong style="display:block; font-size:1.05rem;">Oversized Tap Targets</strong>
+                                <span style="font-size:0.85rem; color:#6B7280;">Extra large touch targets for easier interaction</span>
+                            </div>
+                            <button class="pill" 
+                                    style="background:@(Accessibility.IsLargeTargets ? "var(--color-mint)" : "white"); min-width:80px;" 
+                                    type="button"
+                                    @onclick="() => Accessibility.SetLargeTargetsAsync(!Accessibility.IsLargeTargets)">
+                                @(Accessibility.IsLargeTargets ? "ON ✓" : "OFF")
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -626,6 +795,26 @@
         if (double.TryParse(e.Value?.ToString(), out var vol))
         {
             await Accessibility.SetMasterVolumeAsync(vol);
+        }
+    }
+
+    private async Task HandleTierLockChange(SkillCategory skill, string? tierStr)
+    {
+        if (string.Equals(tierStr, "Auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(tierStr))
+        {
+            await AdaptiveDifficulty.UnlockManualTierAsync(skill);
+        }
+        else if (Enum.TryParse<DifficultyTier>(tierStr, out var tier))
+        {
+            await AdaptiveDifficulty.SetManualTierAsync(skill, tier, lockTier: true);
+        }
+    }
+
+    private async Task HandleTimerMultiplierChanged(string? multStr)
+    {
+        if (double.TryParse(multStr, out var mult))
+        {
+            await Accessibility.SetTimerMultiplierAsync(mult);
         }
     }
 }

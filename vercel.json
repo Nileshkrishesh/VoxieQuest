@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "name": "voxic-quest",
-  "cleanUrls": false,
-  "trailingSlash": false,
+  "name": "voxie-quest",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "publish/wwwroot",
   "headers": [
     {

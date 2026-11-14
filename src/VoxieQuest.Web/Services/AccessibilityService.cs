@@ -17,6 +17,10 @@ public class AccessibilityService : IAccessibilityService
     private double _masterVolume = 0.8;
     private double _voiceVolume = 1.0;
     private bool _isMuted = false;
+    private double _timerMultiplier = 1.0;
+    private bool _isAdhdMode = false;
+    private bool _isHoldToConfirm = false;
+    private bool _isLargeTargets = false;
     private bool _isInitialized = false;
 
     public AccessibilityService(ISaveService saveService, IAudioService audioService)
@@ -44,6 +48,18 @@ public class AccessibilityService : IAccessibilityService
     public bool IsMuted => _isMuted;
 
     /// <inheritdoc />
+    public double TimerMultiplier => _timerMultiplier;
+
+    /// <inheritdoc />
+    public bool IsAdhdMode => _isAdhdMode;
+
+    /// <inheritdoc />
+    public bool IsHoldToConfirm => _isHoldToConfirm;
+
+    /// <inheritdoc />
+    public bool IsLargeTargets => _isLargeTargets;
+
+    /// <inheritdoc />
     public event Action? OnSettingsChanged;
 
     /// <inheritdoc />
@@ -66,6 +82,10 @@ public class AccessibilityService : IAccessibilityService
                     _masterVolume = Math.Clamp(prefs.MasterVolume, 0.0, 1.0);
                     _voiceVolume = Math.Clamp(prefs.VoiceVolume, 0.0, 1.0);
                     _isMuted = prefs.Muted;
+                    _timerMultiplier = prefs.TimerMultiplier;
+                    _isAdhdMode = prefs.AdhdMode;
+                    _isHoldToConfirm = prefs.HoldToConfirm;
+                    _isLargeTargets = prefs.LargeTargets;
 
                     await _audioService.SetVolumeAsync(_masterVolume);
                     await _audioService.SetMutedAsync(_isMuted);
@@ -130,6 +150,38 @@ public class AccessibilityService : IAccessibilityService
         OnSettingsChanged?.Invoke();
     }
 
+    /// <inheritdoc />
+    public async Task SetTimerMultiplierAsync(double multiplier)
+    {
+        _timerMultiplier = multiplier;
+        await PersistAsync();
+        OnSettingsChanged?.Invoke();
+    }
+
+    /// <inheritdoc />
+    public async Task SetAdhdModeAsync(bool enabled)
+    {
+        _isAdhdMode = enabled;
+        await PersistAsync();
+        OnSettingsChanged?.Invoke();
+    }
+
+    /// <inheritdoc />
+    public async Task SetHoldToConfirmAsync(bool enabled)
+    {
+        _isHoldToConfirm = enabled;
+        await PersistAsync();
+        OnSettingsChanged?.Invoke();
+    }
+
+    /// <inheritdoc />
+    public async Task SetLargeTargetsAsync(bool enabled)
+    {
+        _isLargeTargets = enabled;
+        await PersistAsync();
+        OnSettingsChanged?.Invoke();
+    }
+
     private async Task PersistAsync()
     {
         try
@@ -141,7 +193,11 @@ public class AccessibilityService : IAccessibilityService
                 SpeechRate = _speechRate,
                 MasterVolume = _masterVolume,
                 VoiceVolume = _voiceVolume,
-                Muted = _isMuted
+                Muted = _isMuted,
+                TimerMultiplier = _timerMultiplier,
+                AdhdMode = _isAdhdMode,
+                HoldToConfirm = _isHoldToConfirm,
+                LargeTargets = _isLargeTargets
             };
             await _saveService.SetItemAsync(StorageKey, JsonSerializer.Serialize(dto));
         }
@@ -159,5 +215,9 @@ public class AccessibilityService : IAccessibilityService
         public double MasterVolume { get; set; } = 0.8;
         public double VoiceVolume { get; set; } = 1.0;
         public bool Muted { get; set; }
+        public double TimerMultiplier { get; set; } = 1.0;
+        public bool AdhdMode { get; set; } = false;
+        public bool HoldToConfirm { get; set; } = false;
+        public bool LargeTargets { get; set; } = false;
     }
 }

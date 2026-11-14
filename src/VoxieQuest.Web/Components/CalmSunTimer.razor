@@ -1,0 +1,137 @@
+@using VoxieQuest.Web.Services
+@inject IAccessibilityService AccessibilityService
+@implements IDisposable
+
+@if (IsTimerActive)
+{
+    <div class="calm-sun-container" title="Calm Sun Timer - Take your time!">
+        <div class="sky-arc">
+            <!-- Gentle decorative clouds -->
+            <span class="cloud cloud-1">☁️</span>
+            <span class="cloud cloud-2">☁️</span>
+
+            <!-- Sun traveling peacefully across the sky -->
+            <div class="sun-orbit" style="left: @(ProgressPercentage)%">
+                <span class="smiling-sun" role="img" aria-label="Calm smiling sun">☀️</span>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .calm-sun-container {
+        width: 100%;
+        max-width: 320px;
+        margin: 0.5rem auto;
+        padding: 0.4rem 1rem;
+        background: #E1F5FE;
+        border: 3px solid #2C3E50;
+        border-radius: 20px;
+        box-shadow: 0 4px 0 #2C3E50;
+        position: relative;
+    }
+
+    .sky-arc {
+        height: 36px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .cloud {
+        position: absolute;
+        font-size: 1.2rem;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .cloud-1 { left: 15%; top: 4px; }
+    .cloud-2 { right: 20%; top: 6px; }
+
+    .sun-orbit {
+        position: absolute;
+        top: 2px;
+        transform: translateX(-50%);
+        transition: left 0.5s ease-out;
+        z-index: 2;
+    }
+
+    .smiling-sun {
+        font-size: 1.8rem;
+        display: inline-block;
+        animation: sunSpin 12s infinite linear;
+        filter: drop-shadow(0 2px 4px rgba(255, 179, 0, 0.4));
+    }
+
+    @@keyframes sunSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int? TotalSeconds { get; set; }
+
+    [Parameter]
+    public EventCallback OnTimerElapsed { get; set; }
+
+    private double _elapsedSeconds = 0;
+    private System.Threading.Timer? _timer;
+
+    private bool IsTimerActive => TotalSeconds.HasValue &&
+                                  TotalSeconds.Value > 0 &&
+                                  AccessibilityService.TimerMultiplier > 0;
+
+    private double EffectiveDuration => (TotalSeconds ?? 15) * Math.Max(0.5, AccessibilityService.TimerMultiplier);
+
+    private double ProgressPercentage => EffectiveDuration > 0
+        ? Math.Min(100.0, (_elapsedSeconds / EffectiveDuration) * 100.0)
+        : 0;
+
+    protected override void OnInitialized()
+    {
+        StartTimer();
+    }
+
+    public void Reset()
+    {
+        _elapsedSeconds = 0;
+        StartTimer();
+        StateHasChanged();
+    }
+
+    private void StartTimer()
+    {
+        _timer?.Dispose();
+        _elapsedSeconds = 0;
+
+        if (!IsTimerActive) return;
+
+        _timer = new System.Threading.Timer(_ =>
+        {
+            _elapsedSeconds += 0.5;
+
+            if (_elapsedSeconds >= EffectiveDuration)
+            {
+                _timer?.Dispose();
+                _timer = null;
+                InvokeAsync(async () =>
+                {
+                    if (OnTimerElapsed.HasDelegate)
+                    {
+                        await OnTimerElapsed.InvokeAsync();
+                    }
+                });
+            }
+
+            InvokeAsync(StateHasChanged);
+        }, null, 500, 500);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

@@ -1,0 +1,144 @@
+@using VoxieQuest.Web.Models
+@using VoxieQuest.Web.Services
+@inject IDifficultyService DifficultyService
+
+<div class="tier-picker-card storybook-panel">
+    <div class="tier-picker-header">
+        <span class="picker-icon">🌱</span>
+        <div>
+            <h4 class="m-0 font-display">How big a challenge today?</h4>
+            <p class="picker-subtext m-0">Pick any pace you like—you can change anytime!</p>
+        </div>
+    </div>
+
+    <div class="tier-cards-grid">
+        @foreach (DifficultyTier tier in Enum.GetValues<DifficultyTier>())
+        {
+            var isSelected = CurrentTier == tier;
+            <button type="button"
+                    class="tier-choice-btn @(isSelected ? "selected" : "") tier-btn-@tier.ToString().ToLowerInvariant()"
+                    @onclick="() => SelectTier(tier)">
+                <div class="choice-icon">@tier.ToIcon()</div>
+                <div class="choice-title">@tier.ToFriendlyName()</div>
+                <div class="choice-desc">@tier.ToDescription()</div>
+                @if (isSelected)
+                {
+                    <div class="active-badge">⭐ Selected</div>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+    .tier-picker-card {
+        background: #FFFFFF;
+        border: 4px solid #2C3E50;
+        border-radius: 24px;
+        box-shadow: 0 6px 0 #2C3E50;
+        padding: 1.25rem;
+        margin: 1rem 0;
+    }
+
+    .tier-picker-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .picker-icon {
+        font-size: 2rem;
+    }
+
+    .picker-subtext {
+        color: #607D8B;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .tier-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .tier-choice-btn {
+        background: #F9FBE7;
+        border: 3px solid #2C3E50;
+        border-radius: 20px;
+        box-shadow: 0 5px 0 #2C3E50;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tier-choice-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 0 #2C3E50;
+    }
+
+    .tier-choice-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #2C3E50;
+    }
+
+    .tier-choice-btn.selected {
+        border-color: #2E7D32;
+        background: #DCEDC8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 #2E7D32;
+    }
+
+    .choice-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .choice-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #2C3E50;
+        margin-bottom: 0.25rem;
+    }
+
+    .choice-desc {
+        font-size: 0.85rem;
+        color: #455A64;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    .active-badge {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        background: #2E7D32;
+        color: #FFFFFF;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public SkillCategory Skill { get; set; } = SkillCategory.Letters;
+
+    [Parameter]
+    public EventCallback<DifficultyTier> OnTierChanged { get; set; }
+
+    private DifficultyTier CurrentTier => DifficultyService.GetSkillState(Skill).CurrentTier;
+
+    private async Task SelectTier(DifficultyTier tier)
+    {
+        await DifficultyService.SetManualTierAsync(Skill, tier, lockTier: false);
+        if (OnTierChanged.HasDelegate)
+        {
+            await OnTierChanged.InvokeAsync(tier);
+        }
+    }
+}

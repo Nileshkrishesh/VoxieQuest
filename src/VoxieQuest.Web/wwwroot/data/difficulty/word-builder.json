@@ -1,0 +1,27 @@
+{
+  "gameKey": "word-builder",
+  "gameTitle": "Word Builder",
+  "tiers": {
+    "Seedling": {
+      "wordLength": 3,
+      "wordPool": "CAT,SUN,DOG,CUP,BAT,PIG,FOX,HEN",
+      "allowBlends": false,
+      "timerSeconds": null,
+      "choicesCount": 3
+    },
+    "Sapling": {
+      "wordLength": 4,
+      "wordPool": "FROG,STAR,BIRD,FISH,TREE,DUCK,MOON,LION",
+      "allowBlends": true,
+      "timerSeconds": 15,
+      "choicesCount": 4
+    },
+    "BigTree": {
+      "wordLength": 5,
+      "wordPool": "PLANT,SMILE,CLOUD,TRAIN,BREAD,TIGER,RIVER,SPACE",
+      "allowBlends": true,
+      "timerSeconds": 10,
+      "choicesCount": 5
+    }
+  }
+}

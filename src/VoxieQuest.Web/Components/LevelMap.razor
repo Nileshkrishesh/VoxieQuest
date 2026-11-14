@@ -1,0 +1,349 @@
+@using VoxieQuest.Web.Models
+@using VoxieQuest.Web.Services
+@inject IDifficultyService DifficultyService
+@inject NavigationManager NavigationManager
+
+<div class="level-map-container storybook-panel">
+    <div class="level-map-header">
+        <div class="map-title-badge">
+            <span class="map-icon">🗺️</span>
+            <div>
+                <h3 class="m-0 font-display">@GameTitle Trail</h3>
+                <span class="subtext">Follow the winding garden trail to level 10!</span>
+            </div>
+        </div>
+
+        <div class="map-tier-indicator">
+            <span class="tier-pill tier-@State.CurrentTier.ToString().ToLowerInvariant()">
+                @State.CurrentTier.ToIcon() @State.CurrentTier.ToFriendlyName() Tier
+            </span>
+        </div>
+    </div>
+
+    <div class="trail-viewport">
+        <svg viewBox="0 0 800 680" class="trail-svg" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <!-- Cozy Trail Gradient -->
+                <linearGradient id="trailGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFE082" />
+                    <stop offset="50%" stop-color="#80CBC4" />
+                    <stop offset="100%" stop-color="#81D4FA" />
+                </linearGradient>
+
+                <!-- Soft Glow Filter for active bouncing node -->
+                <filter id="activeGlow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            <!-- Hand-drawn winding path background ribbon -->
+            <path d="M 100 600 C 250 620, 250 480, 400 480 C 550 480, 680 540, 700 420 C 720 300, 560 320, 420 320 C 260 320, 100 240, 150 140 C 200 40, 450 60, 680 80"
+                  fill="none"
+                  stroke="#2C3E50"
+                  stroke-width="26"
+                  stroke-linecap="round"
+                  stroke-linejoin="round" />
+
+            <path d="M 100 600 C 250 620, 250 480, 400 480 C 550 480, 680 540, 700 420 C 720 300, 560 320, 420 320 C 260 320, 100 240, 150 140 C 200 40, 450 60, 680 80"
+                  fill="none"
+                  stroke="url(#trailGrad)"
+                  stroke-width="18"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-dasharray="14 10" />
+
+            <!-- Decorative Garden Elements -->
+            <g class="garden-decor">
+                <g><text x="60" y="580" font-size="28">🌻</text></g>
+                <g><text x="320" y="520" font-size="24">🌿</text></g>
+                <g><text x="560" y="490" font-size="26">🍄</text></g>
+                <g><text x="730" y="360" font-size="28">🌸</text></g>
+                <g><text x="350" y="270" font-size="24">🍃</text></g>
+                <g><text x="80" y="200" font-size="28">🌷</text></g>
+                <g><text x="500" y="40" font-size="32">🏰</text></g>
+            </g>
+
+            <!-- 10 Level Stops along the trail -->
+            @for (int i = 1; i <= 10; i++)
+            {
+                var lvl = i;
+                var (cx, cy) = GetNodeCoordinates(lvl);
+                var progress = State.Levels.TryGetValue(lvl, out var p) ? p : new LevelStarProgress { LevelNumber = lvl, IsUnlocked = (lvl == 1) };
+                bool isCurrent = progress.IsUnlocked && !progress.IsCompleted && (lvl == 1 || (State.Levels.TryGetValue(lvl - 1, out var prev) && prev.IsCompleted));
+                if (State.AllLevelsUnlocked && !progress.IsCompleted && lvl == 1) isCurrent = true;
+
+                <g class="level-node @(isCurrent ? "node-current" : "") @(progress.IsCompleted ? "node-completed" : "") @(!progress.IsUnlocked ? "node-locked" : "")"
+                   @onclick="() => SelectLevel(lvl, progress.IsUnlocked)">
+                    
+                    @if (isCurrent)
+                    {
+                        <!-- Golden pulse ring for active level -->
+                        <circle cx="@cx" cy="@cy" r="44" fill="#FFD54F" opacity="0.4" class="pulsing-halo" filter="url(#activeGlow)" />
+                    }
+
+                    <!-- Outer Node Circle with thick navy border -->
+                    <circle cx="@cx" cy="@cy" r="32"
+                            fill="@GetNodeFill(progress, isCurrent)"
+                            stroke="#2C3E50"
+                            stroke-width="5"
+                            class="node-circle" />
+
+                    @if (!progress.IsUnlocked)
+                    {
+                        <!-- Sleeping seed 🌱💤 - NEVER a red padlock! -->
+                        <g><text x="@cx" y="@(cy + 8)" text-anchor="middle" font-size="26" class="sleeping-seed">🌱</text></g>
+                        <g><text x="@(cx + 14)" y="@(cy - 12)" text-anchor="middle" font-size="14" class="sleeping-zzz">💤</text></g>
+                    }
+                    else
+                    {
+                        @if (progress.IsBossRound)
+                        {
+                            <!-- Boss round mini challenge crown / trophy -->
+                            <g><text x="@cx" y="@(cy - 2)" text-anchor="middle" font-size="24">@(lvl == 10 ? "🏆" : "👑")</text></g>
+                            <g><text x="@cx" y="@(cy + 18)" text-anchor="middle" font-size="13" font-weight="900" fill="#2C3E50">Boss</text></g>
+                        }
+                        else
+                        {
+                            <!-- Standard Level Number -->
+                            <g><text x="@cx" y="@(cy + 8)" text-anchor="middle" font-size="20" font-weight="900" fill="#2C3E50">@lvl</text></g>
+                        }
+
+                        <!-- Stars Badge (1-3 stars) below node if completed -->
+                        @if (progress.IsCompleted)
+                        {
+                            <g class="stars-cluster" transform="translate(@(cx - 24), @(cy + 22))">
+                                <rect x="0" y="0" width="48" height="18" rx="9" fill="#2C3E50" />
+                                <text x="24" y="13" text-anchor="middle" font-size="12" fill="#FFD700">
+                                    @(new string('★', Math.Clamp(progress.StarsEarned, 1, 3)))
+                                </text>
+                            </g>
+                        }
+                    }
+
+                    <!-- Boss / Celebration Sticker Tooltip -->
+                    @if (progress.IsBossRound && progress.IsCompleted && !string.IsNullOrEmpty(progress.SpecialSticker))
+                    {
+                        <g transform="translate(@(cx - 50), @(cy - 48))">
+                            <rect width="100" height="20" rx="10" fill="#FFEB3B" stroke="#2C3E50" stroke-width="2" />
+                            <text x="50" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#2C3E50">
+                                ⭐ Boss Mastered!
+                            </text>
+                        </g>
+                    }
+                </g>
+            }
+        </svg>
+    </div>
+
+    <div class="trail-legend">
+        <div class="legend-item">
+            <span class="legend-icon">🌱💤</span>
+            <span>Resting Seed (Plays next)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">✨</span>
+            <span>Current Stop</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">👑 / 🏆</span>
+            <span>Boss Adventure (Levels 5 & 10)</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .level-map-container {
+        background: #FFFDE7;
+        border: 4px solid #2C3E50;
+        border-radius: 28px;
+        box-shadow: 0 8px 0 #2C3E50;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        user-select: none;
+    }
+
+    .level-map-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .map-title-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .map-icon {
+        font-size: 2.2rem;
+    }
+
+    .subtext {
+        font-size: 0.95rem;
+        color: #546E7A;
+        font-weight: 600;
+    }
+
+    .tier-pill {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border: 2px solid #2C3E50;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        box-shadow: 0 3px 0 #2C3E50;
+    }
+
+    .tier-seedling { background: #C8E6C9; color: #1B5E20; }
+    .tier-sapling { background: #BBDEFB; color: #0D47A1; }
+    .tier-bigtree { background: #FFE082; color: #E65100; }
+
+    .trail-viewport {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        background: #F1F8E9;
+        border: 3px dashed #81C784;
+        border-radius: 24px;
+        overflow: hidden;
+        padding: 0.5rem;
+    }
+
+    .trail-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .level-node {
+        cursor: pointer;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .level-node:hover:not(.node-locked) {
+        transform: scale(1.15);
+    }
+
+    .node-current {
+        animation: mapBounce 1.8s infinite ease-in-out;
+    }
+
+    @@keyframes mapBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .pulsing-halo {
+        animation: haloPulse 2s infinite ease-in-out;
+    }
+
+    @@keyframes haloPulse {
+        0%, 100% { transform: scale(1); opacity: 0.4; }
+        50% { transform: scale(1.15); opacity: 0.7; }
+    }
+
+    .sleeping-zzz {
+        animation: zzzFloat 2s infinite;
+    }
+
+    @@keyframes zzzFloat {
+        0% { opacity: 0.4; transform: translate(0, 0); }
+        50% { opacity: 1; transform: translate(2px, -3px); }
+        100% { opacity: 0.4; transform: translate(0, 0); }
+    }
+
+    .trail-legend {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 2px dashed #CFD8DC;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #37474F;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    @@media (max-width: 600px) {
+        .level-map-container {
+            padding: 1rem;
+        }
+        .trail-legend {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired]
+    public SkillCategory Skill { get; set; }
+
+    [Parameter]
+    public string GameTitle { get; set; } = "Quest";
+
+    [Parameter]
+    public EventCallback<int> OnLevelSelected { get; set; }
+
+    private SkillDifficultyState State => DifficultyService.GetSkillState(Skill);
+
+    protected override void OnInitialized()
+    {
+        DifficultyService.OnDifficultyChanged += HandleDifficultyChanged;
+    }
+
+    private void HandleDifficultyChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectLevel(int levelNumber, bool isUnlocked)
+    {
+        if (!isUnlocked && !State.AllLevelsUnlocked) return;
+        if (OnLevelSelected.HasDelegate)
+        {
+            await OnLevelSelected.InvokeAsync(levelNumber);
+        }
+    }
+
+    private (int x, int y) GetNodeCoordinates(int level) => level switch
+    {
+        1 => (100, 600),
+        2 => (240, 530),
+        3 => (390, 480),
+        4 => (560, 490),
+        5 => (690, 420), // Boss 1 👑
+        6 => (580, 320),
+        7 => (420, 320),
+        8 => (220, 260),
+        9 => (150, 140),
+        10 => (680, 80), // Grand Boss 🏆
+        _ => (100, 600)
+    };
+
+    private string GetNodeFill(LevelStarProgress progress, bool isCurrent)
+    {
+        if (!progress.IsUnlocked) return "#ECEFF1"; // Gentle sleeping cloud grey
+        if (progress.IsBossRound) return "#FFE082"; // Boss golden honey
+        if (isCurrent) return "#FFF59D";            // Active soft sunlight
+        if (progress.IsCompleted) return "#A5D6A7";        // Completed garden mint
+        return "#FFFFFF";
+    }
+
+    public void Dispose()
+    {
+        DifficultyService.OnDifficultyChanged -= HandleDifficultyChanged;
+    }
+}

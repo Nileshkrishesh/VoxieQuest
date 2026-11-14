@@ -1,0 +1,27 @@
+{
+  "gameKey": "animal-safari",
+  "gameTitle": "Animal Safari",
+  "tiers": {
+    "Seedling": {
+      "animalCount": 4,
+      "animals": "Lion,Cow,Dog,Duck",
+      "similarSounds": false,
+      "timerSeconds": null,
+      "choicesCount": 2
+    },
+    "Sapling": {
+      "animalCount": 8,
+      "animals": "Lion,Cow,Dog,Duck,Elephant,Cat,Sheep,Frog",
+      "similarSounds": false,
+      "timerSeconds": 15,
+      "choicesCount": 3
+    },
+    "BigTree": {
+      "animalCount": 12,
+      "animals": "Lion,Cow,Dog,Duck,Elephant,Cat,Sheep,Frog,Wolf,Horse,Goat,Owl",
+      "similarSounds": true,
+      "timerSeconds": 10,
+      "choicesCount": 4
+    }
+  }
+}

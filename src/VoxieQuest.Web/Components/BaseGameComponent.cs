@@ -19,9 +19,20 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     [Inject] protected IAudioService AudioService { get; set; } = default!;
     [Inject] protected IProgressService ProgressService { get; set; } = default!;
     [Inject] protected IAdaptiveDifficultyService DifficultyService { get; set; } = default!;
+    [Inject] protected IDifficultyService AdaptiveDifficulty { get; set; } = default!;
+    [Inject] protected IAccessibilityService Accessibility { get; set; } = default!;
     [Inject] protected IQuestionService QuestionService { get; set; } = default!;
     [Inject] protected IStreakService StreakService { get; set; } = default!;
     [Inject] protected NavigationManager Navigation { get; set; } = default!;
+
+    /// <summary>Gets the current level stop (1 to 10) on the picture-book trail.</summary>
+    [Parameter] public int CurrentLevel { get; set; } = 1;
+
+    /// <summary>Effective rounds count (5 in ADHD mode, 10 standard).</summary>
+    protected int EffectiveTotalRounds => Accessibility?.IsAdhdMode == true ? 5 : TotalRounds;
+
+    /// <summary>Timestamp when active question was presented.</summary>
+    private DateTime _roundStartTime = DateTime.UtcNow;
 
     /// <summary>Gets the current round number (1 to 10).</summary>
     protected int CurrentRound { get; private set; } = 1;
@@ -113,6 +124,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
         AttemptState.Reset();
 
         ActiveChallenge = await GenerateChallengeAsync(CurrentRound, Difficulty);
+        _roundStartTime = DateTime.UtcNow;
 
         if (ActiveChallenge != null)
         {
@@ -171,6 +183,8 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
             await ProgressService.RecordChallengeAttemptAsync(GameCategory, true, starsEarned);
             DifficultyService.RecordAttempt(true);
+            double responseSecs = Math.Max(0.5, (DateTime.UtcNow - _roundStartTime).TotalSeconds);
+            await AdaptiveDifficulty.RecordAttemptAsync(GameCategory, true, responseSecs, AttemptState.AttemptCount > 1);
             await StreakService.RecordRoundPlayedAsync(starsEarned);
 
             // Trigger game-specific visual animation (e.g. Rocket blasts off, Frog hops, Paint splashes)
@@ -181,7 +195,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
             ShowStarBurst = false;
 
-            if (CurrentRound >= TotalRounds)
+            if (CurrentRound >= EffectiveTotalRounds)
             {
                 await FinishGameWithRewardAsync();
             }
@@ -201,6 +215,8 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
             await ProgressService.RecordChallengeAttemptAsync(GameCategory, false);
             DifficultyService.RecordAttempt(false);
+            double missSecs = Math.Max(0.5, (DateTime.UtcNow - _roundStartTime).TotalSeconds);
+            await AdaptiveDifficulty.RecordAttemptAsync(GameCategory, false, missSecs, false);
 
             await OnAttemptMissedAsync(ActiveChallenge, AttemptState.AttemptCount);
 
@@ -213,7 +229,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
                 await VoiceManager.SpeakAsync($"Great try! The answer is '{ActiveChallenge.TargetAnswer}'. Let's try the next one!");
                 await Task.Delay(2000);
 
-                if (CurrentRound >= TotalRounds)
+                if (CurrentRound >= EffectiveTotalRounds)
                 {
                     await FinishGameWithRewardAsync();
                 }
@@ -250,7 +266,11 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
         MascotState = Mascot.MascotState.Happy;
         await VoiceManager.StopListeningAsync();
         await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
-        await VoiceManager.SpeakAsync($"Hooray! You finished all ten rounds and collected {SessionStars} stars!");
+
+        int stars = SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1);
+        await AdaptiveDifficulty.CompleteLevelAsync(GameCategory, CurrentLevel, stars, 0);
+
+        await VoiceManager.SpeakAsync($"Hooray! You finished all rounds and collected {SessionStars} stars!");
         StateHasChanged();
     }
 

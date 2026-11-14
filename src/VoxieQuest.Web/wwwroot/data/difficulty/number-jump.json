@@ -1,0 +1,30 @@
+{
+  "gameKey": "number-jump",
+  "gameTitle": "Number Jump",
+  "tiers": {
+    "Seedling": {
+      "sumMin": 1,
+      "sumMax": 5,
+      "allowSubtraction": false,
+      "allowMixed": false,
+      "timerSeconds": null,
+      "choicesCount": 2
+    },
+    "Sapling": {
+      "sumMin": 1,
+      "sumMax": 10,
+      "allowSubtraction": true,
+      "allowMixed": false,
+      "timerSeconds": 15,
+      "choicesCount": 3
+    },
+    "BigTree": {
+      "sumMin": 1,
+      "sumMax": 20,
+      "allowSubtraction": true,
+      "allowMixed": true,
+      "timerSeconds": 10,
+      "choicesCount": 4
+    }
+  }
+}
