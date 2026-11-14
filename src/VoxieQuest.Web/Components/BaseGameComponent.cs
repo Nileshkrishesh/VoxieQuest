@@ -307,6 +307,14 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
+    /// Switches the voice manager to manual touch practice mode.
+    /// </summary>
+    protected void SwitchToPracticeMode()
+    {
+        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
+    }
+
+    /// <summary>
     /// Repeats the current challenge prompt aloud via Voxie.
     /// </summary>
     protected async Task RepeatPromptAloudAsync()

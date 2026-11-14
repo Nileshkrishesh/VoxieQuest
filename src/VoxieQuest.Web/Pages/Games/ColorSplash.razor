@@ -2,29 +2,39 @@
 @page "/game/paint"
 @inherits BaseGameComponent
 
-<div class="game-viewport paint-theme">
-    <!-- Sunny Meadow Parallax Backdrop -->
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="@TotalRounds"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Hills"
+           ThemeClass="paint-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Name the color to splash paint!")"
+           HintText="@(ActiveChallenge?.Hint ?? string.Empty)"
+           ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge?.Hint))"
+           MascotMood="@MascotState"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@GetPracticeChoices()"
+           ShowSuccessBurst="@ShowStarBurst"
+           ShowEncourageBurst="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+           IsRewardOpen="@IsRewardScreenOpen"
+           StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="SubmitManualAnswerAsync"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="ReturnToMapAsync"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
-    <GameHeader Title="@GameTitle" 
-                CurrentRound="@CurrentRound" 
-                TotalRounds="@TotalRounds" 
-                Stars="@SessionStars" 
-                OnBack="ReturnToMapAsync" 
-                OnPause="() => isPauseOpen = true" />
-
-    @if (ActiveChallenge != null)
-    {
-        <!-- Main Paper-Cut Question Stage -->
-        <QuestionCard Prompt="@ActiveChallenge.Prompt"
-                      HintText="@ActiveChallenge.Hint"
-                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
-                      MascotMood="@MascotState"
-                      OnRepeatPrompt="RepeatPromptAloudAsync">
-
-            <!-- Art Studio Easel & Paint Splat Stage -->
-            <div class="art-studio-stage">
+    <SceneContent>
+        <!-- Scaling Art Studio Easel & Paint Splat Stage -->
+        <div class="art-studio-stage">
+            @if (ActiveChallenge != null)
+            {
                 <!-- Color Swatch Badge with Colorblind Texture Pattern -->
                 <div class="color-swatch-badge storybook-card-tilt" style="background-color: @ActiveChallenge.TargetColor;">
                     <div class="swatch-pattern-layer @GetPatternClass(ActiveChallenge.TargetAnswer)"></div>
@@ -66,59 +76,21 @@
                         </svg>
                     </div>
                 </div>
-            </div>
-
-            <!-- Practice Mode 2x2 Answer Chips Fallback -->
-            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
-            {
-                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
             }
-        </QuestionCard>
-
-        <!-- Giant Bottom Center Voice Microphone Button -->
-        <MicButton IsListening="@VoiceManager.IsListening" 
-                   VolumeLevel="@CurrentVolume" 
-                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
-                   OnToggleListening="ToggleListeningAsync" />
-    }
-
-    <!-- Celebratory Burst / Gentle Encouragement -->
-    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
-                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
-                   HintText="@ActiveChallenge?.Hint" />
-
-    <!-- 10-Round Quest Completion Celebration -->
-    <RewardScreen IsOpen="@IsRewardScreenOpen" 
-                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnNextQuest="ReturnToMapAsync" />
-
-    <!-- Paper Card Pause Sheet -->
-    <PauseSheet IsOpen="@isPauseOpen" 
-                OnResume="() => isPauseOpen = false" 
-                OnReturnToMap="ReturnToMapAsync" />
-</div>
+        </div>
+    </SceneContent>
+</GameShell>
 
 <style>
-    .paint-theme {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: clamp(0.75rem, 2vw, 1.25rem);
-        padding-top: calc(var(--header-h) + 0.5rem);
-        padding-bottom: calc(var(--nav-h) + 1rem);
-        position: relative;
-    }
-
     .art-studio-stage {
         width: 100%;
+        height: 100%;
+        max-width: 560px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin: 0.5rem 0;
+        justify-content: center;
+        margin: 0 auto;
         position: relative;
     }
 
@@ -129,9 +101,9 @@
         justify-content: center;
         border: var(--border-storybook);
         border-radius: var(--radius-sm);
-        padding: 0.45rem 1.4rem;
+        padding: clamp(0.2rem, 1vh, 0.45rem) clamp(0.6rem, 2vw, 1.2rem);
         box-shadow: var(--shadow-hard-sm);
-        margin-bottom: 0.5rem;
+        margin-bottom: clamp(4px, 1vh, 10px);
         overflow: hidden;
     }
 
@@ -143,10 +115,10 @@
 
     .swatch-label {
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 1rem + 0.5vw, 1.6rem);
+        font-size: clamp(1rem, 3vw, 1.5rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.9);
         padding: 0.15rem 0.6rem;
         border-radius: var(--radius-pill);
         border: 2px solid var(--color-storybook-ink);
@@ -158,15 +130,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 1.5rem;
+        gap: clamp(0.75rem, 3vw, 1.5rem);
         width: 100%;
-        max-width: 620px;
-        min-height: 220px;
+        max-height: clamp(120px, 24vh, 200px);
     }
 
     .paint-bucket-rig {
-        width: 90px;
-        height: 100px;
+        width: clamp(60px, 15vw, 88px);
+        height: clamp(70px, 17vh, 100px);
         position: relative;
         flex-shrink: 0;
     }
@@ -178,26 +149,27 @@
 
     .paint-liquid-splat {
         position: absolute;
-        top: 15px;
-        right: -60px;
-        width: 70px;
-        height: 70px;
+        top: 10px;
+        right: -40px;
+        width: clamp(44px, 12vw, 68px);
+        height: clamp(44px, 12vw, 68px);
         z-index: 5;
         animation: splat-burst 0.5s var(--spring-squish) forwards;
     }
 
     .picture-canvas-frame {
-        width: 180px;
-        height: 180px;
+        width: clamp(100px, 25vw, 165px);
+        height: clamp(100px, 25vw, 165px);
         background: #FFFFFF;
-        border: var(--border-storybook-thick);
+        border: var(--border-storybook);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-hard-md);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 0.5rem;
+        padding: 0.4rem;
         transition: transform 0.3s ease;
+        flex-shrink: 0;
     }
 
     .canvas-artwork-svg {
@@ -249,7 +221,6 @@
 
     private bool isSplashing = false;
     private bool isColoredIn = false;
-    private bool isPauseOpen = false;
 
     private static readonly (string ObjectName, string ColorName, string Hex, string Clue)[] EasyColors = new[]
     {

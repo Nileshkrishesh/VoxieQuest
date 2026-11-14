@@ -169,6 +169,34 @@
         0%, 100% { box-shadow: var(--shadow-hard-md); }
         50% { box-shadow: 0 0 0 6px rgba(126, 217, 168, 0.4), var(--shadow-hard-md); }
     }
+
+    @@media (max-width: 600px) {
+        .giant-mic-wrapper {
+            margin: 0.15rem auto;
+        }
+        .mic-sphere {
+            width: 76px;
+            height: 76px;
+            border-width: 3px;
+        }
+        .mic-face-svg {
+            width: 46px;
+            height: 46px;
+        }
+        .mic-status-badge {
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            margin-top: -2px;
+        }
+        .ring-outer {
+            width: 104px;
+            height: 104px;
+        }
+        .ring-inner {
+            width: 88px;
+            height: 88px;
+        }
+    }
 </style>
 
 @code {

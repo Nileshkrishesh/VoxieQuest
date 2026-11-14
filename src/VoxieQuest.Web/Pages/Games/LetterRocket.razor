@@ -2,154 +2,120 @@
 @page "/game/rocket"
 @inherits BaseGameComponent
 
-<div class="game-viewport rocket-theme">
-    <!-- Atmospheric Parallax Backdrop -->
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Space" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="@TotalRounds"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Space"
+           ThemeClass="rocket-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Say the letter aloud to launch your rocket!")"
+           HintText="@(ActiveChallenge?.Hint ?? string.Empty)"
+           ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge?.Hint))"
+           MascotMood="@MascotState"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@GetPracticeChoices()"
+           ShowSuccessBurst="@ShowStarBurst"
+           ShowEncourageBurst="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+           IsRewardOpen="@IsRewardScreenOpen"
+           StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="SubmitManualAnswerAsync"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="ReturnToMapAsync"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
-    <GameHeader Title="@GameTitle" 
-                CurrentRound="@CurrentRound" 
-                TotalRounds="@TotalRounds" 
-                Stars="@SessionStars" 
-                OnBack="ReturnToMapAsync" 
-                OnPause="() => isPauseOpen = true" />
+    <SceneContent>
+        <!-- Scaling Responsive Rocket Launch Arena -->
+        <div class="rocket-launch-stage">
+            <div class="night-sky-canvas">
+                <svg class="celestial-backdrop" viewBox="0 0 400 160" preserveAspectRatio="none" fill="none">
+                    <!-- Soft Crescent Moon -->
+                    <path d="M340 30C325 30 315 42 315 56C315 70 326 80 340 80C333 76 329 67 329 55C329 43 333 34 340 30Z" fill="#FFC93C" stroke="#2B2D42" stroke-width="2.5"/>
+                    <!-- Twinkling Paper Stars -->
+                    <polygon points="60,35 63,42 70,43 65,48 66,55 60,51 54,55 55,48 50,43 57,42" fill="#FFC93C" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-1"/>
+                    <polygon points="180,25 182,30 188,31 184,35 185,41 180,38 175,41 176,35 172,31 178,30" fill="#FFF8E7" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-2"/>
+                    <polygon points="260,40 262,45 268,46 264,50 265,56 260,53 255,56 256,50 252,46 258,45" fill="#5BC0EB" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-3"/>
+                </svg>
 
-    @if (ActiveChallenge != null)
-    {
-        <!-- Main Paper-Cut Question Stage -->
-        <QuestionCard Prompt="@ActiveChallenge.Prompt"
-                      HintText="@ActiveChallenge.Hint"
-                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
-                      MascotMood="@MascotState"
-                      OnRepeatPrompt="RepeatPromptAloudAsync">
+                <!-- Huge Glowing Target Letter Badge -->
+                <div class="target-letter-card storybook-card-tilt">
+                    <span class="target-letter-glow">@(ActiveChallenge?.DisplayItem ?? "A")</span>
+                </div>
 
-            <!-- Rocket Launch Arena: Scaling SVG Viewport -->
-            <div class="rocket-launch-stage">
-                <!-- Night Sky Window with Moon & Floating Stars -->
-                <div class="night-sky-canvas">
-                    <svg class="celestial-backdrop" viewBox="0 0 400 160" preserveAspectRatio="none" fill="none">
-                        <!-- Soft Crescent Moon -->
-                        <path d="M340 30C325 30 315 42 315 56C315 70 326 80 340 80C333 76 329 67 329 55C329 43 333 34 340 30Z" fill="#FFC93C" stroke="#2B2D42" stroke-width="2.5"/>
-                        <!-- Twinkling Paper Stars -->
-                        <polygon points="60,35 63,42 70,43 65,48 66,55 60,51 54,55 55,48 50,43 57,42" fill="#FFC93C" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-1"/>
-                        <polygon points="180,25 182,30 188,31 184,35 185,41 180,38 175,41 176,35 172,31 178,30" fill="#FFF8E7" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-2"/>
-                        <polygon points="260,40 262,45 268,46 264,50 265,56 260,53 255,56 256,50 252,46 258,45" fill="#5BC0EB" stroke="#2B2D42" stroke-width="1.5" class="star-twinkle-3"/>
+                <!-- Paper-Cut Rocket on Launchpad -->
+                <div class="rocket-vessel-rig @(isBlastingOff ? "rig-blastoff" : (VoiceManager.IsListening ? "rig-vibrating" : "rig-idle"))">
+                    <svg class="rocket-craft-svg" viewBox="0 0 160 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Exhaust Smoke Clouds & Flame -->
+                        <g class="exhaust-fire @(isBlastingOff ? "exhaust-active" : "exhaust-idle")">
+                            <circle cx="55" cy="200" r="16" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
+                            <circle cx="80" cy="215" r="22" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
+                            <circle cx="105" cy="200" r="16" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
+                            <path d="M64 185C55 210 70 235 80 238C90 235 105 210 96 185Z" fill="#FFC93C" stroke="#2B2D42" stroke-width="3"/>
+                            <path d="M72 185C66 205 75 225 80 228C85 225 94 205 88 185Z" fill="#FF6B6B"/>
+                        </g>
+
+                        <!-- Rocket Side Fins -->
+                        <path d="M38 155C25 165 16 185 18 195C34 192 48 176 50 166Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M122 155C135 165 144 185 142 195C126 192 112 176 110 166Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
+
+                        <!-- Rocket Main Fuselage -->
+                        <path d="M80 18C58 45 48 100 48 180H112C112 100 102 45 80 18Z" fill="#FFF8E7" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
+
+                        <!-- Rocket Nose Cone -->
+                        <path d="M80 18C70 34 64 60 62 74H98C96 60 90 34 80 18Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
+
+                        <!-- Porthole Window -->
+                        <circle cx="80" cy="115" r="28" fill="#5BC0EB" stroke="#2B2D42" stroke-width="4"/>
+                        <circle cx="80" cy="115" r="22" fill="#E8F5FD"/>
+                        <text x="80" y="125" font-family="var(--font-heading)" font-size="28" font-weight="700" fill="#2B2D42" text-anchor="middle">
+                            @(ActiveChallenge?.DisplayItem ?? "A")
+                        </text>
+
+                        <!-- Engine Nozzle -->
+                        <path d="M60 180H100L94 192H66L60 180Z" fill="#2B2D42"/>
                     </svg>
+                </div>
 
-                    <!-- Huge Glowing Target Letter Badge -->
-                    <div class="target-letter-card storybook-card-tilt">
-                        <span class="target-letter-glow">@ActiveChallenge.DisplayItem</span>
-                    </div>
-
-                    <!-- Paper-Cut Rocket on Launchpad -->
-                    <div class="rocket-vessel-rig @(isBlastingOff ? "rig-blastoff" : (VoiceManager.IsListening ? "rig-vibrating" : "rig-idle"))">
-                        <svg class="rocket-craft-svg" viewBox="0 0 160 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Exhaust Smoke Clouds & Flame -->
-                            <g class="exhaust-fire @(isBlastingOff ? "exhaust-active" : "exhaust-idle")">
-                                <circle cx="55" cy="200" r="16" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
-                                <circle cx="80" cy="215" r="22" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
-                                <circle cx="105" cy="200" r="16" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
-                                <path d="M64 185C55 210 70 235 80 238C90 235 105 210 96 185Z" fill="#FFC93C" stroke="#2B2D42" stroke-width="3"/>
-                                <path d="M72 185C66 205 75 225 80 228C85 225 94 205 88 185Z" fill="#FF6B6B"/>
-                            </g>
-
-                            <!-- Rocket Side Fins -->
-                            <path d="M38 155C25 165 16 185 18 195C34 192 48 176 50 166Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
-                            <path d="M122 155C135 165 144 185 142 195C126 192 112 176 110 166Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
-
-                            <!-- Rocket Main Fuselage -->
-                            <path d="M80 18C58 45 48 100 48 180H112C112 100 102 45 80 18Z" fill="#FFF8E7" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
-
-                            <!-- Rocket Nose Cone -->
-                            <path d="M80 18C70 34 64 60 62 74H98C96 60 90 34 80 18Z" fill="#FF6B6B" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
-
-                            <!-- Porthole Window -->
-                            <circle cx="80" cy="115" r="28" fill="#5BC0EB" stroke="#2B2D42" stroke-width="4"/>
-                            <circle cx="80" cy="115" r="22" fill="#E8F5FD"/>
-                            <!-- Letter inside porthole -->
-                            <text x="80" y="125" font-family="var(--font-heading)" font-size="28" font-weight="700" fill="#2B2D42" text-anchor="middle">
-                                @ActiveChallenge.DisplayItem
-                            </text>
-
-                            <!-- Engine Nozzle -->
-                            <path d="M60 180H100L94 192H66L60 180Z" fill="#2B2D42"/>
-                        </svg>
-                    </div>
-
-                    <!-- Ground Launchpad Gantry -->
-                    <div class="launchpad-beam">
-                        <svg viewBox="0 0 240 30" fill="none">
-                            <rect x="20" y="8" width="200" height="14" rx="4" fill="#94A3B8" stroke="#2B2D42" stroke-width="3"/>
-                            <line x1="40" y1="8" x2="40" y2="22" stroke="#2B2D42" stroke-width="3"/>
-                            <line x1="80" y1="8" x2="80" y2="22" stroke="#2B2D42" stroke-width="3"/>
-                            <line x1="120" y1="8" x2="120" y2="22" stroke="#2B2D42" stroke-width="3"/>
-                            <line x1="160" y1="8" x2="160" y2="22" stroke="#2B2D42" stroke-width="3"/>
-                            <line x1="200" y1="8" x2="200" y2="22" stroke="#2B2D42" stroke-width="3"/>
-                        </svg>
-                    </div>
+                <!-- Ground Launchpad Gantry -->
+                <div class="launchpad-beam">
+                    <svg viewBox="0 0 240 30" fill="none">
+                        <rect x="20" y="8" width="200" height="14" rx="4" fill="#94A3B8" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="40" y1="8" x2="40" y2="22" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="80" y1="8" x2="80" y2="22" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="120" y1="8" x2="120" y2="22" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="160" y1="8" x2="160" y2="22" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="200" y1="8" x2="200" y2="22" stroke="#2B2D42" stroke-width="3"/>
+                    </svg>
                 </div>
             </div>
-
-            <!-- Practice Mode 2x2 Answer Chips Fallback -->
-            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
-            {
-                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
-            }
-        </QuestionCard>
-
-        <!-- Giant Bottom Center Voice Microphone Button -->
-        <MicButton IsListening="@VoiceManager.IsListening" 
-                   VolumeLevel="@CurrentVolume" 
-                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
-                   OnToggleListening="ToggleListeningAsync" />
-    }
-
-    <!-- Celebratory Burst / Gentle Encouragement -->
-    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
-                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
-                   HintText="@ActiveChallenge?.Hint" />
-
-    <!-- 10-Round Quest Completion Celebration -->
-    <RewardScreen IsOpen="@IsRewardScreenOpen" 
-                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnNextQuest="ReturnToMapAsync" />
-
-    <!-- Paper Card Pause Sheet -->
-    <PauseSheet IsOpen="@isPauseOpen" 
-                OnResume="() => isPauseOpen = false" 
-                OnReturnToMap="ReturnToMapAsync" />
-</div>
+        </div>
+    </SceneContent>
+</GameShell>
 
 <style>
-    .rocket-theme {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: clamp(0.75rem, 2vw, 1.25rem);
-        padding-top: calc(var(--header-h) + 0.5rem);
-        padding-bottom: calc(var(--nav-h) + 1rem);
-        position: relative;
-    }
-
     .rocket-launch-stage {
         width: 100%;
+        height: 100%;
+        max-width: 540px;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        margin: 0.5rem 0;
+        justify-content: center;
+        margin: 0 auto;
     }
 
     .night-sky-canvas {
         width: 100%;
-        max-width: 620px;
-        height: 240px;
+        height: 100%;
+        max-height: clamp(140px, 28vh, 230px);
         background: var(--color-night-sky);
         border: var(--border-storybook);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
         box-shadow: var(--shadow-hard-md);
         position: relative;
         overflow: hidden;
@@ -167,27 +133,27 @@
 
     .target-letter-card {
         position: absolute;
-        top: 16px;
-        left: 20px;
+        top: clamp(8px, 2vh, 16px);
+        left: clamp(10px, 3vw, 20px);
         background: var(--color-sunny-yellow);
         border: var(--border-storybook);
         border-radius: var(--radius-sm);
-        padding: 0.4rem 1rem;
+        padding: clamp(0.2rem, 1vh, 0.4rem) clamp(0.6rem, 2vw, 1rem);
         box-shadow: var(--shadow-hard-sm);
         z-index: 5;
     }
 
     .target-letter-glow {
         font-family: var(--font-heading);
-        font-size: clamp(1.8rem, 1.4rem + 0.8vw, 2.4rem);
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
         letter-spacing: 0.05em;
     }
 
     .rocket-vessel-rig {
-        width: 130px;
-        height: 190px;
+        width: clamp(80px, 20vw, 130px);
+        height: clamp(110px, 24vh, 185px);
         position: relative;
         z-index: 3;
         transition: transform 0.2s ease;
@@ -203,7 +169,7 @@
         max-width: 240px;
         position: relative;
         z-index: 2;
-        margin-top: -12px;
+        margin-top: -10px;
     }
 
     /* Animation States */
@@ -251,7 +217,6 @@
     protected override string GameTitle => "Letter Rocket";
 
     private bool isBlastingOff = false;
-    private bool isPauseOpen = false;
 
     private static readonly (string Letter, string Sound, string Word)[] EasyLetters = new[]
     {

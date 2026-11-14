@@ -166,12 +166,15 @@
 
 <style>
     .game-viewport {
+        width: 100%;
         max-width: 640px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
         gap: var(--space-3);
+        padding: clamp(8px, 2vw, 16px);
         padding-bottom: 3rem;
+        box-sizing: border-box;
     }
 
     .game-hud-card {

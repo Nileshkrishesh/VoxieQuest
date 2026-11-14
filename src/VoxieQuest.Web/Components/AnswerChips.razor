@@ -75,9 +75,20 @@
         color: #FFFFFF;
     }
 
-    @@media (max-width: 420px) {
+    @@media (max-width: 600px) {
         .answer-chips-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+            margin: 0.25rem auto;
+            max-width: 360px;
+        }
+        .answer-chip-btn {
+            min-height: 44px;
+            padding: 0.35rem 0.5rem;
+            border-width: 3px;
+        }
+        .chip-label {
+            font-size: clamp(0.95rem, 3.2vw, 1.15rem);
         }
     }
 </style>

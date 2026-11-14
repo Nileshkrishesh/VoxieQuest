@@ -2,35 +2,45 @@
 @page "/game/builder"
 @inherits BaseGameComponent
 
-<div class="game-viewport builder-theme">
-    <!-- Cloud & Sky Parallax Backdrop -->
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Clouds" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="@TotalRounds"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Clouds"
+           ThemeClass="builder-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Speak the word to snap blocks together!")"
+           HintText="@(ActiveChallenge?.Hint ?? string.Empty)"
+           ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge?.Hint))"
+           MascotMood="@MascotState"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@GetPracticeChoices()"
+           ShowSuccessBurst="@ShowStarBurst"
+           ShowEncourageBurst="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+           IsRewardOpen="@IsRewardScreenOpen"
+           StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="SubmitManualAnswerAsync"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="ReturnToMapAsync"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
-    <GameHeader Title="@GameTitle" 
-                CurrentRound="@CurrentRound" 
-                TotalRounds="@TotalRounds" 
-                Stars="@SessionStars" 
-                OnBack="ReturnToMapAsync" 
-                OnPause="() => isPauseOpen = true" />
-
-    @if (ActiveChallenge != null)
-    {
-        <!-- Main Paper-Cut Question Stage -->
-        <QuestionCard Prompt="@ActiveChallenge.Prompt"
-                      HintText="@ActiveChallenge.Hint"
-                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
-                      MascotMood="@MascotState"
-                      OnRepeatPrompt="RepeatPromptAloudAsync">
-
-            <!-- Wooden Workbench Arena -->
-            <div class="workbench-arena">
+    <SceneContent>
+        <!-- Scaling Wooden Workbench Arena -->
+        <div class="workbench-arena">
+            @if (ActiveChallenge != null)
+            {
                 @if (isWordAssembled)
                 {
-                    <!-- Completed Toy Comes to Life with Eyes and Celebration Wiggle -->
+                    <!-- Completed Toy Showcase -->
                     <div class="assembled-toy-showcase toy-wiggle-anim">
                         <div class="toy-icon-plaque">
-                            <BlocksIcon Size="64" />
+                            <BlocksIcon Size="48" />
                         </div>
                         <div class="assembled-word-badge storybook-card-tilt">
                             <span class="assembled-text">@ActiveChallenge.TargetAnswer.ToUpperInvariant()</span>
@@ -42,7 +52,7 @@
                 }
                 else
                 {
-                    <!-- Chunky Wooden Letter Blocks Tray with Gravity Bounce -->
+                    <!-- Wooden Letter Blocks Tray with Gravity Bounce -->
                     <div class="blocks-shelf-tray @(isSnapping ? "blocks-snapping-anim" : "")">
                         @for (int i = 0; i < ActiveChallenge.LetterBlocks.Count; i++)
                         {
@@ -57,7 +67,7 @@
                         }
                     </div>
 
-                    <!-- Magnetic Workbench Slot Rail that fills as spoken -->
+                    <!-- Magnetic Workbench Slot Rail -->
                     <div class="workbench-rail-base">
                         <div class="rail-slots-groove">
                             @for (int i = 0; i < ActiveChallenge.LetterBlocks.Count; i++)
@@ -67,78 +77,40 @@
                                 </div>
                             }
                         </div>
-                        <span class="rail-instruction-label">Speak the whole word to assemble!</span>
+                        <span class="rail-instruction-label">Speak the word to assemble!</span>
                     </div>
                 }
-            </div>
-
-            <!-- Practice Mode 2x2 Answer Chips Fallback -->
-            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
-            {
-                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
             }
-        </QuestionCard>
-
-        <!-- Giant Bottom Center Voice Microphone Button -->
-        <MicButton IsListening="@VoiceManager.IsListening" 
-                   VolumeLevel="@CurrentVolume" 
-                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
-                   OnToggleListening="ToggleListeningAsync" />
-    }
-
-    <!-- Celebratory Burst / Gentle Encouragement -->
-    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
-                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
-                   HintText="@ActiveChallenge?.Hint" />
-
-    <!-- 10-Round Quest Completion Celebration -->
-    <RewardScreen IsOpen="@IsRewardScreenOpen" 
-                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnNextQuest="ReturnToMapAsync" />
-
-    <!-- Paper Card Pause Sheet -->
-    <PauseSheet IsOpen="@isPauseOpen" 
-                OnResume="() => isPauseOpen = false" 
-                OnReturnToMap="ReturnToMapAsync" />
-</div>
+        </div>
+    </SceneContent>
+</GameShell>
 
 <style>
-    .builder-theme {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: clamp(0.75rem, 2vw, 1.25rem);
-        padding-top: calc(var(--header-h) + 0.5rem);
-        padding-bottom: calc(var(--nav-h) + 1rem);
-        position: relative;
-    }
-
     .workbench-arena {
         width: 100%;
+        height: 100%;
+        max-width: 560px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin: 0.5rem 0;
+        justify-content: center;
+        margin: 0 auto;
     }
 
     .blocks-shelf-tray {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: clamp(0.5rem, 1.5vw, 1rem);
-        min-height: 110px;
+        gap: clamp(4px, 1.5vw, 10px);
+        min-height: clamp(60px, 12vh, 90px);
         width: 100%;
-        max-width: 600px;
-        padding: 0.5rem;
+        max-width: 540px;
+        padding: clamp(2px, 0.8vh, 6px);
     }
 
     .wooden-letter-block {
-        width: clamp(60px, 12vw, 76px);
-        height: clamp(60px, 12vw, 76px);
+        width: clamp(46px, 11vw, 68px);
+        height: clamp(46px, 11vw, 68px);
         border: var(--border-storybook);
         border-radius: var(--radius-sm);
         box-shadow: var(--shadow-hard-md);
@@ -153,7 +125,7 @@
         width: 82%;
         height: 82%;
         border: 2px dashed rgba(43, 45, 66, 0.3);
-        border-radius: 8px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -162,50 +134,53 @@
 
     .block-char {
         font-family: var(--font-heading);
-        font-size: clamp(1.8rem, 1.5rem + 0.8vw, 2.4rem);
+        font-size: clamp(1.3rem, 3.8vw, 2.1rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
     }
 
     .workbench-rail-base {
         width: 100%;
-        max-width: 540px;
+        max-width: 480px;
         background: #E8D5B5;
         border: var(--border-storybook);
         border-radius: var(--radius-md);
-        box-shadow: var(--shadow-hard-md);
-        padding: 0.75rem 1.25rem;
+        box-shadow: var(--shadow-hard-sm);
+        padding: clamp(0.35rem, 1vh, 0.65rem) clamp(0.6rem, 2vw, 1.2rem);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
-        margin-top: 0.5rem;
+        gap: clamp(2px, 0.6vh, 6px);
+        margin-top: clamp(2px, 0.8vh, 6px);
     }
 
     .rail-slots-groove {
         display: flex;
-        gap: 0.75rem;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(4px, 1.5vw, 8px);
+        width: 100%;
     }
 
     .groove-slot {
-        width: 52px;
-        height: 14px;
-        background: #C4A482;
-        border-radius: 4px;
-        border: 2px solid var(--color-storybook-ink);
+        width: clamp(38px, 9vw, 54px);
+        height: clamp(38px, 9vw, 54px);
+        background: rgba(43, 45, 66, 0.15);
+        border: 2px dashed var(--color-storybook-ink);
+        border-radius: var(--radius-sm);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .groove-placeholder {
-        color: var(--color-storybook-ink);
-        font-size: 0.8rem;
+        font-size: 1.2rem;
+        color: rgba(43, 45, 66, 0.35);
     }
 
     .rail-instruction-label {
         font-family: var(--font-heading);
-        font-size: 0.95rem;
+        font-size: clamp(0.72rem, 2.2vw, 0.85rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
     }
@@ -214,34 +189,38 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
-        background: var(--color-cloud-white);
+        gap: clamp(4px, 1vh, 8px);
+        background: #FFFFFF;
         border: var(--border-storybook);
         border-radius: var(--radius-md);
-        padding: 1.25rem 2rem;
+        padding: clamp(0.6rem, 1.5vh, 1.2rem) clamp(1rem, 3vw, 2rem);
         box-shadow: var(--shadow-hard-md);
-    }
-
-    .toy-icon-plaque {
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     .assembled-word-badge {
         background: var(--color-sunny-yellow);
         border: var(--border-storybook);
         border-radius: var(--radius-pill);
-        padding: 0.4rem 1.5rem;
+        padding: 0.25rem 1rem;
         box-shadow: var(--shadow-hard-sm);
     }
 
     .assembled-text {
         font-family: var(--font-heading);
-        font-size: clamp(1.6rem, 1.4rem + 0.8vw, 2.2rem);
+        font-size: clamp(1.4rem, 4vw, 2rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
+    }
+
+    .sticker-pill-mint {
+        background: var(--color-mint);
+        border: 1.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 2px 8px;
+        font-family: var(--font-heading);
+        font-size: 0.8rem;
+        font-weight: 700;
     }
 
     /* Animation States */
@@ -258,14 +237,14 @@
     }
 
     @@keyframes block-drop {
-        0% { transform: translateY(-60px) rotate(-10deg); opacity: 0; }
-        70% { transform: translateY(6px) rotate(4deg); opacity: 1; }
+        0% { transform: translateY(-40px) rotate(-10deg); opacity: 0; }
+        70% { transform: translateY(4px) rotate(3deg); opacity: 1; }
         100% { transform: translateY(0) rotate(0); opacity: 1; }
     }
 
     @@keyframes blocks-snap {
         0% { transform: scale(1); }
-        50% { transform: scale(1.15) translateY(-8px); }
+        50% { transform: scale(1.15) translateY(-6px); }
         100% { transform: scale(1); }
     }
 
@@ -283,7 +262,6 @@
 
     private bool isWordAssembled = false;
     private bool isSnapping = false;
-    private bool isPauseOpen = false;
 
     private static readonly (string Word, string[] Blocks, string Hint)[] FallbackEasy = new[]
     {

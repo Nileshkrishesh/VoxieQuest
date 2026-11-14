@@ -5,7 +5,12 @@
     <!-- Top Row: Mascot + Speech Bubble with directional tail -->
     <div class="mascot-speech-row">
         <div class="mascot-anchor">
-            <Mascot State="@MascotMood" Width="84" Height="84" />
+            <div class="mascot-desktop">
+                <Mascot State="@MascotMood" Width="76" Height="76" />
+            </div>
+            <div class="mascot-mobile">
+                <Mascot State="@MascotMood" Width="44" Height="44" />
+            </div>
         </div>
 
         <div class="voxie-speech-bubble">
@@ -165,14 +170,51 @@
         margin-top: 0.5rem;
     }
 
+    .mascot-desktop { display: block; }
+    .mascot-mobile { display: none; }
+
     @@media (max-width: 600px) {
+        .question-paper-card {
+            padding: 0.45rem 0.65rem;
+            border-width: 3px;
+            border-radius: var(--radius-md);
+        }
         .mascot-speech-row {
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
+            align-items: center;
             gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .mascot-desktop { display: none; }
+        .mascot-mobile { display: block; flex-shrink: 0; }
+        .voxie-speech-bubble {
+            padding: 0.4rem 0.65rem;
+            border-width: 3px;
         }
         .bubble-tail {
-            display: none;
+            top: 14px;
+            left: -8px;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 8px solid var(--color-storybook-ink);
+        }
+        .bubble-tail::after {
+            top: -5px;
+            left: 2px;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-right: 7px solid var(--color-cloud-white);
+        }
+        .prompt-text {
+            font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+            line-height: 1.25;
+        }
+        .bubble-actions {
+            gap: 0.35rem;
+        }
+        .prompt-speak-btn, .prompt-hint-pill {
+            padding: 0.2rem 0.55rem;
+            font-size: 0.8rem;
         }
     }
 </style>

@@ -170,7 +170,7 @@
     .beacon-svg-viewport {
         width: 100%;
         height: auto;
-        max-height: 250px;
+        max-height: clamp(130px, 28vh, 220px);
         border-radius: var(--radius-lg);
         border: var(--border-storybook);
         box-shadow: var(--shadow-hard-md);
@@ -353,10 +353,5 @@
         if (isBeamLit) return MicButton.MicState.Done;
         if (VoiceManager.IsListening) return MicButton.MicState.Listening;
         return MicButton.MicState.Ready;
-    }
-
-    private void SwitchToPracticeMode()
-    {
-        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
     }
 }

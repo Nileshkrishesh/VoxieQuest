@@ -2,50 +2,60 @@
 @page "/game/safari"
 @inherits BaseGameComponent
 
-<div class="game-viewport safari-theme">
-    <!-- Lush Jungle Parallax Backdrop -->
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Jungle" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="@TotalRounds"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Jungle"
+           ThemeClass="safari-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Listen to the wild call! Name the animal!")"
+           HintText="@(ActiveChallenge?.Hint ?? string.Empty)"
+           ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge?.Hint))"
+           MascotMood="@MascotState"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@GetPracticeChoices()"
+           ShowSuccessBurst="@ShowStarBurst"
+           ShowEncourageBurst="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+           IsRewardOpen="@IsRewardScreenOpen"
+           StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="SubmitManualAnswerAsync"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="ReturnToMapAsync"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
-    <GameHeader Title="@GameTitle" 
-                CurrentRound="@CurrentRound" 
-                TotalRounds="@TotalRounds" 
-                Stars="@SessionStars" 
-                OnBack="ReturnToMapAsync" 
-                OnPause="() => isPauseOpen = true" />
-
-    @if (ActiveChallenge != null)
-    {
-        <!-- Main Paper-Cut Question Stage -->
-        <QuestionCard Prompt="@ActiveChallenge.Prompt"
-                      HintText="@ActiveChallenge.Hint"
-                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
-                      MascotMood="@MascotState"
-                      OnRepeatPrompt="RepeatPromptAloudAsync">
-
-            <!-- Safari Jungle Stage with Swaying Leaves & Mystery Bush -->
-            <div class="safari-encounters-stage">
-                <!-- Big Speaker Sound Wave Button -->
+    <SceneContent>
+        <!-- Scaling Safari Jungle Stage with Swaying Leaves & Mystery Bush -->
+        <div class="safari-encounters-stage">
+            @if (ActiveChallenge != null)
+            {
+                <!-- Sound Wave Button -->
                 <div class="safari-speaker-trigger">
                     <button class="pill sound-wave-pill @(isListeningToAudio ? "listening-pulse" : "")" 
                             @onclick="PlayCurrentAnimalSoundAsync" 
                             type="button">
-                        <SpeakerIcon Size="24" FillColor="#2B2D42" />
-                        <span>Hear Animal Call: "@ActiveChallenge.SoundOnomatopoeia"</span>
+                        <SpeakerIcon Size="20" FillColor="#2B2D42" />
+                        <span>Hear Call: "@ActiveChallenge.SoundOnomatopoeia"</span>
                     </button>
                 </div>
 
                 <div class="jungle-clearing-box">
                     @if (isAnimalDiscovered)
                     {
-                        <!-- Revealed Colorful Animal Jumping into the Jeep -->
+                        <!-- Revealed Animal Jumping into the Jeep -->
                         <div class="discovered-animal-plaque animal-jump-in">
                             <div class="animal-avatar-halo">
-                                <SafariIcon Size="64" />
+                                <SafariIcon Size="48" />
                             </div>
                             <span class="animal-revealed-title">@ActiveChallenge.TargetAnswer.ToUpperInvariant()</span>
                             <span class="sticker-pill sticker-pill-mint">
-                                Ready for the Jeep Ride!
+                                In the Jeep!
                             </span>
                         </div>
                     }
@@ -56,7 +66,6 @@
                              @onclick="PlayCurrentAnimalSoundAsync" 
                              title="Tap to listen to the animal sound!">
                             <svg class="jungle-bush-svg" viewBox="0 0 220 140" fill="none">
-                                <!-- Sound Wave Ripples -->
                                 @if (isListeningToAudio)
                                 {
                                     <path d="M110 24 C 130 5, 160 5, 180 24" stroke="#FFC93C" stroke-width="4" stroke-linecap="round" fill="none" class="sound-wave-ripple"/>
@@ -73,7 +82,7 @@
                                 <circle cx="135" cy="92" r="35" fill="#52B788" stroke="#2B2D42" stroke-width="4"/>
                                 <circle cx="110" cy="88" r="30" fill="#7ED9A8" stroke="#2B2D42" stroke-width="3.5"/>
 
-                                <!-- Cute Peeking Eyes in the Foliage -->
+                                <!-- Cute Peeking Eyes in Foliage -->
                                 <ellipse cx="98" cy="80" rx="8" ry="10" fill="white" stroke="#2B2D42" stroke-width="2.5"/>
                                 <ellipse cx="122" cy="80" rx="8" ry="10" fill="white" stroke="#2B2D42" stroke-width="2.5"/>
                                 <circle cx="100" cy="80" r="4.5" fill="#2B2D42"/>
@@ -96,17 +105,14 @@
                             <rect x="60" y="4" width="68" height="8" rx="4" fill="#FF6B6B" stroke="#2B2D42" stroke-width="3"/>
                             <rect x="14" y="38" width="12" height="24" rx="4" fill="#2B2D42"/>
                             <circle cx="145" cy="48" r="8" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3"/>
-                            <!-- Front & Back Wheels -->
                             <circle cx="55" cy="68" r="16" fill="#2B2D42"/>
                             <circle cx="55" cy="68" r="7" fill="#CBD5E1" stroke="#2B2D42" stroke-width="2"/>
                             <circle cx="120" cy="68" r="16" fill="#2B2D42"/>
                             <circle cx="120" cy="68" r="7" fill="#CBD5E1" stroke="#2B2D42" stroke-width="2"/>
-                            <!-- Voxie Driver Silhouette -->
                             <circle cx="95" cy="22" r="10" fill="#FF9F43" stroke="#2B2D42" stroke-width="2.5"/>
                         </svg>
                     </div>
 
-                    <!-- Caravan Wagons holding collected animal stickers -->
                     <div class="caravan-wagons-row">
                         @if (_safariCaravan.Any())
                         {
@@ -114,7 +120,7 @@
                             {
                                 <div class="caravan-cart wagon-pop-anim">
                                     <div class="wagon-badge">
-                                        <SafariIcon Size="28" />
+                                        <SafariIcon Size="22" />
                                     </div>
                                     <span class="wagon-title">@member.Name</span>
                                 </div>
@@ -122,180 +128,140 @@
                         }
                         else
                         {
-                            <span class="empty-caravan-msg">Name animals to invite them into the caravan!</span>
+                            <span class="empty-caravan-msg">Caravan ready for animals!</span>
                         }
                     </div>
                 </div>
-            </div>
-
-            <!-- Practice Mode 2x2 Answer Chips Fallback -->
-            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
-            {
-                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
             }
-        </QuestionCard>
-
-        <!-- Giant Bottom Center Voice Microphone Button -->
-        <MicButton IsListening="@VoiceManager.IsListening" 
-                   VolumeLevel="@CurrentVolume" 
-                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
-                   OnToggleListening="ToggleListeningAsync" />
-    }
-
-    <!-- Celebratory Burst / Gentle Encouragement -->
-    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
-                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
-                   HintText="@ActiveChallenge?.Hint" />
-
-    <!-- 10-Round Quest Completion Celebration -->
-    <RewardScreen IsOpen="@IsRewardScreenOpen" 
-                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnNextQuest="ReturnToMapAsync" />
-
-    <!-- Paper Card Pause Sheet -->
-    <PauseSheet IsOpen="@isPauseOpen" 
-                OnResume="() => isPauseOpen = false" 
-                OnReturnToMap="ReturnToMapAsync" />
-</div>
+        </div>
+    </SceneContent>
+</GameShell>
 
 <style>
-    .safari-theme {
+    .safari-encounters-stage {
+        width: 100%;
+        height: 100%;
+        max-width: 560px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding: clamp(0.75rem, 2vw, 1.25rem);
-        padding-top: calc(var(--header-h) + 0.5rem);
-        padding-bottom: calc(var(--nav-h) + 1rem);
+        justify-content: center;
+        margin: 0 auto;
         position: relative;
     }
 
-    .safari-encounters-stage {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: 0.5rem 0;
-    }
-
     .safari-speaker-trigger {
-        margin-bottom: 0.75rem;
+        margin-bottom: clamp(2px, 0.8vh, 6px);
     }
 
     .sound-wave-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
         background: var(--color-sunny-yellow);
         border: var(--border-storybook);
         border-radius: var(--radius-pill);
-        padding: 0.5rem 1.4rem;
-        box-shadow: var(--shadow-hard-sm);
+        padding: clamp(0.25rem, 0.8vh, 0.45rem) clamp(0.6rem, 2vw, 1.2rem);
         font-family: var(--font-heading);
-        font-size: 1.1rem;
+        font-size: clamp(0.85rem, 2.5vw, 1rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
         cursor: pointer;
-        transition: transform 0.1s var(--spring-squish);
+        transition: transform 0.15s ease;
     }
+
     .sound-wave-pill:hover {
         transform: translateY(-2px);
     }
 
     .listening-pulse {
-        animation: pulse-speaker 0.8s infinite alternate;
+        animation: pulse-speaker 0.6s infinite alternate ease-in-out;
+        background: var(--color-mint);
     }
 
     .jungle-clearing-box {
         width: 100%;
-        max-width: 620px;
-        min-height: 190px;
-        background: var(--color-bg-meadow);
-        border: var(--border-storybook);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-hard-md);
+        height: clamp(80px, 15vh, 125px);
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        overflow: hidden;
-        padding: 1rem;
     }
 
     .mystery-bush-rig {
+        width: clamp(140px, 35vw, 200px);
+        height: clamp(80px, 14vh, 115px);
+        cursor: pointer;
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
-        cursor: pointer;
     }
 
     .jungle-bush-svg {
-        width: 190px;
-        height: 120px;
+        width: 100%;
+        height: 100%;
     }
 
     .tap-bush-label {
+        position: absolute;
+        bottom: -2px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 1px 8px;
         font-family: var(--font-heading);
-        font-size: 0.95rem;
+        font-size: 0.75rem;
         font-weight: 700;
         color: var(--color-storybook-ink);
-        background: var(--color-cloud-white);
-        padding: 0.2rem 0.8rem;
-        border-radius: var(--radius-pill);
-        border: 2px solid var(--color-storybook-ink);
-        box-shadow: var(--shadow-hard-sm);
-        margin-top: -6px;
     }
 
     .discovered-animal-plaque {
+        background: #FFFFFF;
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        padding: clamp(0.4rem, 1vh, 0.8rem) clamp(0.8rem, 2vw, 1.5rem);
+        box-shadow: var(--shadow-hard-md);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
-        background: var(--color-cloud-white);
-        border: var(--border-storybook);
-        border-radius: var(--radius-md);
-        padding: 1rem 1.75rem;
-        box-shadow: var(--shadow-hard-md);
-    }
-
-    .animal-avatar-halo {
-        width: 80px;
-        height: 80px;
-        border-radius: var(--radius-pill);
-        background: var(--color-bg-warmth);
-        border: 3px solid var(--color-storybook-ink);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-hard-sm);
+        gap: 0.25rem;
     }
 
     .animal-revealed-title {
         font-family: var(--font-heading);
-        font-size: clamp(1.4rem, 1.2rem + 0.6vw, 1.8rem);
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
         font-weight: 700;
         color: var(--color-storybook-ink);
+    }
+
+    .sticker-pill-mint {
+        background: var(--color-mint);
+        border: 1.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 1px 8px;
+        font-family: var(--font-heading);
+        font-size: 0.75rem;
+        font-weight: 700;
     }
 
     .safari-jeep-strip {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        justify-content: center;
+        gap: 0.5rem;
         width: 100%;
-        max-width: 620px;
+        max-width: 520px;
+        margin-top: clamp(2px, 0.8vh, 6px);
         overflow-x: auto;
-        padding: 0.75rem 0.5rem;
-        margin-top: 0.5rem;
+        padding-bottom: 2px;
     }
 
     .safari-jeep-car {
-        width: 120px;
+        width: clamp(75px, 18vw, 110px);
         flex-shrink: 0;
-        animation: jeep-rumble 0.6s infinite alternate;
+        animation: jeep-rumble 0.25s infinite alternate;
     }
 
     .jeep-svg {
@@ -306,27 +272,20 @@
     .caravan-wagons-row {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        flex-grow: 1;
+        gap: 0.4rem;
+        overflow-x: auto;
     }
 
     .caravan-cart {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    .wagon-badge {
-        width: 48px;
-        height: 42px;
-        background: var(--color-mint);
-        border: var(--border-storybook-thin);
+        background: #FFFFFF;
+        border: 2px solid var(--color-storybook-ink);
         border-radius: var(--radius-sm);
-        box-shadow: var(--shadow-hard-sm);
-        display: flex;
+        padding: 2px 6px;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 3px;
+        box-shadow: var(--shadow-hard-sm);
+        flex-shrink: 0;
     }
 
     .wagon-title {
@@ -335,14 +294,14 @@
         font-weight: 700;
         color: var(--color-storybook-ink);
         text-transform: capitalize;
-        margin-top: 0.15rem;
     }
 
     .empty-caravan-msg {
         font-family: var(--font-body);
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--color-soft-orange);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--color-storybook-ink);
+        opacity: 0.7;
     }
 
     /* Animation States */
@@ -373,8 +332,8 @@
     }
 
     @@keyframes animal-hop {
-        0% { transform: scale(0.3) translateY(40px); opacity: 0; }
-        70% { transform: scale(1.15) translateY(-15px); opacity: 1; }
+        0% { transform: scale(0.3) translateY(30px); opacity: 0; }
+        70% { transform: scale(1.15) translateY(-10px); opacity: 1; }
         100% { transform: scale(1) translateY(0); opacity: 1; }
     }
 
@@ -401,7 +360,6 @@
     private bool isAnimalDiscovered = false;
     private bool isRustling = false;
     private bool isListeningToAudio = false;
-    private bool isPauseOpen = false;
 
     private readonly List<(string Name, string Emoji)> _safariCaravan = new();
     private IReadOnlyList<QuestionItem>? _curriculumQuestions;
