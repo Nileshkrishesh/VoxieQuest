@@ -3,32 +3,30 @@ using VoxieQuest.Web.Models;
 namespace VoxieQuest.Web.Services;
 
 /// <summary>
-/// Service managing the privacy-first Voxie Across India map,
-/// anonymous presence registration, and aggregated state totals.
+/// Service managing the static, private "Voxie Across India" exploration map.
+/// Zero backend, zero user tracking, zero data transmission.
+/// Children explore Indian states, learn fun facts, and collect landmark stickers in their passport.
 /// </summary>
 public interface IIndiaMapService
 {
-    /// <summary>Loads active parent consent preferences from browser local storage.</summary>
-    Task<IndiaPresenceConsent> GetConsentAsync();
+    /// <summary>Loads the child's local India Sticker Passport from browser local storage.</summary>
+    Task<IndiaPassportProgress> GetPassportProgressAsync();
 
-    /// <summary>
-    /// Updates parent consent, selected state, and developmental age band.
-    /// Synchronizes presence to /api/presence or deletes it if opted out.
-    /// </summary>
-    Task SaveConsentAsync(bool isEnabled, string? stateCode, string? ageBand);
+    /// <summary>Unlocks a state landmark sticker after solving the state mini-game.</summary>
+    Task<bool> UnlockStateStickerAsync(string stateCode);
 
-    /// <summary>Explicitly deletes the child's presence contribution from the backend store and opts out.</summary>
-    Task DeleteContributionAsync();
+    /// <summary>Checks whether a specific state sticker has been unlocked.</summary>
+    Task<bool> IsStateUnlockedAsync(string stateCode);
 
-    /// <summary>
-    /// Fetches aggregated, thresholded, rounded totals per state from GET /api/map.
-    /// Falls back gracefully to offline mode if unreachable.
-    /// </summary>
-    Task<IndiaMapResponse> GetMapTotalsAsync(bool forceRefresh = false);
+    /// <summary>Resets passport progress back to 0 stickers.</summary>
+    Task ResetPassportAsync();
 
-    /// <summary>Child waves to India, unlocking the special explorer sticker (no chat or social messaging).</summary>
-    Task<bool> WaveToIndiaAsync();
+    /// <summary>Retrieves exploration metadata for a specific state code.</summary>
+    IndiaStateDefinition? GetStateDetails(string stateCode);
 
-    /// <summary>Fired when parent consent or map data changes.</summary>
-    event Action? OnPresenceChanged;
+    /// <summary>Retrieves all 36 Indian states and union territories.</summary>
+    IReadOnlyList<IndiaStateDefinition> GetAllStates();
+
+    /// <summary>Fired when passport stickers are earned or updated.</summary>
+    event Action? OnPassportChanged;
 }

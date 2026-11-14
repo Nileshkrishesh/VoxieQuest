@@ -1,206 +1,100 @@
-using System.Net.Http.Json;
 using VoxieQuest.Web.Models;
 
 namespace VoxieQuest.Web.Services;
 
 /// <summary>
-/// Handles Voxie Across India state aggregation, anonymous presence submission,
-/// parent opt-in consent persistence, and offline fallback resiliency.
+/// Static, local-only exploration service for the Voxie Across India map.
+/// Manages landmark sticker collections, fun facts, and state learning progress
+/// strictly inside the user's browser with zero backend data transmission.
 /// </summary>
 public class IndiaMapService : IIndiaMapService
 {
-    private const string StorageKey = "voxie_india_presence_consent";
+    private const string StorageKey = "voxie_india_explorer_passport";
     private readonly ISaveService _saveService;
-    private readonly HttpClient _httpClient;
     private readonly IAudioService _audioService;
 
-    private IndiaPresenceConsent? _cachedConsent;
-    private IndiaMapResponse? _cachedMapResponse;
-    private DateTime _lastFetchTime = DateTime.MinValue;
+    private IndiaPassportProgress? _cachedPassport;
 
-    public event Action? OnPresenceChanged;
+    public event Action? OnPassportChanged;
 
-    public IndiaMapService(ISaveService saveService, HttpClient httpClient, IAudioService audioService)
+    public IndiaMapService(ISaveService saveService, IAudioService audioService)
     {
         _saveService = saveService;
-        _httpClient = httpClient;
         _audioService = audioService;
     }
 
-    public async Task<IndiaPresenceConsent> GetConsentAsync()
+    public async Task<IndiaPassportProgress> GetPassportProgressAsync()
     {
-        if (_cachedConsent != null)
+        if (_cachedPassport != null)
         {
-            return _cachedConsent;
+            return _cachedPassport;
         }
 
         try
         {
-            var saved = await _saveService.GetItemAsync<IndiaPresenceConsent>(StorageKey);
+            var saved = await _saveService.GetItemAsync<IndiaPassportProgress>(StorageKey);
             if (saved != null)
             {
-                if (string.IsNullOrEmpty(saved.AnonymousInstallId))
-                {
-                    saved.AnonymousInstallId = Guid.NewGuid().ToString("N");
-                }
-                _cachedConsent = saved;
+                _cachedPassport = saved;
                 return saved;
             }
         }
         catch
         {
-            // Fallback gracefully on fresh device
+            // Graceful fallback on fresh session
         }
 
-        _cachedConsent = new IndiaPresenceConsent();
-        return _cachedConsent;
+        _cachedPassport = new IndiaPassportProgress();
+        return _cachedPassport;
     }
 
-    public async Task SaveConsentAsync(bool isEnabled, string? stateCode, string? ageBand)
+    public async Task<bool> UnlockStateStickerAsync(string stateCode)
     {
-        var consent = await GetConsentAsync();
-        bool wasEnabled = consent.IsEnabled;
-        string? oldState = consent.StateCode;
-
-        consent.IsEnabled = isEnabled;
-        consent.StateCode = isEnabled ? IndiaStateRegistry.NormalizeCode(stateCode ?? "PB") : null;
-        consent.AgeBand = isEnabled ? (string.IsNullOrWhiteSpace(ageBand) ? "6-8" : ageBand) : null;
-
-        await _saveService.SetItemAsync(StorageKey, consent);
-
-        // Sync with serverless API
-        if (isEnabled && !string.IsNullOrEmpty(consent.StateCode))
+        var cleanCode = IndiaStateRegistry.NormalizeCode(stateCode);
+        if (!IndiaStateRegistry.States.ContainsKey(cleanCode))
         {
-            await PushPresencePayloadAsync(consent.StateCode, consent.AgeBand ?? "6-8", consent.AnonymousInstallId);
-            consent.LastSyncedUtc = DateTime.UtcNow;
-            await _saveService.SetItemAsync(StorageKey, consent);
-        }
-        else if (wasEnabled && !isEnabled)
-        {
-            await DeletePresenceRecordAsync(consent.AnonymousInstallId);
+            return false;
         }
 
-        OnPresenceChanged?.Invoke();
+        var passport = await GetPassportProgressAsync();
+        bool isNewUnlock = passport.UnlockedStateCodes.Add(cleanCode);
+
+        passport.LastExploredStateCode = cleanCode;
+        passport.LastUnlockedUtc = DateTime.UtcNow;
+
+        await _saveService.SetItemAsync(StorageKey, passport);
+
+        if (isNewUnlock)
+        {
+            await _audioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        }
+
+        OnPassportChanged?.Invoke();
+        return isNewUnlock;
     }
 
-    public async Task DeleteContributionAsync()
+    public async Task<bool> IsStateUnlockedAsync(string stateCode)
     {
-        var consent = await GetConsentAsync();
-        var anonId = consent.AnonymousInstallId;
-
-        consent.IsEnabled = false;
-        consent.StateCode = null;
-        consent.AgeBand = null;
-        consent.LastSyncedUtc = null;
-
-        await _saveService.SetItemAsync(StorageKey, consent);
-        await DeletePresenceRecordAsync(anonId);
-
-        OnPresenceChanged?.Invoke();
+        var passport = await GetPassportProgressAsync();
+        var cleanCode = IndiaStateRegistry.NormalizeCode(stateCode);
+        return passport.UnlockedStateCodes.Contains(cleanCode);
     }
 
-    public async Task<IndiaMapResponse> GetMapTotalsAsync(bool forceRefresh = false)
+    public async Task ResetPassportAsync()
     {
-        // Cache map totals in-memory for up to 5 minutes during client session
-        if (!forceRefresh && _cachedMapResponse != null && (DateTime.UtcNow - _lastFetchTime).TotalMinutes < 5)
-        {
-            return _cachedMapResponse;
-        }
-
-        try
-        {
-            var response = await _httpClient.GetFromJsonAsync<IndiaMapResponse>("api/map");
-            if (response != null && response.Success)
-            {
-                _cachedMapResponse = response;
-                _lastFetchTime = DateTime.UtcNow;
-                return response;
-            }
-        }
-        catch
-        {
-            // API unreachable or offline - fall back gracefully
-        }
-
-        // Return resilient seeded fallback
-        var fallback = CreateOfflineFallback();
-        _cachedMapResponse = fallback;
-        return fallback;
+        _cachedPassport = new IndiaPassportProgress();
+        await _saveService.SetItemAsync(StorageKey, _cachedPassport);
+        OnPassportChanged?.Invoke();
     }
 
-    public async Task<bool> WaveToIndiaAsync()
+    public IndiaStateDefinition? GetStateDetails(string stateCode)
     {
-        var consent = await GetConsentAsync();
-        consent.HasWaved = true;
-        await _saveService.SetItemAsync(StorageKey, consent);
-        await _audioService.PlaySoundAsync(SoundEffect.SuccessChime);
-        OnPresenceChanged?.Invoke();
-        return true;
+        var cleanCode = IndiaStateRegistry.NormalizeCode(stateCode);
+        return IndiaStateRegistry.States.TryGetValue(cleanCode, out var state) ? state : null;
     }
 
-    private async Task PushPresencePayloadAsync(string stateCode, string ageBand, string anonId)
+    public IReadOnlyList<IndiaStateDefinition> GetAllStates()
     {
-        try
-        {
-            // Strictly 3 privacy-vetted fields only: stateCode, ageBand, anonId
-            var payload = new IndiaPresencePayload
-            {
-                StateCode = stateCode,
-                AgeBand = ageBand,
-                AnonId = anonId
-            };
-
-            await _httpClient.PostAsJsonAsync("api/presence", payload);
-        }
-        catch
-        {
-            // Offline resiliency: network failures do not halt gameplay
-        }
-    }
-
-    private async Task DeletePresenceRecordAsync(string anonId)
-    {
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/presence?anonId={Uri.EscapeDataString(anonId)}");
-            await _httpClient.SendAsync(request);
-        }
-        catch
-        {
-            // Ignore API network errors on delete
-        }
-    }
-
-    private static IndiaMapResponse CreateOfflineFallback()
-    {
-        // Pre-seeded baseline aggregate totals showing active learning across 14 diverse states
-        var fallback = new IndiaMapResponse
-        {
-            Success = true,
-            Timestamp = DateTime.UtcNow,
-            StatesWithActiveLearners = 14,
-            IsOfflineFallback = true,
-            States = new Dictionary<string, IndiaStateApiItem>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["PB"] = new() { CountText = "100+", Band = "Growing" },
-                ["MH"] = new() { CountText = "500+", Band = "Busy" },
-                ["KA"] = new() { CountText = "250+", Band = "Busy" },
-                ["DL"] = new() { CountText = "200+", Band = "Busy" },
-                ["TN"] = new() { CountText = "150+", Band = "Growing" },
-                ["GJ"] = new() { CountText = "100+", Band = "Growing" },
-                ["WB"] = new() { CountText = "80+", Band = "Growing" },
-                ["UP"] = new() { CountText = "200+", Band = "Busy" },
-                ["RJ"] = new() { CountText = "90+", Band = "Growing" },
-                ["KL"] = new() { CountText = "120+", Band = "Growing" },
-                ["TG"] = new() { CountText = "100+", Band = "Growing" },
-                ["MP"] = new() { CountText = "60+", Band = "Growing" },
-                ["AS"] = new() { CountText = "30+", Band = "Growing" },
-                ["OD"] = new() { CountText = "40+", Band = "Growing" },
-                ["GA"] = new() { CountText = "Just starting here!", Band = "JustStarting" },
-                ["HP"] = new() { CountText = "Just starting here!", Band = "JustStarting" }
-            }
-        };
-
-        return fallback;
+        return IndiaStateRegistry.States.Values.ToList();
     }
 }

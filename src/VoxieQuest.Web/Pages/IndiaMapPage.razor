@@ -16,16 +16,16 @@
                 <span style="font-size:2.2rem;">🇮🇳</span>
                 <div>
                     <h2 class="m-0 font-display">Voxie Across India</h2>
-                    <p class="m-0 hero-subtitle">See where friendly adventurers are speaking and playing across the country!</p>
+                    <p class="m-0 hero-subtitle">Explore 36 Indian States &amp; Territories, discover landmarks, and collect stickers!</p>
                 </div>
             </div>
-            <a href="parent" class="pill hero-parent-pill">
-                <span>🛡️ Parent Privacy</span>
-            </a>
+            <button class="pill hero-reset-pill" type="button" @onclick="HandleResetPassport" title="Reset your passport stickers for a fresh journey">
+                <span>↺ Reset Passport</span>
+            </button>
         </div>
     </div>
 
-    <!-- Main Map Component -->
+    <!-- Main Exploration Map Component -->
     <IndiaMap />
 
     <!-- Privacy Note for Parents Footer -->
@@ -33,11 +33,11 @@
         <div class="callout-header">
             <span style="font-size:1.6rem;">🛡️</span>
             <div>
-                <strong style="font-size:1rem; color:#1E293B;">Safe &amp; Anonymous by Design</strong>
+                <strong style="font-size:1rem; color:#1E293B;">100% Private, Client-Side Exploration</strong>
                 <p style="margin:0.25rem 0 0 0; font-size:0.88rem; color:#475569; line-height:1.45;">
-                    Voxie Across India is 100% anonymous. We never track GPS, IP addresses, child names, or schools.
-                    Parents can choose whether to count their state in the Parent Dashboard.
-                    All totals are rounded to protect privacy.
+                    Voxie Across India is completely static and local to your device. 
+                    No user data, no GPS, no IP tracking, and no backend servers are ever accessed.
+                    Your child's collected landmark stickers are saved securely in your browser's local storage.
                 </p>
             </div>
         </div>
@@ -90,13 +90,12 @@
         font-size: 0.92rem;
     }
 
-    .hero-parent-pill {
-        background: #F1F5F9;
-        border-color: #64748B;
-        color: #334155;
+    .hero-reset-pill {
+        background: #FFF1F2;
+        border-color: #E11D48;
+        color: #BE123C;
         font-weight: 800;
         font-size: 0.88rem;
-        text-decoration: none;
     }
 
     .privacy-callout-card {
@@ -112,3 +111,10 @@
         gap: 0.75rem;
     }
 </style>
+
+@code {
+    private async Task HandleResetPassport()
+    {
+        await IndiaMapService.ResetPassportAsync();
+    }
+}

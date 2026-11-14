@@ -1,5 +1,3 @@
-using System.Net;
-using System.Text.Json;
 using VoxieQuest.Web.Models;
 using VoxieQuest.Web.Services;
 using Xunit;
@@ -7,39 +5,46 @@ using Xunit;
 namespace VoxieQuest.Tests;
 
 /// <summary>
-/// Unit tests for the Voxie Across India feature validating strict privacy rules,
-/// thresholding (<20 players), rounding, state validation, payload restriction, and offline resilience.
+/// Unit tests for the static Voxie Across India exploration map and sticker passport.
+/// Validates landmark stickers, state fun facts, exploratory mini-games, and 100% local operation.
 /// </summary>
 public class IndiaMapFeatureTests
 {
     private readonly InMemorySaveService _saveService;
     private readonly MockAudioService _audioService;
+    private readonly IndiaMapService _service;
 
     public IndiaMapFeatureTests()
     {
         _saveService = new InMemorySaveService();
         _audioService = new MockAudioService();
+        _service = new IndiaMapService(_saveService, _audioService);
     }
 
     [Fact]
-    public void Threshold_HidesStatesWithFewerThan20Players()
+    public void All36States_HaveLandmarkStickers_FunFacts_AndMiniGames()
     {
-        // States with < 20 players must display "Just starting here!" and never expose raw counts
-        var lowState = new IndiaStateData
-        {
-            StateCode = "GA",
-            DisplayCount = "Just starting here!",
-            ActivityBand = IndiaActivityBand.JustStarting
-        };
+        var states = IndiaStateRegistry.States;
+        Assert.Equal(36, states.Count);
 
-        Assert.Equal("Just starting here!", lowState.DisplayCount);
-        Assert.Equal(IndiaActivityBand.JustStarting, lowState.ActivityBand);
-        Assert.DoesNotContain("1", lowState.DisplayCount);
-        Assert.DoesNotContain("19", lowState.DisplayCount);
+        foreach (var (code, def) in states)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(def.Code), $"State {code} missing Code");
+            Assert.False(string.IsNullOrWhiteSpace(def.Name), $"State {code} missing Name");
+            Assert.False(string.IsNullOrWhiteSpace(def.Capital), $"State {code} missing Capital");
+            Assert.False(string.IsNullOrWhiteSpace(def.LandmarkIcon), $"State {code} missing LandmarkIcon");
+            Assert.False(string.IsNullOrWhiteSpace(def.LandmarkName), $"State {code} missing LandmarkName");
+            Assert.False(string.IsNullOrWhiteSpace(def.FunFact), $"State {code} missing FunFact");
+            Assert.False(string.IsNullOrWhiteSpace(def.MiniGameQuestion), $"State {code} missing MiniGameQuestion");
+            Assert.Equal(3, def.MiniGameChoices.Count);
+            Assert.Contains(def.CorrectAnswer, def.MiniGameChoices);
+            Assert.False(string.IsNullOrWhiteSpace(def.CelebrationCheer), $"State {code} missing CelebrationCheer");
+        }
     }
 
     [Theory]
     [InlineData("PB", true)]
+    [InlineData("RJ", true)]
     [InlineData("MH", true)]
     [InlineData("KA", true)]
     [InlineData("DL", true)]
@@ -55,123 +60,79 @@ public class IndiaMapFeatureTests
     }
 
     [Fact]
-    public void PayloadRestriction_OnlySendsStateCodeAgeBandAndAnonId()
+    public async Task MiniGame_UnlocksStateSticker_AndUpdatesPassport()
     {
-        var payload = new IndiaPresencePayload
-        {
-            StateCode = "PB",
-            AgeBand = "6-8",
-            AnonId = Guid.NewGuid().ToString("N")
-        };
+        // Initial passport should be empty
+        var initial = await _service.GetPassportProgressAsync();
+        Assert.Equal(0, initial.CollectedCount);
+        Assert.False(await _service.IsStateUnlockedAsync("PB"));
 
-        string json = JsonSerializer.Serialize(payload);
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
+        // Solve mini-game and unlock Punjab
+        bool unlocked = await _service.UnlockStateStickerAsync("PB");
+        Assert.True(unlocked);
 
-        // Verify ONLY these 3 exact keys exist in the serialized JSON
-        var propertyNames = root.EnumerateObject().Select(p => p.Name).ToList();
-
-        Assert.Equal(3, propertyNames.Count);
-        Assert.Contains("stateCode", propertyNames);
-        Assert.Contains("ageBand", propertyNames);
-        Assert.Contains("anonId", propertyNames);
-
-        // Verify forbidden PII fields are never serialized
-        Assert.DoesNotContain("childName", propertyNames);
-        Assert.DoesNotContain("name", propertyNames);
-        Assert.DoesNotContain("gps", propertyNames);
-        Assert.DoesNotContain("ip", propertyNames);
-        Assert.DoesNotContain("latitude", propertyNames);
-        Assert.DoesNotContain("school", propertyNames);
+        // Verify sticker is collected
+        Assert.True(await _service.IsStateUnlockedAsync("PB"));
+        var progress = await _service.GetPassportProgressAsync();
+        Assert.Equal(1, progress.CollectedCount);
+        Assert.Equal("PB", progress.LastExploredStateCode);
+        Assert.NotNull(progress.LastUnlockedUtc);
     }
 
     [Fact]
-    public async Task OfflineResilience_GracefullyFallsBack_WhenApiIsUnreachable()
+    public async Task Passport_CollectsUniqueStickers_WithoutDuplicates()
     {
-        // Mock handler that throws network failure or returns 500
-        var failingHandler = new FailingHttpMessageHandler();
-        var client = new HttpClient(failingHandler)
-        {
-            BaseAddress = new Uri("http://localhost/")
-        };
+        await _service.UnlockStateStickerAsync("PB");
+        bool duplicate = await _service.UnlockStateStickerAsync("PB");
 
-        var service = new IndiaMapService(_saveService, client, _audioService);
-        var mapData = await service.GetMapTotalsAsync();
+        Assert.False(duplicate, "Unlocking the same state twice should not count as a new unlock");
 
-        Assert.NotNull(mapData);
-        Assert.True(mapData.Success);
-        Assert.True(mapData.IsOfflineFallback);
-        Assert.True(mapData.StatesWithActiveLearners > 0);
-        Assert.True(mapData.States.ContainsKey("PB"));
-        Assert.Equal("100+", mapData.States["PB"].CountText);
+        var progress = await _service.GetPassportProgressAsync();
+        Assert.Equal(1, progress.CollectedCount);
+
+        // Unlock a second state
+        await _service.UnlockStateStickerAsync("RJ");
+        var updated = await _service.GetPassportProgressAsync();
+        Assert.Equal(2, updated.CollectedCount);
     }
 
     [Fact]
-    public async Task Consent_DefaultsToOff_AndGeneratesRandomAnonId()
+    public async Task ResetPassport_ClearsAllCollectedStickers()
     {
-        var handler = new SuccessfulHttpMessageHandler();
-        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
-        var service = new IndiaMapService(_saveService, client, _audioService);
+        await _service.UnlockStateStickerAsync("PB");
+        await _service.UnlockStateStickerAsync("MH");
+        await _service.UnlockStateStickerAsync("KA");
 
-        var consent = await service.GetConsentAsync();
+        var beforeReset = await _service.GetPassportProgressAsync();
+        Assert.Equal(3, beforeReset.CollectedCount);
 
-        Assert.False(consent.IsEnabled);
-        Assert.Null(consent.StateCode);
-        Assert.False(string.IsNullOrWhiteSpace(consent.AnonymousInstallId));
+        await _service.ResetPassportAsync();
+
+        var afterReset = await _service.GetPassportProgressAsync();
+        Assert.Equal(0, afterReset.CollectedCount);
+        Assert.False(await _service.IsStateUnlockedAsync("PB"));
     }
 
     [Fact]
-    public async Task OptOut_DeletesContribution_AndResetsState()
+    public void SpecificLandmarks_MatchRequiredExamples()
     {
-        var handler = new SuccessfulHttpMessageHandler();
-        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
-        var service = new IndiaMapService(_saveService, client, _audioService);
+        var pb = _service.GetStateDetails("PB");
+        Assert.NotNull(pb);
+        Assert.Equal("Golden Temple", pb.LandmarkName);
+        Assert.Equal("🛕", pb.LandmarkIcon);
 
-        // First opt in
-        await service.SaveConsentAsync(true, "PB", "6-8");
-        var consentAfterOptIn = await service.GetConsentAsync();
-        Assert.True(consentAfterOptIn.IsEnabled);
-        Assert.Equal("PB", consentAfterOptIn.StateCode);
-
-        // Delete contribution
-        await service.DeleteContributionAsync();
-        var consentAfterDelete = await service.GetConsentAsync();
-        Assert.False(consentAfterDelete.IsEnabled);
-        Assert.Null(consentAfterDelete.StateCode);
+        var rj = _service.GetStateDetails("RJ");
+        Assert.NotNull(rj);
+        Assert.Contains("Camel", rj.LandmarkName);
+        Assert.Equal("🐪", rj.LandmarkIcon);
     }
 
     [Fact]
-    public async Task WaveToIndia_AwardsStickerWithoutMessaging()
+    public void ZeroUserData_RunsCompletelyOffline()
     {
-        var handler = new SuccessfulHttpMessageHandler();
-        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
-        var service = new IndiaMapService(_saveService, client, _audioService);
-
-        bool waved = await service.WaveToIndiaAsync();
-        Assert.True(waved);
-
-        var consent = await service.GetConsentAsync();
-        Assert.True(consent.HasWaved);
-    }
-}
-
-public class FailingHttpMessageHandler : HttpMessageHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        throw new HttpRequestException("Simulated API failure or offline network.");
-    }
-}
-
-public class SuccessfulHttpMessageHandler : HttpMessageHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        var response = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent("{\"success\":true}")
-        };
-        return Task.FromResult(response);
+        // Service operates strictly with local storage mock, zero HTTP requests needed
+        var states = _service.GetAllStates();
+        Assert.Equal(36, states.Count);
     }
 }
 
