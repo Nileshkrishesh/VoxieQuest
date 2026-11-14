@@ -21,6 +21,8 @@
            IsRewardOpen="@(CurrentRound >= 5 && isBalanced)"
            StarsEarned="3"
            IsMicDenied="false"
+           HeardTranscript="@LastTranscript"
+           LastResultStatus="@(isBalanced ? (bool?)true : null)"
            OnBack="ReturnToMapAsync"
            OnRepeatPrompt="RepeatPromptAloudAsync"
            OnToggleListening="ToggleListeningAsync"

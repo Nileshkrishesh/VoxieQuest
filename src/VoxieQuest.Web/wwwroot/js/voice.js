@@ -8,6 +8,7 @@
     let isPushToTalkMode = false;
     let isSpeakingActive = false;
     let restartTimerId = null;
+    let speechDebounceTimer = null;
 
     // Web Audio Analyser for Mic Level
     let audioContext = null;
@@ -93,9 +94,7 @@
 
             try {
                 recognition = new SpeechRecognition();
-                // On mobile Android/iOS, continuous=true often causes native crashes or disconnects.
-                // We use false on mobile and auto-restart cleanly in onend.
-                recognition.continuous = !isMobileBrowser() && !isPushToTalkMode;
+                recognition.continuous = !isPushToTalkMode;
                 recognition.interimResults = true;
                 recognition.lang = getOptimalSpeechLang();
                 recognition.maxAlternatives = 5;
@@ -134,7 +133,25 @@
                         const joinedAlts = alternatives.join("|");
 
                         if (voiceDotNetRef) {
-                            voiceDotNetRef.invokeMethodAsync("OnJsSpeechResultWithAlternatives", topTranscript, joinedAlts, confidence, isFinal);
+                            if (isFinal) {
+                                if (speechDebounceTimer) {
+                                    clearTimeout(speechDebounceTimer);
+                                    speechDebounceTimer = null;
+                                }
+                                voiceDotNetRef.invokeMethodAsync("OnJsSpeechResultWithAlternatives", topTranscript, joinedAlts, confidence, true);
+                            } else {
+                                // Immediate interim delivery for instant UI feedback
+                                voiceDotNetRef.invokeMethodAsync("OnJsSpeechResultWithAlternatives", topTranscript, joinedAlts, confidence, false);
+
+                                // If user finishes speaking and browser pauses, auto-finalize after 850ms of quiet
+                                if (speechDebounceTimer) clearTimeout(speechDebounceTimer);
+                                speechDebounceTimer = setTimeout(function () {
+                                    speechDebounceTimer = null;
+                                    if (voiceDotNetRef && !isSpeakingActive && !isManuallyStopped) {
+                                        voiceDotNetRef.invokeMethodAsync("OnJsSpeechResultWithAlternatives", topTranscript, joinedAlts, confidence, true);
+                                    }
+                                }, 850);
+                            }
                         }
                     }
                 };
@@ -148,22 +165,26 @@
                         return;
                     }
                     console.warn("[VoxieVoice] Recognition error:", event.error);
+                    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+                        if (voiceDotNetRef) {
+                            voiceDotNetRef.invokeMethodAsync("OnJsError", "Microphone access blocked. Please enable mic permissions or tap/type your answer!");
+                        }
+                    }
                 };
 
                 recognition.onend = function () {
+                    if (speechDebounceTimer) {
+                        clearTimeout(speechDebounceTimer);
+                        speechDebounceTimer = null;
+                    }
+
                     if (!isManuallyStopped && !isPushToTalkMode && !isSpeakingActive) {
                         // Debounced restart ensures native audio driver is freed before re-arming
                         if (restartTimerId) clearTimeout(restartTimerId);
                         restartTimerId = setTimeout(function () {
                             if (!isManuallyStopped && !isSpeakingActive) {
-                                try {
-                                    if (recognition) {
-                                        recognition.start();
-                                    }
-                                } catch (e) {
-                                    // If already started or interrupted, safely re-initiate
-                                    window.voxieVoiceService.startListening(voiceDotNetRef, isPushToTalkMode);
-                                }
+                                // Always create fresh instance to prevent InvalidStateError on ended recognition
+                                window.voxieVoiceService.startListening(voiceDotNetRef, isPushToTalkMode);
                             }
                         }, 250);
                         return;
@@ -188,6 +209,10 @@
          */
         stopListening: function () {
             isManuallyStopped = true;
+            if (speechDebounceTimer) {
+                clearTimeout(speechDebounceTimer);
+                speechDebounceTimer = null;
+            }
             if (restartTimerId) {
                 clearTimeout(restartTimerId);
                 restartTimerId = null;
@@ -207,6 +232,12 @@
          */
         startVolumeMeter: async function (dotNetHelper) {
             voiceDotNetRef = dotNetHelper || voiceDotNetRef;
+
+            // On mobile devices, avoid opening a competing getUserMedia audio stream
+            // that locks out SpeechRecognition from accessing the microphone hardware.
+            if (isMobileBrowser()) {
+                return;
+            }
 
             if (analyserNode && mediaStream) {
                 return;

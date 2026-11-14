@@ -21,6 +21,8 @@
            IsRewardOpen="@(CurrentRound >= 5 && isBeamLit)"
            StarsEarned="3"
            IsMicDenied="false"
+           HeardTranscript="@LastTranscript"
+           LastResultStatus="@(isBeamLit ? (bool?)true : null)"
            OnBack="ReturnToMapAsync"
            OnRepeatPrompt="RepeatPromptAloudAsync"
            OnToggleListening="ToggleListeningAsync"

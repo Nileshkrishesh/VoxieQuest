@@ -47,19 +47,97 @@
             </div>
         </div>
 
-        <!-- 3. BOTTOM ZONE: Reserved Height for MicButton & Practice Mode Chips -->
+        <!-- 3. BOTTOM ZONE: Live Response Banner + Both Voice & Written Answer Controls -->
         <footer class="gameshell-bottom-zone">
-            @if (IsPracticeMode && PracticeChoices != null && PracticeChoices.Any())
-            {
-                <AnswerChips Options="@PracticeChoices" OnAnswerSelected="HandlePracticeSelect" />
-            }
-            else
-            {
-                <MicButton IsListening="@IsListening" 
-                           VolumeLevel="@VolumeLevel" 
-                           State="@MicButtonState" 
-                           OnToggleListening="OnToggleListening" />
-            }
+            <!-- Real-time Hearing & Immediate Evaluation Banner -->
+            <div class="voice-feedback-bar">
+                @if (!string.IsNullOrWhiteSpace(HeardTranscript))
+                {
+                    <div class="heard-response-banner @(LastResultStatus == true ? "banner-success" : (LastResultStatus == false ? "banner-miss" : "banner-hearing"))">
+                        <span class="banner-icon">@(LastResultStatus == true ? "🎉" : (LastResultStatus == false ? "🤔" : "🗣️"))</span>
+                        <span class="banner-text">Voxie heard: <strong>"@HeardTranscript"</strong></span>
+                        @if (LastResultStatus == true)
+                        {
+                            <span class="banner-tag tag-success">✓ Correct! ⭐</span>
+                        }
+                        else if (LastResultStatus == false)
+                        {
+                            <span class="banner-tag tag-miss">Almost! Try again</span>
+                        }
+                        else
+                        {
+                            <span class="banner-tag tag-thinking">Checking...</span>
+                        }
+                    </div>
+                }
+                else if (IsListening)
+                {
+                    <div class="heard-response-banner banner-listening">
+                        <span class="banner-icon">🎤</span>
+                        <span class="banner-text">Listening... Speak into mic or type/tap below!</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="heard-response-banner banner-ready">
+                        <span class="banner-icon">✨</span>
+                        <span class="banner-text">Tap mic to speak or use written answer below!</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Unified Dual Input Deck: Voice Mic + Written Answer Options -->
+            <div class="dual-input-deck">
+                <!-- Voice Mic Station -->
+                <div class="voice-station">
+                    <MicButton IsListening="@IsListening" 
+                               VolumeLevel="@VolumeLevel" 
+                               State="@MicButtonState" 
+                               OnToggleListening="OnToggleListening" />
+                </div>
+
+                <!-- Written Answer Station (Choice Chips + Text Input) -->
+                <div class="written-station">
+                    @if (PracticeChoices != null && PracticeChoices.Any())
+                    {
+                        <div class="written-chips-grid">
+                            @for (int i = 0; i < PracticeChoices.Count; i++)
+                            {
+                                var choice = PracticeChoices[i];
+                                var colorClass = i switch
+                                {
+                                    0 => "chip-yellow",
+                                    1 => "chip-blue",
+                                    2 => "chip-coral",
+                                    _ => "chip-mint"
+                                };
+                                <button type="button" 
+                                        class="storybook-choice-chip @colorClass" 
+                                        @onclick="() => HandlePracticeSelect(choice)">
+                                    <span class="chip-text">@choice</span>
+                                </button>
+                            }
+                        </div>
+                    }
+
+                    <!-- Written Text Input Row -->
+                    <div class="written-input-row">
+                        <input class="written-text-box" 
+                               type="text" 
+                               placeholder="Or type answer here..." 
+                               @bind="writtenAnswerText" 
+                               @bind:event="oninput" 
+                               @onkeydown="HandleWrittenKeyDown" 
+                               aria-label="Type your answer" />
+                        <button class="written-submit-btn" 
+                                type="button" 
+                                @onclick="SubmitWrittenAnswerAsync" 
+                                disabled="@(string.IsNullOrWhiteSpace(writtenAnswerText))">
+                            <span>Send ↵</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </footer>
     </div>
 
@@ -172,10 +250,166 @@
     .gameshell-bottom-zone {
         flex-shrink: 0;
         width: 100%;
-        min-height: clamp(76px, 12vh, 106px);
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Live Voice Feedback Banner */
+    .voice-feedback-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        min-height: 28px;
+    }
+
+    .heard-response-banner {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 14px;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-full);
+        font-family: var(--font-heading);
+        font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+        box-shadow: 2px 2px 0 var(--color-storybook-ink);
+    }
+
+    .banner-listening { background: #E8F4FD; color: var(--color-storybook-ink); }
+    .banner-ready     { background: #FFF8E7; color: var(--color-storybook-ink); }
+    .banner-hearing   { background: #FFF3B0; color: var(--color-storybook-ink); }
+    .banner-success   { background: #E8FBF4; color: #1B4332; border-color: #2D6A4F; }
+    .banner-miss      { background: #FFE8E8; color: #881337; border-color: var(--color-coral); }
+
+    .banner-tag {
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    .tag-success  { background: var(--color-mint); color: var(--color-storybook-ink); }
+    .tag-miss     { background: var(--color-coral); color: #FFFFFF; }
+    .tag-thinking { background: var(--color-sunny-yellow); color: var(--color-storybook-ink); }
+
+    /* Dual Input Deck (Voice + Written) */
+    .dual-input-deck {
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: clamp(8px, 2vw, 16px);
+    }
+
+    .voice-station {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .written-station {
+        flex: 1 1 auto;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* Choice Chips */
+    .written-chips-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        width: 100%;
+    }
+
+    .storybook-choice-chip {
+        min-height: 40px;
+        padding: 4px 10px;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-sm);
+        box-shadow: 2px 3px 0 var(--color-storybook-ink);
+        cursor: pointer;
+        font-family: var(--font-heading);
+        font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
+        touch-action: manipulation;
+    }
+    .storybook-choice-chip:hover {
+        transform: translateY(-2px);
+        box-shadow: 2px 4px 0 var(--color-storybook-ink);
+    }
+    .storybook-choice-chip:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 var(--color-storybook-ink);
+    }
+
+    .chip-yellow { background-color: var(--color-sunny-yellow); }
+    .chip-blue   { background-color: var(--color-sky-blue); color: #FFFFFF; }
+    .chip-coral  { background-color: var(--color-coral); color: #FFFFFF; }
+    .chip-mint   { background-color: var(--color-mint); }
+
+    /* Written Text Box Row */
+    .written-input-row {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .written-text-box {
+        flex: 1;
+        min-width: 0;
+        height: 38px;
+        padding: 0 12px;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-sm);
+        background: var(--color-cloud-white);
+        box-shadow: 2px 2px 0 var(--color-storybook-ink);
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        outline: none;
+    }
+    .written-text-box:focus {
+        border-color: var(--color-sky-blue);
+        box-shadow: 2px 3px 0 var(--color-sky-blue);
+    }
+
+    .written-submit-btn {
+        height: 38px;
+        padding: 0 14px;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-sm);
+        background: var(--color-mint);
+        box-shadow: 2px 2px 0 var(--color-storybook-ink);
+        cursor: pointer;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        white-space: nowrap;
+        transition: transform 0.1s var(--spring-squish);
+    }
+    .written-submit-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+    .written-submit-btn:active:not(:disabled) {
+        transform: translateY(2px);
+        box-shadow: 0 0 0 var(--color-storybook-ink);
+    }
+    .written-submit-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
     }
 
     @@media (max-width: 600px) {
@@ -189,7 +423,22 @@
             max-height: clamp(130px, 28vh, 220px);
         }
         .gameshell-bottom-zone {
-            min-height: 78px;
+            gap: 4px;
+        }
+        .storybook-choice-chip {
+            min-height: 36px;
+            padding: 2px 6px;
+            font-size: 0.95rem;
+        }
+        .written-text-box {
+            height: 34px;
+            font-size: 0.88rem;
+            padding: 0 8px;
+        }
+        .written-submit-btn {
+            height: 34px;
+            padding: 0 10px;
+            font-size: 0.88rem;
         }
     }
 
@@ -313,6 +562,8 @@
     [Parameter] public int StarsEarned { get; set; } = 3;
 
     [Parameter] public bool IsMicDenied { get; set; } = false;
+    [Parameter] public string HeardTranscript { get; set; } = string.Empty;
+    [Parameter] public bool? LastResultStatus { get; set; } = null;
 
     [Parameter] public EventCallback OnBack { get; set; }
     [Parameter] public EventCallback OnRepeatPrompt { get; set; }
@@ -327,6 +578,7 @@
 
     private bool isPauseOpen = false;
     private bool isSleepyBreakOpen = false;
+    private string writtenAnswerText = string.Empty;
 
     private async Task HandleBack()
     {
@@ -339,9 +591,30 @@
 
     private async Task HandlePracticeSelect(string answer)
     {
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
         if (OnSelectPracticeChoice.HasDelegate)
         {
             await OnSelectPracticeChoice.InvokeAsync(answer);
+        }
+    }
+
+    private async Task SubmitWrittenAnswerAsync()
+    {
+        if (string.IsNullOrWhiteSpace(writtenAnswerText)) return;
+        var answer = writtenAnswerText.Trim();
+        writtenAnswerText = string.Empty;
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        if (OnSelectPracticeChoice.HasDelegate)
+        {
+            await OnSelectPracticeChoice.InvokeAsync(answer);
+        }
+    }
+
+    private async Task HandleWrittenKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SubmitWrittenAnswerAsync();
         }
     }
 
