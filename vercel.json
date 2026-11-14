@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "name": "voxic-quest",
   "cleanUrls": false,
   "trailingSlash": false,
   "outputDirectory": "publish/wwwroot",

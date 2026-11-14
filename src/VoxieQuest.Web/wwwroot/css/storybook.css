@@ -447,3 +447,360 @@ h1, h2, h3, h4, .font-heading {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   DELUXE IN-GAME CHILD UI SUITE (Duolingo ABC / Nintendo-Style Tactile UI)
+   Chunky 3D Candy Buttons, Glowing Quest Gems, Animated Themed Arenas
+   ========================================================================== */
+
+/* 1. Chunky 3D Candy Buttons with Gloss & Press Depth */
+.btn-candy {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+    padding: 12px 24px;
+    border-radius: 20px;
+    border: 3.5px solid var(--color-storybook-ink);
+    cursor: pointer;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: transform 0.12s var(--spring-bounce), box-shadow 0.12s var(--spring-bounce);
+    outline: none;
+    color: var(--color-storybook-ink);
+}
+
+.btn-candy::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 12px;
+    right: 12px;
+    height: 35%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 12px 12px 6px 6px;
+    pointer-events: none;
+}
+
+.btn-candy:active {
+    transform: translateY(4px) scale(0.98);
+}
+
+/* Candy Button Color Flavors */
+.btn-candy-yellow {
+    background: linear-gradient(180deg, #FFE066 0%, #FFD166 60%, #F59E0B 100%);
+    box-shadow: 0 6px 0 #D97706, 0 8px 12px rgba(245, 158, 11, 0.25);
+}
+.btn-candy-yellow:active {
+    box-shadow: 0 2px 0 #D97706;
+}
+
+.btn-candy-blue {
+    background: linear-gradient(180deg, #70C8F8 0%, #4EA8DE 60%, #0284C7 100%);
+    box-shadow: 0 6px 0 #0369A1, 0 8px 12px rgba(78, 168, 222, 0.25);
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-candy-blue:active {
+    box-shadow: 0 2px 0 #0369A1;
+}
+
+.btn-candy-mint {
+    background: linear-gradient(180deg, #38EFA5 0%, #06D6A0 60%, #059669 100%);
+    box-shadow: 0 6px 0 #047857, 0 8px 12px rgba(6, 214, 160, 0.25);
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-candy-mint:active {
+    box-shadow: 0 2px 0 #047857;
+}
+
+.btn-candy-coral {
+    background: linear-gradient(180deg, #FF6B8B 0%, #EF476F 60%, #BE123C 100%);
+    box-shadow: 0 6px 0 #9F1239, 0 8px 12px rgba(239, 71, 111, 0.25);
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-candy-coral:active {
+    box-shadow: 0 2px 0 #9F1239;
+}
+
+.btn-candy-purple {
+    background: linear-gradient(180deg, #A855F7 0%, #8338EC 60%, #6D28D9 100%);
+    box-shadow: 0 6px 0 #5B21B6, 0 8px 12px rgba(131, 56, 236, 0.25);
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+}
+.btn-candy-purple:active {
+    box-shadow: 0 2px 0 #5B21B6;
+}
+
+/* 2. Deluxe In-Game HUD & Glowing Quest Gems */
+.game-hud-card {
+    background: linear-gradient(135deg, #FFFDF7 0%, #FEF9C3 100%) !important;
+    border: 3.5px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 6px 0 var(--color-storybook-ink), 0 10px 20px rgba(0, 0, 0, 0.06) !important;
+    padding: 0.85rem 1.25rem !important;
+}
+
+.hud-star-badge {
+    background: linear-gradient(180deg, #FFF9DB 0%, #FFD166 100%) !important;
+    border: 3px solid var(--color-storybook-ink) !important;
+    box-shadow: 0 4px 0 var(--color-storybook-ink) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 6px 14px !important;
+    font-weight: 800 !important;
+    font-family: var(--font-heading) !important;
+    color: #92400E !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: gentle-bob 2.8s infinite ease-in-out;
+}
+
+.round-stepper {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.round-dot {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 3px solid var(--color-storybook-ink) !important;
+    background: #F1F5F9 !important;
+    box-shadow: 0 3px 0 var(--color-storybook-ink) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading) !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    color: #64748B !important;
+    transition: transform 0.2s var(--spring-bounce), background 0.2s ease;
+}
+
+.round-dot.completed {
+    background: linear-gradient(180deg, #34D399 0%, #059669 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 3px 0 #064E3B, 0 0 10px rgba(52, 211, 153, 0.5) !important;
+    transform: scale(1.05);
+}
+
+.round-dot.current {
+    background: linear-gradient(180deg, #FDE047 0%, #F59E0B 100%) !important;
+    color: #78350F !important;
+    box-shadow: 0 4px 0 #B45309, 0 0 12px rgba(250, 204, 21, 0.7) !important;
+    transform: scale(1.22);
+    animation: pulse-gem 1.6s infinite ease-in-out;
+}
+
+@keyframes pulse-gem {
+    0%, 100% { transform: scale(1.2); }
+    50% { transform: scale(1.28); }
+}
+
+/* 3. Mascot Presentation Cloud & Prompt Bubble */
+.mascot-stage {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.mascot-avatar-box {
+    position: relative;
+    background: radial-gradient(circle, #FEF08A 0%, rgba(255, 255, 255, 0.4) 70%, transparent 100%);
+    border-radius: 50%;
+    padding: 6px;
+    animation: gentle-bob 3s infinite ease-in-out;
+}
+
+.prompt-bubble {
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF7 100%) !important;
+    border: 3.5px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 6px 0 var(--color-storybook-ink) !important;
+    padding: 1.2rem 1.6rem !important;
+    position: relative;
+    flex: 1;
+}
+
+.prompt-text {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(1.2rem, 3vw, 1.45rem) !important;
+    font-weight: 800 !important;
+    color: #1E293B !important;
+    line-height: 1.35 !important;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.prompt-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.prompt-pill-btn {
+    background: linear-gradient(180deg, #FEF08A 0%, #FDE047 100%) !important;
+    border: 2.5px solid var(--color-storybook-ink) !important;
+    border-radius: var(--radius-pill) !important;
+    box-shadow: 0 3px 0 var(--color-storybook-ink) !important;
+    font-weight: 800 !important;
+    font-family: var(--font-heading) !important;
+    padding: 6px 14px !important;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.prompt-pill-btn:hover {
+    transform: translateY(-2px);
+}
+
+.prompt-pill-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-storybook-ink) !important;
+}
+
+/* 4. Themed Game Arenas with Depth & Cartoon Radiance */
+
+/* Letter Rocket: Deep Starry Cosmic Nebula */
+.rocket-arena {
+    background: radial-gradient(ellipse at bottom, #1E1B4B 0%, #0F172A 70%, #020617 100%) !important;
+    border: 4px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: inset 0 0 30px rgba(79, 70, 229, 0.4), 0 8px 0 var(--color-storybook-ink) !important;
+    padding: 1.5rem 1rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.rocket-arena::before {
+    content: '✨   ⭐     ✨    ⭐   ✨';
+    position: absolute;
+    top: 14px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #FDE047;
+    opacity: 0.65;
+    font-size: 1.1rem;
+    letter-spacing: 24px;
+    animation: twinkle-stars 3s infinite alternate;
+}
+
+@keyframes twinkle-stars {
+    0% { opacity: 0.35; transform: scale(0.98); }
+    100% { opacity: 0.9; transform: scale(1.02); }
+}
+
+/* Number Jump: Enchanted Turquoise Lily Lagoon */
+.river-pond-arena {
+    background: radial-gradient(ellipse at center, #67E8F9 0%, #06B6D4 60%, #0891B2 100%) !important;
+    border: 4px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.4), 0 8px 0 var(--color-storybook-ink) !important;
+    padding: 1.5rem 1rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Color Splash: Radiant Creative Art Studio */
+.easel-stage, .color-splash-arena {
+    background: radial-gradient(ellipse at center, #FFFDF7 0%, #FEF9C3 80%, #FED7AA 100%) !important;
+    border: 4px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 0 var(--color-storybook-ink), inset 0 0 20px rgba(251, 191, 36, 0.2) !important;
+    padding: 1.5rem 1rem !important;
+}
+
+/* Animal Safari: Tropical Sunlit Savannah Viewfinder */
+.safari-arena {
+    background: radial-gradient(ellipse at top, #FEF08A 0%, #FED7AA 60%, #FB923C 100%) !important;
+    border: 4px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 0 var(--color-storybook-ink) !important;
+    padding: 1.5rem 1rem !important;
+}
+
+/* Word Builder: Vibrant Toy Workshop Shelf */
+.word-builder-arena {
+    background: radial-gradient(ellipse at center, #EEF2FF 0%, #E0E7FF 60%, #C7D2FE 100%) !important;
+    border: 4px solid var(--color-storybook-ink) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 0 var(--color-storybook-ink) !important;
+    padding: 1.5rem 1rem !important;
+}
+
+/* 5. Joyful Feedback Banner & Skip Actions */
+.feedback-pill {
+    font-family: var(--font-heading) !important;
+    font-weight: 800 !important;
+    font-size: 1.15rem !important;
+    border: 3px solid var(--color-storybook-ink) !important;
+    box-shadow: 0 4px 0 var(--color-storybook-ink) !important;
+    border-radius: var(--radius-pill) !important;
+    padding: 8px 20px !important;
+    animation: pop-bounce 0.4s var(--spring-bounce);
+}
+
+@keyframes pop-bounce {
+    0% { transform: scale(0.85); opacity: 0; }
+    60% { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.skip-btn {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%) !important;
+    border: 3px solid var(--color-storybook-ink) !important;
+    box-shadow: 0 5px 0 var(--color-storybook-ink), 0 8px 12px rgba(0,0,0,0.08) !important;
+    font-family: var(--font-heading) !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    padding: 10px 28px !important;
+    cursor: pointer;
+    border-radius: var(--radius-pill) !important;
+    transition: transform 0.1s ease;
+}
+
+.skip-btn:hover {
+    transform: translateY(-2px);
+}
+
+.skip-btn:active {
+    transform: translateY(3px) scale(0.98);
+    box-shadow: 0 2px 0 var(--color-storybook-ink) !important;
+}
+
+/* 6. Glowing Mic Zone with Concentric Pulsing Aura */
+.mic-thumb-reach {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 10px;
+}
+
+.mic-thumb-reach::before {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 209, 102, 0.4) 0%, rgba(6, 214, 160, 0.2) 50%, transparent 70%);
+    animation: pulse-ring 2.4s infinite ease-out;
+    pointer-events: none;
+    z-index: 0;
+}

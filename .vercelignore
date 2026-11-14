@@ -1,0 +1,8 @@
+.vs
+.git
+.vscode
+bin
+obj
+tests
+*.sln
+*.slnx
