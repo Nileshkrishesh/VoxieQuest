@@ -40,28 +40,43 @@
     <script src="js/voskInterop.js?v=2.5"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 
-    <!-- PWA Offline Service Worker Registration -->
+    <!-- PWA Offline Service Worker: Active in production, auto-cleared on localhost to prevent stale cache -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('service-worker.js?v=2.5')
-                    .then(function (reg) {
-                        console.log('[VoxiePWA] Service Worker registered with scope:', reg.scope);
-                        reg.onupdatefound = function () {
-                            var installingWorker = reg.installing;
-                            if (installingWorker) {
-                                installingWorker.onstatechange = function () {
-                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        console.log('[VoxiePWA] New update ready! Reloading for latest adventures...');
-                                    }
-                                };
-                            }
-                        };
-                    })
-                    .catch(function (err) {
-                        console.warn('[VoxiePWA] Service Worker registration failed:', err);
+            var isLocalhost = Boolean(
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '[::1]' ||
+                window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+            );
+
+            if (isLocalhost) {
+                // In local development, unregister service workers and purge caches so code changes appear immediately
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (var r of registrations) {
+                        r.unregister();
+                        console.log('[VoxieDev] Unregistered service worker on localhost');
+                    }
+                });
+                if ('caches' in window) {
+                    caches.keys().then(function (names) {
+                        for (var n of names) {
+                            caches.delete(n);
+                            console.log('[VoxieDev] Purged cache:', n);
+                        }
                     });
-            });
+                }
+            } else {
+                // In production (Vercel), register offline service worker
+                window.addEventListener('load', function () {
+                    navigator.serviceWorker.register('service-worker.js?v=2.6')
+                        .then(function (reg) {
+                            console.log('[VoxiePWA] Service Worker registered with scope:', reg.scope);
+                        })
+                        .catch(function (err) {
+                            console.warn('[VoxiePWA] Service Worker registration failed:', err);
+                        });
+                });
+            }
         }
     </script>
 </body>

@@ -54,6 +54,12 @@ self.addEventListener('fetch', event => {
 
     const url = new URL(request.url);
 
+    // On localhost, never intercept or serve stale cache - always fetch directly from local server
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        event.respondWith(fetch(request));
+        return;
+    }
+
     // 1. Navigation requests (HTML pages) -> Network-First with cache fallback
     if (request.mode === 'navigate') {
         event.respondWith(
