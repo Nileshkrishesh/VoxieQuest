@@ -1,0 +1,24 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <path d="M16 3L19.8 11.2L28.8 12.3L22.1 18.4L23.9 27.3L16 22.9L8.1 27.3L9.9 18.4L3.2 12.3L12.2 11.2L16 3Z" 
+          fill="@(IsActive ? FillColor : InactiveColor)" 
+          stroke="@StrokeColor" 
+          stroke-width="2.5" 
+          stroke-linejoin="round" 
+          stroke-linecap="round"/>
+    @if (IsActive)
+    {
+        <!-- Cute hand-drawn highlight -->
+        <path d="M16 6.5L18.4 11.8L24.2 12.6" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+    }
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string FillColor { get; set; } = "#FFD166"; // Sunny Yellow
+    [Parameter] public string InactiveColor { get; set; } = "#E2E8F0";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public bool IsActive { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+}

@@ -16,7 +16,7 @@
     <!-- Screen Time Rest Break Modal -->
     <BreakScreenModal />
 
-    <!-- Clean, Colorful Storybook Header -->
+    <!-- Clean, Colorful Storybook Fixed Header -->
     <header class="storybook-header">
         <a href="" class="brand-badge" title="Voxie Quest Home">
             <span class="brand-mascot-emoji">🦊</span>
@@ -24,9 +24,9 @@
         </a>
 
         <div class="header-status-pills">
-            <!-- Total Stars Display -->
+            <!-- Total Stars Display with SVG Star -->
             <div class="star-pill-badge" title="Total Stars Collected!">
-                <span class="star-icon-glow">⭐</span>
+                <StarIcon Size="22" FillColor="#FFD166" Class="star-spin-hover" />
                 <span class="star-count-num">@(ProgressService.ActiveProfile?.TotalStars ?? 0)</span>
             </div>
 
@@ -36,63 +36,79 @@
                 <span class="profile-name">@(ProgressService.ActiveProfile?.Name ?? "Explorer")</span>
             </a>
 
-            <!-- Audio Mute Toggle Button -->
-            <button class="pill icon-pill" @onclick="ToggleMute" type="button" title="Sound toggle">
-                <span>@(AudioService.IsMuted ? "🔇" : "🔊")</span>
+            <!-- Audio Mute Toggle Button with Clear Colored Fill and Tooltip Label -->
+            <button class="pill header-action-btn sound-btn @(AudioService.IsMuted ? "muted" : "")" 
+                    @onclick="ToggleMute" 
+                    type="button" 
+                    title="@(AudioService.IsMuted ? "Sound: Muted (Click to Unmute)" : "Sound: Playing (Click to Mute)")">
+                <SpeakerIcon Size="22" IsMuted="@AudioService.IsMuted" FillColor="#FFFDF7" />
+                <span class="btn-label-text">@(AudioService.IsMuted ? "Muted" : "Sound")</span>
             </button>
 
-            <!-- Grown-Ups & Settings Gate -->
-            <a href="parent" class="pill icon-pill grownup-pill" title="Parent Dashboard & Settings">
-                <span>🛡️</span>
+            <!-- Grown-Ups & Settings Gate with Clear Colored Fill and Tooltip Label -->
+            <a href="parent" class="pill header-action-btn parent-btn" title="Grown-Ups Dashboard &amp; Settings">
+                <ShieldIcon Size="22" FillColor="#FFFDF7" />
+                <span class="btn-label-text">Parents</span>
             </a>
         </div>
     </header>
 
-    <!-- Main Game Page Body -->
+    <!-- Main Game Page Body with Fixed Overlap Padding -->
     <main class="storybook-main-body">
         @Body
     </main>
 
-    <!-- Simple, Chunky 4-Tab Bottom Navigation for Kids -->
+    <!-- Simple, Chunky 4-Tab Fixed Bottom Navigation for Kids -->
     <nav class="storybook-nav-kids" aria-label="Game navigation">
         <NavLink href="" Match="NavLinkMatch.All" class="nav-kid-big-tab">
-            <span class="nav-kid-emoji">🏠</span>
+            <HouseIcon Size="26" RoofColor="#EF476F" WallColor="#FFFDF7" DoorColor="#FFD166" />
             <span class="nav-kid-label">Home</span>
         </NavLink>
         <NavLink href="games" class="nav-kid-big-tab">
-            <span class="nav-kid-emoji">🎮</span>
+            <GameControllerIcon Size="26" BodyColor="#4EA8DE" />
             <span class="nav-kid-label">Games</span>
         </NavLink>
         <NavLink href="garden" class="nav-kid-big-tab">
-            <span class="nav-kid-emoji">🌸</span>
+            <FlowerIcon Size="26" PetalColor="#06D6A0" CenterColor="#FFD166" />
             <span class="nav-kid-label">Garden</span>
         </NavLink>
         <NavLink href="stickers" class="nav-kid-big-tab">
-            <span class="nav-kid-emoji">🏆</span>
+            <TrophyIcon Size="26" CupColor="#FFD166" />
             <span class="nav-kid-label">Rewards</span>
         </NavLink>
     </nav>
 </div>
 
 <style>
+    :root {
+        --header-height: 72px;
+        --bottom-nav-height: 78px;
+    }
+
     .storybook-app {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
         background: #FFFDF7;
+        box-sizing: border-box;
     }
 
+    /* Fixed Sticky Header with defined CSS variable height */
     .storybook-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: var(--header-height);
         background: var(--color-sunny-yellow);
         border-bottom: 4px solid var(--color-storybook-ink);
         box-shadow: 0 4px 0 rgba(43, 45, 66, 0.15);
-        padding: 0.65rem 1.5rem;
+        padding: 0 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+        z-index: 1000;
+        box-sizing: border-box;
     }
 
     .brand-badge {
@@ -139,11 +155,6 @@
         box-shadow: 0 3px 0 var(--color-storybook-ink);
     }
 
-    .star-icon-glow {
-        font-size: 1.35rem;
-        animation: starSpin 3s ease-in-out infinite;
-    }
-
     .star-count-num {
         font-family: var(--font-heading);
         font-size: 1.25rem;
@@ -156,43 +167,86 @@
         border: 3px solid var(--color-storybook-ink);
         font-size: 1.05rem;
         font-weight: 700;
+        padding: 0.35rem 0.85rem;
     }
 
     .avatar-emoji {
         font-size: 1.3rem;
     }
 
-    .icon-pill {
-        padding: 0.4rem 0.75rem;
-        font-size: 1.15rem;
-        background: #FFFFFF;
+    /* Coloured Header Action Buttons with Clear Fills and Tooltip-Style Labels */
+    .header-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.35rem 0.85rem;
         border: 3px solid var(--color-storybook-ink);
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        text-decoration: none;
+        cursor: pointer;
     }
 
-    .grownup-pill {
-        background: #F1F5F9;
-        font-size: 1.05rem;
+    .header-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 0 var(--color-storybook-ink);
     }
 
+    .header-action-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 var(--color-storybook-ink);
+    }
+
+    .sound-btn {
+        background: #06D6A0; /* Solid Mint Green fill when sound active */
+        color: var(--color-storybook-ink);
+    }
+
+    .sound-btn.muted {
+        background: #FFD166; /* Sunny Yellow when muted, slash line handles mute state */
+        color: var(--color-storybook-ink);
+    }
+
+    .parent-btn {
+        background: #F78C6B; /* Solid Soft Orange fill */
+        color: #FFFFFF;
+    }
+
+    .btn-label-text {
+        font-family: var(--font-heading);
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    /* Layout Overlap Fix: exact padding-top = header height, padding-bottom = nav height */
     .storybook-main-body {
         flex: 1;
-        padding: 1.5rem 1rem;
-        max-width: 1040px;
+        padding-top: calc(var(--header-height) + 1rem);
+        padding-bottom: calc(var(--bottom-nav-height) + 1.5rem);
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 1080px;
         margin: 0 auto;
         width: 100%;
+        box-sizing: border-box;
     }
 
-    /* Chunky 4-Tab Bottom Nav */
+    /* Fixed Sticky Bottom Navigation */
     .storybook-nav-kids {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: var(--bottom-nav-height);
         background: #FFFFFF;
         border-top: 4px solid var(--color-storybook-ink);
-        padding: 0.5rem 1rem;
+        padding: 0.35rem 1rem;
         display: flex;
         justify-content: space-around;
-        position: sticky;
-        bottom: 0;
-        z-index: 99;
+        align-items: center;
+        z-index: 1000;
         box-shadow: 0 -4px 0 rgba(43, 45, 66, 0.08);
+        box-sizing: border-box;
     }
 
     .nav-kid-big-tab {
@@ -202,7 +256,7 @@
         justify-content: center;
         text-decoration: none;
         color: var(--color-storybook-ink);
-        padding: 0.4rem 1.6rem;
+        padding: 0.35rem 1.6rem;
         border-radius: 20px;
         border: 3px solid transparent;
         transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -220,41 +274,32 @@
         transform: translateY(-2px);
     }
 
-    .nav-kid-emoji {
-        font-size: 1.85rem;
-    }
-
     .nav-kid-label {
         font-family: var(--font-heading);
-        font-size: 1.05rem;
+        font-size: 1rem;
         font-weight: 800;
         margin-top: 0.15rem;
     }
 
-    @@keyframes starSpin {
-        0%, 100% { transform: scale(1) rotate(0deg); }
-        50% { transform: scale(1.15) rotate(15deg); }
-    }
-
     @@media (max-width: 640px) {
         .storybook-header {
-            padding: 0.5rem 0.75rem;
+            padding: 0 0.75rem;
         }
 
         .brand-title-text {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
+        }
+
+        .btn-label-text {
+            display: none; /* Icon-only tooltip for very small phones */
         }
 
         .nav-kid-big-tab {
-            padding: 0.35rem 0.85rem;
-        }
-
-        .nav-kid-emoji {
-            font-size: 1.5rem;
+            padding: 0.3rem 0.85rem;
         }
 
         .nav-kid-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
     }
 </style>

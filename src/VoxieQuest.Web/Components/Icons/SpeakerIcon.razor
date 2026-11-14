@@ -1,0 +1,37 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Speaker Body Cone -->
+    <path d="M5 12H9L16 6V26L9 20H5C4 20 3 19 3 18V14C3 13 4 12 5 12Z" 
+          fill="@FillColor" 
+          stroke="@StrokeColor" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"/>
+    
+    @if (!IsMuted)
+    {
+        <!-- Outer Sound Waves -->
+        <path d="M20 10C22.5 12 24 14.2 24 16C24 17.8 22.5 20 20 22" 
+              stroke="@StrokeColor" 
+              stroke-width="2.5" 
+              stroke-linecap="round"/>
+        <path d="M23.5 6.5C27 9.5 29 12.8 29 16C29 19.2 27 22.5 23.5 25.5" 
+              stroke="@StrokeColor" 
+              stroke-width="2.5" 
+              stroke-linecap="round"/>
+    }
+    else
+    {
+        <!-- Diagonal Slash Line for Muted State (Child-friendly bold red/navy slash) -->
+        <line x1="6" y1="26" x2="26" y2="6" stroke="#EF476F" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="6" y1="26" x2="26" y2="6" stroke="@StrokeColor" stroke-width="1.2" stroke-linecap="round"/>
+    }
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public bool IsMuted { get; set; } = false;
+    [Parameter] public string FillColor { get; set; } = "#FFD166"; // Sunny Yellow
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

@@ -11,32 +11,59 @@
     <div class="storybook-card hero-welcome-card">
         <div class="hero-flex">
             <!-- Animated Voxie Mascot -->
-            <div class="mascot-interactive" @onclick="HearVoxieWelcome" title="Tap Voxie to hear a greeting!">
-                <Mascot State="@mascotState" Width="135" Height="135" />
-                <span class="tap-hint-pill">👆 Tap Voxie!</span>
+            <div class="mascot-interactive" @onclick="HearVoxieWelcome" title="Tap Voxie to hear greeting!">
+                <Mascot State="@mascotState" Width="130" Height="130" />
+                <span class="tap-hint-pill">Tap Voxie!</span>
             </div>
 
-            <!-- Welcoming Speech Bubble -->
-            <div class="hero-speech">
-                <div class="hero-bubble-text">
-                    "Hi <strong>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</strong>! Are you ready to speak, play, and win stars? 🌟"
+            <!-- Welcoming Speech Bubble with Pointing Tail and Under 10 Words (No Quotes) -->
+            <div class="hero-speech-container">
+                <div class="speech-bubble-handdrawn">
+                    <!-- Bubble tail pointing directly to Voxie Mascot -->
+                    <div class="bubble-tail-left" aria-hidden="true"></div>
+                    
+                    <span class="bubble-text">
+                        Ready to speak, play, and win stars?
+                    </span>
                 </div>
 
                 <div class="hero-action-buttons">
                     <button class="btn-story btn-story-yellow hero-voice-btn" @onclick="HearVoxieWelcome" type="button">
-                        <span>🔊 Hear Voxie Speak!</span>
+                        <SpeakerIcon Size="22" IsMuted="false" FillColor="#FFFDF7" />
+                        <span>Hear Voxie Speak!</span>
                     </button>
                     <button class="btn-story btn-story-coral hero-play-btn" @onclick='() => NavigateTo("game/letter-rocket")' type="button">
-                        <span>🚀 Quick Play!</span>
+                        <RocketIcon Size="24" />
+                        <span>Quick Play!</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Live Wobbly Mic Buddy Widget -->
-            <div class="mic-live-widget" @onclick="ToggleMicTest" title="Tap to test your voice!">
-                <MicCharacter VolumeLevel="@currentVolume" IsListening="@isTestingMic" Size="110" ShowVolumeBar="true" />
+            <!-- Live Wobbly Mic Buddy Widget with 5 Star Volume Lights (No Grey Bar) -->
+            <div class="mic-live-widget @(isTestingMic ? "mic-widget-listening" : "")" 
+                 @onclick="ToggleMicTest" 
+                 title="Tap to test microphone!">
+                <MicCharacter VolumeLevel="@currentVolume" 
+                              IsListening="@isTestingMic" 
+                              Size="105" 
+                              ShowVolumeBar="false" />
+                
+                <!-- 5 Star Shapes Lighting up with Live Volume -->
+                <div class="mic-volume-stars-row" title="Voice loudness volume stars">
+                    @for (int s = 1; s <= 5; s++)
+                    {
+                        var isStarLit = s <= GetActiveMicStars();
+                        <div class="mic-volume-star @(isStarLit ? "star-lit" : "star-unlit")">
+                            <StarIcon Size="22" 
+                                      IsActive="@isStarLit" 
+                                      FillColor="#FFD166" 
+                                      InactiveColor="#CBD5E1" />
+                        </div>
+                    }
+                </div>
+
                 <span class="mic-status-label">
-                    @(isTestingMic ? "🎙️ I'm listening! Speak!" : "🎙️ Tap to test your voice!")
+                    @(isTestingMic ? "I'm listening! Speak aloud!" : "Tap to test your voice!")
                 </span>
             </div>
         </div>
@@ -44,20 +71,41 @@
 
     <!-- Section Heading: Pick a Game -->
     <div class="section-title-bar">
-        <h2 class="title-fun">🎮 Pick a Game &amp; Speak!</h2>
-        <span class="title-sub">Tap any game card below to blast off!</span>
+        <div class="title-with-icon">
+            <GameControllerIcon Size="34" BodyColor="#FFD166" />
+            <h2 class="title-fun">Pick a Game &amp; Speak!</h2>
+        </div>
+        <span class="title-sub">Tap any quest below to start playing aloud</span>
     </div>
 
-    <!-- 5 Super-Fun Voice Games Grid -->
+    <!-- 5 Super-Fun Voice Games Responsive Grid (3 cols on laptop, 2 on tablet, 1 on phone) -->
     <div class="games-grid">
         <!-- Game 1: Letter Rocket -->
         <div class="game-card game-card-space" @onclick='() => NavigateTo("game/letter-rocket")'>
-            <div class="card-badge">✨ Letters &amp; Phonics</div>
-            <div class="card-icon-stage anim-float-slow">🚀</div>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Letters &amp; Phonics</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-slow">
+                <RocketIcon Size="72" />
+            </div>
+
             <h3 class="card-title">Letter Rocket</h3>
-            <p class="card-desc">Shout the letter to blast the rocket into the starry galaxy!</p>
+            <p class="card-desc">Shout the letter to launch the rocket into the starry galaxy!</p>
+            
+            <!-- Big Star-Progress Row Under Game -->
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Letters) >= 1)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Letters) >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Letters) >= 3)" FillColor="#FFD166" />
+                </div>
+            </div>
+
             <div class="card-footer">
-                <span class="card-rounds">⭐ 10 Rounds</span>
+                <span class="card-rounds">10 Rounds</span>
                 <button class="btn-story btn-story-blue card-btn" type="button">
                     <span>Play ➔</span>
                 </button>
@@ -66,12 +114,30 @@
 
         <!-- Game 2: Number Jump -->
         <div class="game-card game-card-pond" @onclick='() => NavigateTo("game/number-jump")'>
-            <div class="card-badge">🌊 Counting &amp; Math</div>
-            <div class="card-icon-stage anim-float-mid">🐸</div>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Counting &amp; Math</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-mid">
+                <FrogIcon Size="72" />
+            </div>
+
             <h3 class="card-title">Number Jump</h3>
             <p class="card-desc">Say the magic sum number to help froggy leap across lily pads!</p>
+            
+            <!-- Big Star-Progress Row Under Game -->
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Numbers) >= 1)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Numbers) >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Numbers) >= 3)" FillColor="#FFD166" />
+                </div>
+            </div>
+
             <div class="card-footer">
-                <span class="card-rounds">⭐ 10 Rounds</span>
+                <span class="card-rounds">10 Rounds</span>
                 <button class="btn-story btn-story-mint card-btn" type="button">
                     <span>Hop ➔</span>
                 </button>
@@ -80,12 +146,30 @@
 
         <!-- Game 3: Color Splash -->
         <div class="game-card game-card-paint" @onclick='() => NavigateTo("game/color-splash")'>
-            <div class="card-badge">🎨 Rainbow Colors</div>
-            <div class="card-icon-stage anim-float-slow">🎨</div>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Rainbow Colors</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-slow">
+                <PaletteIcon Size="72" />
+            </div>
+
             <h3 class="card-title">Color Splash</h3>
             <p class="card-desc">Speak the color name to splash magical paint onto cartoon pictures!</p>
+            
+            <!-- Big Star-Progress Row Under Game -->
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Colors) >= 1)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Colors) >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Colors) >= 3)" FillColor="#FFD166" />
+                </div>
+            </div>
+
             <div class="card-footer">
-                <span class="card-rounds">⭐ 10 Rounds</span>
+                <span class="card-rounds">10 Rounds</span>
                 <button class="btn-story btn-story-yellow card-btn" type="button">
                     <span>Splash ➔</span>
                 </button>
@@ -94,12 +178,30 @@
 
         <!-- Game 4: Animal Safari -->
         <div class="game-card game-card-safari" @onclick='() => NavigateTo("game/animal-safari")'>
-            <div class="card-badge">🐾 Animals &amp; Sounds</div>
-            <div class="card-icon-stage anim-float-mid">🦁</div>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Animals &amp; Sounds</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-mid">
+                <SafariIcon Size="72" />
+            </div>
+
             <h3 class="card-title">Animal Safari</h3>
             <p class="card-desc">Hear the animal sound &amp; call their name to invite them on the bus!</p>
+            
+            <!-- Big Star-Progress Row Under Game -->
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Animals) >= 1)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Animals) >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Animals) >= 3)" FillColor="#FFD166" />
+                </div>
+            </div>
+
             <div class="card-footer">
-                <span class="card-rounds">⭐ 10 Rounds</span>
+                <span class="card-rounds">10 Rounds</span>
                 <button class="btn-story btn-story-coral card-btn" type="button">
                     <span>Safari ➔</span>
                 </button>
@@ -108,12 +210,30 @@
 
         <!-- Game 5: Word Builder -->
         <div class="game-card game-card-blocks" @onclick='() => NavigateTo("game/word-builder")'>
-            <div class="card-badge">🧱 Spelling &amp; Vocabulary</div>
-            <div class="card-icon-stage anim-float-slow">🎁</div>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Spelling &amp; Toys</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-slow">
+                <BlocksIcon Size="72" />
+            </div>
+
             <h3 class="card-title">Word Builder</h3>
             <p class="card-desc">Say the word to snap blocks together and unlock surprise animated toys!</p>
+            
+            <!-- Big Star-Progress Row Under Game -->
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Spelling) >= 1)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Spelling) >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(GetGameStars(SkillCategory.Spelling) >= 3)" FillColor="#FFD166" />
+                </div>
+            </div>
+
             <div class="card-footer">
-                <span class="card-rounds">⭐ 10 Rounds</span>
+                <span class="card-rounds">10 Rounds</span>
                 <button class="btn-story btn-story-orange card-btn" type="button">
                     <span>Build ➔</span>
                 </button>
@@ -124,7 +244,7 @@
     <!-- Quick Rewards Strip -->
     <div class="rewards-strip">
         <div class="reward-strip-card" @onclick='() => NavigateTo("garden")'>
-            <span class="strip-icon">🌸</span>
+            <FlowerIcon Size="36" PetalColor="#06D6A0" CenterColor="#FFD166" />
             <div>
                 <h4 class="strip-title">Skill Garden</h4>
                 <p class="strip-desc">Water your growing flowers with stars!</p>
@@ -133,7 +253,7 @@
         </div>
 
         <div class="reward-strip-card" @onclick='() => NavigateTo("stickers")'>
-            <span class="strip-icon">📒</span>
+            <StarIcon Size="36" FillColor="#FFD166" />
             <div>
                 <h4 class="strip-title">Sticker Album</h4>
                 <p class="strip-desc">Peel and stick your shiny badges!</p>
@@ -142,7 +262,7 @@
         </div>
 
         <div class="reward-strip-card" @onclick='() => NavigateTo("trophies")'>
-            <span class="strip-icon">🏆</span>
+            <TrophyIcon Size="36" CupColor="#FFD166" />
             <div>
                 <h4 class="strip-title">Trophy Shelf</h4>
                 <p class="strip-desc">Admire your gold explorer cups!</p>
@@ -156,13 +276,16 @@
     .home-container {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
-        padding-bottom: 2rem;
+        gap: 1.75rem;
     }
 
-    /* Hero Card */
+    /* Hero Card with subtle paper texture */
     .hero-welcome-card {
-        background: linear-gradient(135deg, #FFFDF7 0%, #FFF3B0 60%, #FFE5EC 100%);
+        background: linear-gradient(135deg, #FFFDF7 0%, #FFF3B0 55%, #FFE5EC 100%);
+        background-image: 
+            radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, transparent 1.5px),
+            linear-gradient(135deg, #FFFDF7 0%, #FFF3B0 55%, #FFE5EC 100%);
+        background-size: 24px 24px, 100% 100%;
         border: 4px solid var(--color-storybook-ink);
         border-radius: 28px;
         box-shadow: 0 8px 0 var(--color-storybook-ink);
@@ -193,28 +316,65 @@
         background: var(--color-sunny-yellow);
         border: 2.5px solid var(--color-storybook-ink);
         border-radius: 999px;
-        padding: 0.2rem 0.6rem;
+        padding: 0.2rem 0.65rem;
         font-family: var(--font-heading);
         font-size: 0.8rem;
-        font-weight: 700;
+        font-weight: 800;
         margin-top: 0.25rem;
         box-shadow: 0 2px 0 var(--color-storybook-ink);
+        color: var(--color-storybook-ink);
     }
 
-    .hero-speech {
+    .hero-speech-container {
         flex: 1;
         min-width: 260px;
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        position: relative;
     }
 
-    .hero-bubble-text {
+    /* Speech Bubble with Handdrawn Tail Pointing to Mascot (No Quote Marks) */
+    .speech-bubble-handdrawn {
+        position: relative;
+        background: #FFFDF7;
+        border: 4px solid var(--color-storybook-ink);
+        border-radius: 24px;
+        box-shadow: 0 6px 0 var(--color-storybook-ink);
+        padding: 1.15rem 1.6rem;
+    }
+
+    .bubble-tail-left {
+        position: absolute;
+        left: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent;
+        border-right: 18px solid var(--color-storybook-ink);
+    }
+
+    .bubble-tail-left::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: -9px;
+        width: 0;
+        height: 0;
+        border-top: 9px solid transparent;
+        border-bottom: 9px solid transparent;
+        border-right: 15px solid #FFFDF7;
+    }
+
+    .bubble-text {
         font-family: var(--font-heading);
-        font-size: 1.4rem;
+        font-size: 1.45rem;
         color: var(--color-storybook-ink);
-        font-weight: 700;
+        font-weight: 800;
         line-height: 1.35;
+        display: block;
     }
 
     .hero-action-buttons {
@@ -223,16 +383,15 @@
         flex-wrap: wrap;
     }
 
-    .hero-voice-btn {
+    .hero-voice-btn, .hero-play-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
         font-size: 1.1rem !important;
         padding: 0.65rem 1.25rem !important;
     }
 
-    .hero-play-btn {
-        font-size: 1.1rem !important;
-        padding: 0.65rem 1.25rem !important;
-    }
-
+    /* Mic Card with 5 Volume Stars and Real Wobble */
     .mic-live-widget {
         display: flex;
         flex-direction: column;
@@ -240,33 +399,78 @@
         background: #FFFFFF;
         border: 3.5px solid var(--color-storybook-ink);
         border-radius: 24px;
-        padding: 0.75rem 1rem;
+        padding: 0.85rem 1.25rem;
         box-shadow: 0 5px 0 var(--color-storybook-ink);
         cursor: pointer;
-        transition: transform 0.15s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .mic-live-widget:hover {
         transform: translateY(-3px);
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+    }
+
+    .mic-widget-listening {
+        border-color: #06D6A0;
+        box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4), 0 6px 0 var(--color-storybook-ink);
+    }
+
+    .mic-volume-stars-row {
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0.5rem;
+        padding: 0.3rem 0.6rem;
+        background: #F8FAFC;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 999px;
+    }
+
+    .mic-volume-star {
+        transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .star-lit {
+        transform: scale(1.22);
+        animation: starPop 0.25s ease-out;
+    }
+
+    .star-unlit {
+        opacity: 0.45;
+        transform: scale(0.95);
+    }
+
+    @@keyframes starPop {
+        0% { transform: scale(0.9); }
+        50% { transform: scale(1.35); }
+        100% { transform: scale(1.22); }
     }
 
     .mic-status-label {
         font-family: var(--font-heading);
         font-size: 0.85rem;
-        font-weight: 700;
+        font-weight: 800;
         color: var(--color-storybook-ink);
-        margin-top: 0.35rem;
+        margin-top: 0.4rem;
         text-align: center;
     }
 
     /* Section Heading */
     .section-title-bar {
         text-align: center;
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .title-with-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        justify-content: center;
     }
 
     .title-fun {
-        font-size: 2.1rem;
+        font-size: 2.2rem;
         font-family: var(--font-heading);
         color: var(--color-storybook-ink);
         margin: 0;
@@ -278,44 +482,71 @@
         font-size: 1.1rem;
         font-weight: 700;
         color: #64748B;
+        display: block;
+        margin-top: 0.25rem;
     }
 
-    /* Games Grid */
+    /* 
+       RESPONSIVE GAMES GRID (Requirement 7)
+       Laptop: 3 columns
+       Tablet: 2 columns
+       Phone: 1 column
+    */
     .games-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
 
+    @@media (max-width: 960px) {
+        .games-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .games-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Game Card with Paper Texture and Gentle Bounce */
     .game-card {
         border: 4px solid var(--color-storybook-ink);
         border-radius: 26px;
         box-shadow: 0 8px 0 var(--color-storybook-ink);
-        padding: 1.5rem;
+        padding: 1.5rem 1.25rem;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
         cursor: pointer;
         position: relative;
-        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+        /* Gentle hover/press bounce (Requirement 6) */
+        transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+        /* Subtle paper texture overlay */
+        background-image: 
+            radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, transparent 1.5px),
+            radial-gradient(rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
     }
 
     .game-card:hover {
-        transform: translateY(-8px) scale(1.02);
+        transform: translateY(-8px) scale(1.025);
         box-shadow: 0 14px 0 var(--color-storybook-ink);
     }
 
     .game-card:active {
-        transform: translateY(2px);
+        transform: translateY(3px) scale(0.98);
         box-shadow: 0 3px 0 var(--color-storybook-ink);
     }
 
-    .game-card-space  { background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); }
-    .game-card-pond   { background: linear-gradient(135deg, #DCFCE7 0%, #A7F3D0 100%); }
-    .game-card-paint  { background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); }
-    .game-card-safari { background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%); }
-    .game-card-blocks { background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%); }
+    .game-card-space  { background-color: #BAE6FD; }
+    .game-card-pond   { background-color: #A7F3D0; }
+    .game-card-paint  { background-color: #FDE68A; }
+    .game-card-safari { background-color: #FED7AA; }
+    .game-card-blocks { background-color: #FBCFE8; }
 
     .card-badge {
         position: absolute;
@@ -323,25 +554,28 @@
         background: #FFFFFF;
         border: 2.5px solid var(--color-storybook-ink);
         border-radius: 999px;
-        padding: 0.25rem 0.8rem;
+        padding: 0.25rem 0.85rem;
         font-family: var(--font-heading);
-        font-size: 0.82rem;
-        font-weight: 700;
+        font-size: 0.84rem;
+        font-weight: 800;
         box-shadow: 0 3px 0 var(--color-storybook-ink);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     .card-icon-stage {
-        font-size: 4.2rem;
         margin-top: 0.5rem;
         margin-bottom: 0.5rem;
+        filter: drop-shadow(0 3px 0 rgba(43, 45, 66, 0.2));
     }
 
     .card-title {
         font-family: var(--font-heading);
         font-size: 1.6rem;
-        font-weight: 700;
+        font-weight: 800;
         color: var(--color-storybook-ink);
-        margin: 0 0 0.4rem 0;
+        margin: 0 0 0.35rem 0;
     }
 
     .card-desc {
@@ -350,8 +584,36 @@
         font-weight: 700;
         color: #334155;
         line-height: 1.4;
-        margin: 0 0 1.25rem 0;
+        margin: 0 0 0.85rem 0;
         flex: 1;
+    }
+
+    /* Big Star-Progress Row Under Each Game (Requirement 6) */
+    .game-star-progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.75);
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: 16px;
+        padding: 0.4rem 0.75rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .progress-label {
+        font-family: var(--font-heading);
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+    }
+
+    .stars-trio {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
     }
 
     .card-footer {
@@ -364,13 +626,14 @@
 
     .card-rounds {
         font-family: var(--font-heading);
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-size: 0.92rem;
+        font-weight: 800;
         color: var(--color-storybook-ink);
-        background: rgba(255, 255, 255, 0.7);
+        background: #FFFFFF;
         border: 2px solid var(--color-storybook-ink);
         border-radius: 999px;
         padding: 0.25rem 0.65rem;
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
     }
 
     .card-btn {
@@ -396,15 +659,12 @@
         align-items: center;
         gap: 1rem;
         cursor: pointer;
-        transition: transform 0.15s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .reward-strip-card:hover {
         transform: translateY(-4px);
-    }
-
-    .strip-icon {
-        font-size: 2.2rem;
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
     }
 
     .strip-title {
@@ -425,7 +685,7 @@
         margin-left: auto;
         font-family: var(--font-heading);
         font-size: 1.2rem;
-        font-weight: 700;
+        font-weight: 800;
         color: var(--color-storybook-ink);
     }
 
@@ -440,12 +700,12 @@
 
     @@keyframes floatSlow {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+        50% { transform: translateY(-7px); }
     }
 
     @@keyframes floatMid {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
+        50% { transform: translateY(-5px); }
     }
 
     @@media (max-width: 768px) {
@@ -458,8 +718,23 @@
             justify-content: center;
         }
 
-        .hero-speech {
-            text-align: center;
+        .bubble-tail-left {
+            left: 50%;
+            top: -18px;
+            transform: translateX(-50%);
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 18px solid var(--color-storybook-ink);
+            border-top: none;
+        }
+
+        .bubble-tail-left::after {
+            left: -9px;
+            top: 4px;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-bottom: 15px solid #FFFDF7;
+            border-top: none;
         }
     }
 </style>
@@ -480,11 +755,33 @@
         InvokeAsync(StateHasChanged);
     }
 
+    private int GetActiveMicStars()
+    {
+        if (currentVolume < 0.05f) return 0;
+        if (currentVolume < 0.18f) return 1;
+        if (currentVolume < 0.35f) return 2;
+        if (currentVolume < 0.55f) return 3;
+        if (currentVolume < 0.75f) return 4;
+        return 5;
+    }
+
+    private int GetGameStars(SkillCategory category)
+    {
+        if (ProgressService.ActiveProfile?.SkillProgressMap.TryGetValue(category, out var progress) == true)
+        {
+            if (progress.Correct >= 8) return 3;
+            if (progress.Correct >= 3) return 2;
+            if (progress.Attempts >= 1) return 1;
+        }
+        // Base encouragement level for all adventurers
+        return 1;
+    }
+
     private async Task HearVoxieWelcome()
     {
         mascotState = Mascot.MascotState.Happy;
         await AudioService.PlaySoundAsync(SoundEffect.Pop);
-        await VoiceService.SpeakAsync($"Hi {ProgressService.ActiveProfile?.Name ?? "Explorer"}! Tap any game card to start playing!");
+        await VoiceService.SpeakAsync("Ready to speak, play, and win stars?");
         await Task.Delay(1800);
         mascotState = Mascot.MascotState.Idle;
     }
@@ -496,6 +793,7 @@
             isTestingMic = false;
             await VoiceService.StopListeningAsync();
             currentVolume = 0.0f;
+            mascotState = Mascot.MascotState.Idle;
         }
         else
         {

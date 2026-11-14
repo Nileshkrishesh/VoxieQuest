@@ -1,0 +1,32 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Left Handle -->
+    <path d="M9 7C5 7 5 13 9 15" stroke="@StrokeColor" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Right Handle -->
+    <path d="M23 7C27 7 27 13 23 15" stroke="@StrokeColor" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Trophy Cup Body -->
+    <path d="M9 5H23V13C23 17 20 20 16 20C12 20 9 17 9 13V5Z" 
+          fill="@CupColor" 
+          stroke="@StrokeColor" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"/>
+
+    <!-- Stem & Base -->
+    <path d="M16 20V24M11 28H21V24H11V28Z" fill="#F78C6B" stroke="@StrokeColor" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Shiny Star Emblem on Cup -->
+    <path d="M16 8L17 11H20L17.5 13L18.5 16L16 14.2L13.5 16L14.5 13L12 11H15L16 8Z" 
+          fill="#FFFDF7" 
+          stroke="@StrokeColor" 
+          stroke-width="1.2"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string CupColor { get; set; } = "#FFD166"; // Sunny Yellow
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

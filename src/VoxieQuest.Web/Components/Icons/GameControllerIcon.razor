@@ -1,0 +1,27 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Gamepad Body -->
+    <path d="M6 11C6 7.5 9 6 12 6H20C23 6 26 7.5 26 11C26 15 28 22 24.5 25.5C21 29 18 24 16 24C14 24 11 29 7.5 25.5C4 22 6 15 6 11Z" 
+          fill="@BodyColor" 
+          stroke="@StrokeColor" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"/>
+    
+    <!-- D-Pad (Left) -->
+    <path d="M10 12V18M7 15H13" stroke="@StrokeColor" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Action Buttons (Right) -->
+    <circle cx="19.5" cy="16.5" r="1.8" fill="#EF476F" stroke="@StrokeColor" stroke-width="1.8"/>
+    <circle cx="22.5" cy="13.5" r="1.8" fill="#06D6A0" stroke="@StrokeColor" stroke-width="1.8"/>
+
+    <!-- Screen / Center Highlight -->
+    <path d="M14 10H18" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string BodyColor { get; set; } = "#4EA8DE"; // Sky Blue
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

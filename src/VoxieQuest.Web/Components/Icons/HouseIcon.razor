@@ -1,0 +1,27 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Chimney -->
+    <path d="M22 10V5H25V12" stroke="@StrokeColor" stroke-width="2.5" fill="#F78C6B"/>
+
+    <!-- House Walls -->
+    <rect x="6" y="14" width="20" height="14" rx="2" fill="@WallColor" stroke="@StrokeColor" stroke-width="2.5"/>
+
+    <!-- Triangular Roof -->
+    <path d="M3 15L16 4L29 15H3Z" fill="@RoofColor" stroke="@StrokeColor" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Door -->
+    <path d="M13 28V20H19V28" fill="@DoorColor" stroke="@StrokeColor" stroke-width="2.2"/>
+
+    <!-- Window -->
+    <rect x="9" y="17" width="3" height="3" fill="#4EA8DE" stroke="@StrokeColor" stroke-width="1.5"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string RoofColor { get; set; } = "#EF476F"; // Coral
+    [Parameter] public string WallColor { get; set; } = "#FFFDF7"; // Paper Cream
+    [Parameter] public string DoorColor { get; set; } = "#FFD166"; // Sunny Yellow
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

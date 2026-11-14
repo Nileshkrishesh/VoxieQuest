@@ -1,0 +1,30 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Left Big Eye Bump -->
+    <circle cx="9" cy="11" r="5" fill="@SkinColor" stroke="@StrokeColor" stroke-width="2.5"/>
+    <circle cx="9" cy="10" r="2.2" fill="#2B2D42"/>
+    <circle cx="8" cy="9" r="0.8" fill="#FFFFFF"/>
+
+    <!-- Right Big Eye Bump -->
+    <circle cx="23" cy="11" r="5" fill="@SkinColor" stroke="@StrokeColor" stroke-width="2.5"/>
+    <circle cx="23" cy="10" r="2.2" fill="#2B2D42"/>
+    <circle cx="22" cy="9" r="0.8" fill="#FFFFFF"/>
+
+    <!-- Frog Head Body -->
+    <ellipse cx="16" cy="19" rx="13" ry="9" fill="@SkinColor" stroke="@StrokeColor" stroke-width="2.5"/>
+
+    <!-- Rosy Cheeks -->
+    <ellipse cx="7" cy="20" rx="2" ry="1.2" fill="#EF476F"/>
+    <ellipse cx="25" cy="20" rx="2" ry="1.2" fill="#EF476F"/>
+
+    <!-- Cute Smiling Mouth -->
+    <path d="M11 20C13 23 19 23 21 20" stroke="@StrokeColor" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string SkinColor { get; set; } = "#06D6A0"; // Mint Green
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

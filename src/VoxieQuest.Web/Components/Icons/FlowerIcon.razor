@@ -1,0 +1,27 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Green Stem -->
+    <path d="M16 16V29" stroke="#06D6A0" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Leaf -->
+    <path d="M16 22C19 20 23 20 24 23C21 24 18 24 16 22Z" fill="#06D6A0" stroke="@StrokeColor" stroke-width="2"/>
+
+    <!-- Round Petals -->
+    <circle cx="16" cy="7" r="4.5" fill="@PetalColor" stroke="@StrokeColor" stroke-width="2.2"/>
+    <circle cx="21" cy="11" r="4.5" fill="@PetalColor" stroke="@StrokeColor" stroke-width="2.2"/>
+    <circle cx="19" cy="17" r="4.5" fill="@PetalColor" stroke="@StrokeColor" stroke-width="2.2"/>
+    <circle cx="13" cy="17" r="4.5" fill="@PetalColor" stroke="@StrokeColor" stroke-width="2.2"/>
+    <circle cx="11" cy="11" r="4.5" fill="@PetalColor" stroke="@StrokeColor" stroke-width="2.2"/>
+
+    <!-- Bright Sunny Flower Center -->
+    <circle cx="16" cy="12" r="4.5" fill="@CenterColor" stroke="@StrokeColor" stroke-width="2.5"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string PetalColor { get; set; } = "#EF476F"; // Coral
+    [Parameter] public string CenterColor { get; set; } = "#FFD166"; // Sunny Yellow
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

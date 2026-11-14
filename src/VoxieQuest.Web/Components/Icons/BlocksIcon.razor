@@ -1,0 +1,21 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class">
+    <!-- Top Center Block -->
+    <rect x="11" y="4" width="10" height="10" rx="2.5" fill="#EF476F" stroke="@StrokeColor" stroke-width="2.2"/>
+    <text x="16" y="11.5" font-family="sans-serif" font-size="7" font-weight="900" fill="#FFFFFF" text-anchor="middle">A</text>
+
+    <!-- Bottom Left Block -->
+    <rect x="5" y="15" width="10" height="10" rx="2.5" fill="#4EA8DE" stroke="@StrokeColor" stroke-width="2.2"/>
+    <text x="10" y="22.5" font-family="sans-serif" font-size="7" font-weight="900" fill="#FFFFFF" text-anchor="middle">B</text>
+
+    <!-- Bottom Right Block -->
+    <rect x="17" y="15" width="10" height="10" rx="2.5" fill="#06D6A0" stroke="@StrokeColor" stroke-width="2.2"/>
+    <text x="22" y="22.5" font-family="sans-serif" font-size="7" font-weight="900" fill="#2B2D42" text-anchor="middle">C</text>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}
