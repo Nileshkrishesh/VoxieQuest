@@ -1,0 +1,95 @@
+@namespace VoxieQuest.Web.Components
+@inject IWeeklyLeagueService LeagueService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+@if (profile != null && profile.IsEnabled)
+{
+    <div class="league-card-compact" @onclick="NavigateToLeague" role="button" tabindex="0" title="Click to view your weekly league garden!">
+        <div class="card-left-icon">
+            <span class="league-flower-emoji">🌻</span>
+        </div>
+        <div class="card-center-info">
+            <div class="league-pill-tag">@themeName</div>
+            <div class="league-points-headline">
+                <strong>@profile.WeeklyPoints pts</strong>
+                <span class="league-sub">this week</span>
+            </div>
+            <div class="league-rank-status">
+                @if (profile.IsUnder13)
+                {
+                    <span class="status-stars">@GetStars(profile.WeeklyPoints) Garden Explorer</span>
+                }
+                else
+                {
+                    <span class="status-rank">@(myRank > 0 ? $"{myRank}{GetOrdinal(myRank)} in room" : "Practicing")</span>
+                }
+            </div>
+        </div>
+        <div class="card-right-action">
+            <div class="daily-cap-pill" title="Daily cap: 150 points">
+                <span>Today: @profile.TodayPoints/150</span>
+            </div>
+            <button class="open-board-btn" aria-label="Open League Board">→</button>
+        </div>
+    </div>
+}
+
+@code {
+    private WeeklyLeagueProfile? profile;
+    private string themeName = "Sunflower League";
+    private int myRank = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        LeagueService.OnLeagueUpdated += HandleLeagueUpdated;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        profile = await LeagueService.GetProfileAsync();
+        if (profile.IsEnabled)
+        {
+            themeName = LeagueService.GetLeagueThemeName(profile.CurrentWeekId);
+            var summary = await LeagueService.GetRoomSummaryAsync();
+            myRank = summary.CurrentUserEntry?.Rank ?? 1;
+        }
+        StateHasChanged();
+    }
+
+    private void HandleLeagueUpdated()
+    {
+        _ = InvokeAsync(LoadDataAsync);
+    }
+
+    private void NavigateToLeague()
+    {
+        Navigation.NavigateTo("league");
+    }
+
+    private string GetStars(int points) => points switch
+    {
+        >= 300 => "⭐⭐⭐",
+        >= 150 => "⭐⭐",
+        >= 50 => "⭐",
+        _ => "🌱"
+    };
+
+    private string GetOrdinal(int num) => (num % 100) switch
+    {
+        11 or 12 or 13 => "th",
+        _ => (num % 10) switch
+        {
+            1 => "st",
+            2 => "nd",
+            3 => "rd",
+            _ => "th"
+        }
+    };
+
+    public void Dispose()
+    {
+        LeagueService.OnLeagueUpdated -= HandleLeagueUpdated;
+    }
+}

@@ -23,6 +23,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     [Inject] protected IAccessibilityService Accessibility { get; set; } = default!;
     [Inject] protected IQuestionService QuestionService { get; set; } = default!;
     [Inject] protected IStreakService StreakService { get; set; } = default!;
+    [Inject] protected IWeeklyLeagueService LeagueService { get; set; } = default!;
     [Inject] protected NavigationManager Navigation { get; set; } = default!;
 
     /// <summary>Gets the current level stop (1 to 10) on the picture-book trail.</summary>
@@ -186,6 +187,9 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             double responseSecs = Math.Max(0.5, (DateTime.UtcNow - _roundStartTime).TotalSeconds);
             await AdaptiveDifficulty.RecordAttemptAsync(GameCategory, true, responseSecs, AttemptState.AttemptCount > 1);
             await StreakService.RecordRoundPlayedAsync(starsEarned);
+            await LeagueService.AwardPointsAsync(LeagueScoreAction.RoundCompleted);
+            await LeagueService.AwardPointsAsync(LeagueScoreAction.NewGameCategory, GameCategory.ToString());
+            await LeagueService.AwardPointsAsync(LeagueScoreAction.DailyStreakBonus);
 
             // Trigger game-specific visual animation (e.g. Rocket blasts off, Frog hops, Paint splashes)
             await OnChallengeSolvedAsync(ActiveChallenge);
@@ -224,6 +228,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             {
                 // All 3 attempts exhausted: gentle supportive completion
                 await StreakService.RecordRoundPlayedAsync(0);
+                await LeagueService.AwardPointsAsync(LeagueScoreAction.HintUsed);
                 IsBusyAnimating = true;
                 MascotState = Mascot.MascotState.Happy;
                 await VoiceManager.SpeakAsync($"Great try! The answer is '{ActiveChallenge.TargetAnswer}'. Let's try the next one!");
@@ -269,6 +274,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
         int stars = SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1);
         await AdaptiveDifficulty.CompleteLevelAsync(GameCategory, CurrentLevel, stars, 0);
+        await LeagueService.AwardPointsAsync(LeagueScoreAction.LevelFinished);
 
         await VoiceManager.SpeakAsync($"Hooray! You finished all rounds and collected {SessionStars} stars!");
         StateHasChanged();

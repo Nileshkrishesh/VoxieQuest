@@ -1,0 +1,156 @@
+@page "/league"
+@namespace VoxieQuest.Web.Pages
+@inject IWeeklyLeagueService LeagueService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="league-page-container">
+    <div class="page-top-nav">
+        <button class="bouncy-back-btn" @onclick="GoHome" aria-label="Back to home">
+            ← Back
+        </button>
+        <h2 class="page-title">🌻 Weekly Garden League</h2>
+    </div>
+
+    @if (profile == null)
+    {
+        <div class="loading-state">
+            <span>🍃 Gathering the flowers...</span>
+        </div>
+    }
+    else if (!profile.IsEnabled)
+    {
+        <!-- Off by default notice with link to Parent Dashboard -->
+        <div class="league-disabled-card">
+            <div class="disabled-mascot-icon">🔒</div>
+            <h3>Weekly Leagues are Resting</h3>
+            <p>
+                Weekly Leagues let children share friendly learning encouragement inside a private family or classroom room.
+                Children are never ranked against strangers and no personal names are shared.
+            </p>
+            <p><strong>A parent or teacher can turn on Weekly League in the Parent Dashboard.</strong></p>
+            <button class="parent-gate-btn" @onclick="GoToParent">
+                Go to Parent Dashboard 🛡️
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Active League View -->
+        <div class="league-active-content">
+            <!-- Hero Mascot greeting -->
+            <div class="league-hero-banner">
+                <div class="mascot-wave-icon">🦊</div>
+                <div class="hero-text">
+                    <h3>Hello, @profile.DisplayName!</h3>
+                    <p>Playing mini-games, finishing levels and practicing your streak builds your garden this week.</p>
+                </div>
+                <div class="avatar-badge-preview">
+                    <span class="preview-emoji">@currentAvatar.Emoji</span>
+                </div>
+            </div>
+
+            <!-- Daily Rest Cap Reminder -->
+            <div class="daily-rest-cap-card">
+                <div class="cap-info">
+                    <span class="cap-title">🌱 Today's Rest Goal:</span>
+                    <strong>@profile.TodayPoints / 150 points</strong>
+                </div>
+                <div class="cap-track">
+                    <div class="cap-fill" style="width: @(Math.Min(100, (int)Math.Round((double)profile.TodayPoints / 150 * 100)))%"></div>
+                </div>
+                @if (profile.TodayPoints >= 150)
+                {
+                    <span class="cap-done-text">✨ You've reached today's cap! Take a gentle rest or keep playing for fun without point pressure.</span>
+                }
+            </div>
+
+            <!-- Main League Board (Garden Hill or List) -->
+            @if (summary != null)
+            {
+                <LeagueBoard Summary="summary"
+                             IsUnder13="profile.IsUnder13"
+                             PersonalBest="profile.PersonalBestWeekPoints"
+                             GrowthPercentage="growthPct" />
+            }
+
+            <!-- 8-Week Growth Rating Chart -->
+            <div class="chart-section-card">
+                <WeeklyGrowthChart PointsHistory="profile.PastWeeklyScores" />
+            </div>
+
+            <!-- State vs State Cooperative Challenge Section -->
+            @if (teamIndia != null)
+            {
+                <div class="team-india-coop-card">
+                    <div class="coop-badge-pill">🇮🇳 Team India Cooperative Challenge</div>
+                    <h4>Working Together Across India!</h4>
+                    <p class="coop-desc">
+                        Every round completed across all @teamIndia.ActiveStatesCount participating states adds to our shared national flower basket.
+                        When we reach @teamIndia.TargetRounds.ToString("N0") rounds together, everyone unlocks the <strong>Golden Team Star</strong>!
+                    </p>
+                    <div class="coop-progress-bar-wrap">
+                        <div class="coop-progress-labels">
+                            <span>Total Rounds: <strong>@teamIndia.TotalRoundsPlayed.ToString("N0")</strong></span>
+                            <span>Goal: <strong>@teamIndia.TargetRounds.ToString("N0")</strong></span>
+                        </div>
+                        <div class="coop-track-large">
+                            <div class="coop-fill-large" style="width: @teamIndia.ProgressPercentage%"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private WeeklyLeagueProfile? profile;
+    private LeagueRoomSummary? summary;
+    private TeamIndiaChallenge? teamIndia;
+    private AvatarOption currentAvatar = PresetAvatars.All[0];
+    private int growthPct = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        LeagueService.OnLeagueUpdated += HandleLeagueUpdated;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        profile = await LeagueService.GetProfileAsync();
+        if (profile.IsEnabled)
+        {
+            currentAvatar = PresetAvatars.GetById(profile.AvatarId);
+            summary = await LeagueService.GetRoomSummaryAsync();
+            teamIndia = await LeagueService.GetTeamIndiaChallengeAsync();
+
+            string prevWeek = GetPreviousWeekId(profile.CurrentWeekId);
+            growthPct = LeagueService.CalculateGrowthPercentage(profile.CurrentWeekId, prevWeek);
+        }
+        StateHasChanged();
+    }
+
+    private void HandleLeagueUpdated()
+    {
+        _ = InvokeAsync(LoadDataAsync);
+    }
+
+    private string GetPreviousWeekId(string currentWeek)
+    {
+        if (DateTime.TryParse(profile?.TodayDate, out var dt))
+        {
+            return LeagueService.GetCurrentWeekId(dt.AddDays(-7));
+        }
+        return LeagueService.GetCurrentWeekId(DateTime.UtcNow.AddDays(-7));
+    }
+
+    private void GoHome() => Navigation.NavigateTo("");
+    private void GoToParent() => Navigation.NavigateTo("parent");
+
+    public void Dispose()
+    {
+        LeagueService.OnLeagueUpdated -= HandleLeagueUpdated;
+    }
+}

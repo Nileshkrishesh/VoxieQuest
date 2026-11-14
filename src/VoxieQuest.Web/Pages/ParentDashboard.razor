@@ -10,6 +10,7 @@
 @inject ISessionTimerService SessionTimer
 @inject IStreakService StreakService
 @inject IAudioService AudioService
+@inject IWeeklyLeagueService LeagueService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -541,6 +542,173 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Weekly Garden League & Classroom Settings -->
+            <div class="storybook-card" style="background:#FFFDF7; border:3px solid #FFD166;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+                    <div>
+                        <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem; color:#1E2A4A;">
+                            <span>🌻</span> Weekly Garden League &amp; Private Rooms
+                        </h3>
+                        <p style="margin:0; font-size:0.92rem; color:#64748B;">
+                            Effort-based learning encouragement inside private family or classroom rooms. No strangers, no public rankings, and 150 daily cap.
+                        </p>
+                    </div>
+
+                    <button class="pill" 
+                            style="background:@(leagueProfile?.IsEnabled == true ? "var(--color-mint)" : "white"); min-width:90px; font-weight:800;" 
+                            type="button"
+                            @onclick="ToggleLeagueEnabledAsync">
+                        @(leagueProfile?.IsEnabled == true ? "ENABLED ✓" : "OFF")
+                    </button>
+                </div>
+
+                @if (leagueProfile?.IsEnabled == true)
+                {
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+                        <!-- Safe Profile Identity -->
+                        <div style="background:#F8FAFC; border:2px solid #CBD5E1; border-radius:16px; padding:1rem;">
+                            <strong style="display:block; margin-bottom:0.5rem; color:#1E2A4A;">Child Display Identity (Non-Identifiable)</strong>
+                            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                                <span style="font-size:2rem; background:@(currentAvatar?.ColorHex ?? "#FF9F43"); padding:0.3rem 0.5rem; border-radius:12px; border:2px solid #1E2A4A;">
+                                    @(currentAvatar?.Emoji ?? "🦊")
+                                </span>
+                                <div>
+                                    <div style="font-size:1.1rem; font-weight:800; color:#1E2A4A;">@leagueProfile.DisplayName</div>
+                                    <span style="font-size:0.8rem; color:#64748B;">Safe Word List (No real name)</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                <button class="btn-story btn-story-yellow" style="padding:0.4rem 0.8rem; font-size:0.85rem;" @onclick="RegenerateSafeNameAsync">
+                                    🎲 New Safe Name
+                                </button>
+                                <select class="form-select form-select-sm" style="width:auto; font-size:0.85rem; border-radius:8px; border:2px solid #CBD5E1;"
+                                        value="@leagueProfile.AvatarId"
+                                        @onchange="(e) => ChangeAvatarAsync(e.Value?.ToString())">
+                                    @foreach (var av in PresetAvatars.All)
+                                    {
+                                        <option value="@av.Id">@av.Emoji @av.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Private Room Code -->
+                        <div style="background:#F8FAFC; border:2px solid #CBD5E1; border-radius:16px; padding:1rem;">
+                            <strong style="display:block; margin-bottom:0.5rem; color:#1E2A4A;">Current Private Room</strong>
+                            @if (!string.IsNullOrEmpty(leagueProfile.CurrentRoomCode))
+                            {
+                                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                                    <span class="pill" style="background:#FFF9DB; border-color:#F59E0B; font-size:1.2rem; font-weight:800; letter-spacing:2px;">
+                                        @leagueProfile.CurrentRoomCode
+                                    </span>
+                                    <button class="btn-story btn-story-coral" style="padding:0.3rem 0.6rem; font-size:0.8rem;" @onclick="LeaveRoomAsync">
+                                        Leave Room
+                                    </button>
+                                </div>
+                                <span style="font-size:0.82rem; color:#64748B; display:block;">Share this 6-character code with family members or classmates.</span>
+                            }
+                            else
+                            {
+                                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                                    <input type="text" maxlength="6" placeholder="6-char code" 
+                                           style="text-transform:uppercase; font-weight:800; letter-spacing:2px; padding:0.4rem 0.6rem; border-radius:8px; border:2px solid #CBD5E1; width:130px;"
+                                           @bind="roomCodeInput" />
+                                    <button class="btn-story btn-story-mint" style="padding:0.4rem 0.8rem; font-size:0.85rem;" @onclick="JoinRoomAsync">
+                                        Join
+                                    </button>
+                                </div>
+                                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                    <button class="btn-story btn-story-yellow" style="padding:0.3rem 0.6rem; font-size:0.8rem;" @onclick="() => CreateRoomAsync(false)">
+                                        + Family Room
+                                    </button>
+                                    <button class="btn-story btn-story-blue" style="padding:0.3rem 0.6rem; font-size:0.8rem;" @onclick="() => CreateRoomAsync(true)">
+                                        🏫 Teacher Room
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Parent Oversight Metrics (Exact Rank) -->
+                        <div style="background:#F0FDF4; border:2px solid #86EFAC; border-radius:16px; padding:1rem;">
+                            <strong style="display:block; margin-bottom:0.5rem; color:#14532D;">Parent League Metrics</strong>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.9rem;">
+                                <span>Weekly Points:</span>
+                                <strong>@leagueProfile.WeeklyPoints pts</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.9rem;">
+                                <span>Today's Points (Max 150):</span>
+                                <strong>@leagueProfile.TodayPoints / 150 pts</strong>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.9rem;">
+                                <span>Exact Position in Room:</span>
+                                <strong>@(leagueSummary?.CurrentUserEntry?.Rank > 0 ? $"Rank #{leagueSummary.CurrentUserEntry.Rank} of {leagueSummary.TotalMembers}" : "Practicing")</strong>
+                            </div>
+
+                            <!-- Under-13 Rank Shield Toggle -->
+                            <div class="setting-toggle-row" style="background:#FFFFFF; padding:0.4rem 0.6rem; margin-top:0.5rem;">
+                                <div>
+                                    <strong style="font-size:0.88rem; display:block;">Under-13 Star Shield</strong>
+                                    <span style="font-size:0.75rem; color:#64748B;">Hides all rank numbers from child view</span>
+                                </div>
+                                <button class="pill" style="background:@(leagueProfile.IsUnder13 ? "var(--color-mint)" : "white"); min-width:65px; font-size:0.75rem;"
+                                        type="button"
+                                        @onclick="ToggleUnder13Async">
+                                    @(leagueProfile.IsUnder13 ? "PROTECTED ✓" : "OFF")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8-Week History Chart inside Parent Dashboard -->
+                    <div style="margin-bottom:1.5rem;">
+                        <WeeklyGrowthChart PointsHistory="leagueProfile.PastWeeklyScores" />
+                    </div>
+
+                    <!-- Teacher Classroom Mode Section (If Room is Classroom) -->
+                    @if (leagueSummary != null && leagueSummary.ClassTargetGoal > 0)
+                    {
+                        <div style="background:#F8FAFC; border:2px dashed #94A3B8; border-radius:16px; padding:1rem; margin-bottom:1.5rem;">
+                            <h4 style="margin:0 0 0.5rem 0; font-size:1.1rem; color:#1E2A4A;">🏫 Classroom Mode &amp; Group Goal</h4>
+                            <p style="margin:0 0 0.75rem 0; font-size:0.88rem; color:#64748B;">
+                                Collaborative class progress toward @leagueSummary.ClassTargetGoal points. Names are fully anonymized with child-safe display names.
+                            </p>
+                            <div style="height:14px; background:#E2E8F0; border-radius:7px; overflow:hidden; border:1px solid #CBD5E1; margin-bottom:0.5rem;">
+                                <div style="height:100%; width:@(Math.Min(100, (int)Math.Round((double)leagueSummary.ClassTotalPoints / leagueSummary.ClassTargetGoal * 100)))%; background:linear-gradient(90deg, #38BDF8, #22C55E); border-radius:7px;"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.82rem; font-weight:700; color:#475569;">
+                                <span>Class Total: @leagueSummary.ClassTotalPoints pts</span>
+                                <span>Target: @leagueSummary.ClassTargetGoal pts</span>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Delete All League Data & Opt-Out -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; padding-top:1rem; border-top:2px dashed #E2E8F0;">
+                        <div>
+                            <strong style="color:#DC2626; display:block; font-size:0.95rem;">Delete All League Data</strong>
+                            <span style="font-size:0.82rem; color:#64748B;">Removes child from rooms and purges all weekly score records locally and remotely.</span>
+                        </div>
+                        <button class="btn-story btn-story-coral" style="padding:0.4rem 0.9rem; font-size:0.85rem;" @onclick="DeleteLeagueDataAsync">
+                            🗑️ Delete League Data
+                        </button>
+                    </div>
+                }
+
+                <!-- Plain-Language Privacy Notice for Parents -->
+                <div style="margin-top:1.25rem; padding:0.9rem; background:#FEF3C7; border:2px solid #F59E0B; border-radius:14px;">
+                    <strong style="display:block; font-size:0.9rem; color:#92400E; margin-bottom:0.35rem;">
+                        🛡️ Weekly League Privacy &amp; Ethics Guarantee (DPDP Act 2023 &amp; COPPA Compliant):
+                    </strong>
+                    <ul style="margin:0; padding-left:1.2rem; font-size:0.83rem; color:#78350F; line-height:1.5;">
+                        <li><strong>No Stranger Rankings:</strong> Children participate only in rooms explicitly joined by code (family or classroom).</li>
+                        <li><strong>Zero Personal Identification:</strong> Names are random combinations (e.g. 'Brave Panda 42'). Real names, chat, and messaging are strictly absent.</li>
+                        <li><strong>Effort-Based &amp; Daily Cap:</strong> Points reward completed rounds and streak practice, never speed. A strict 150 daily cap discourages addictive binge play.</li>
+                        <li><strong>Positive Reinforcement Only:</strong> Children view only the Top 5. No one is ever designated in 'last place'. Under 13s see only star growth.</li>
+                    </ul>
+                </div>
+            </div>
         }
     }
 </div>
@@ -730,6 +898,7 @@
         Accessibility.OnSettingsChanged += StateHasChanged;
         SessionTimer.OnTimerTick += StateHasChanged;
         _ = LoadPassportAsync();
+        _ = LoadLeagueAsync();
     }
 
     private async Task LoadPassportAsync()
@@ -882,5 +1051,86 @@
         {
             await Accessibility.SetTimerMultiplierAsync(mult);
         }
+    }
+
+    private WeeklyLeagueProfile? leagueProfile;
+    private LeagueRoomSummary? leagueSummary;
+    private AvatarOption? currentAvatar;
+    private string roomCodeInput = string.Empty;
+
+    private async Task LoadLeagueAsync()
+    {
+        leagueProfile = await LeagueService.GetProfileAsync();
+        currentAvatar = PresetAvatars.GetById(leagueProfile.AvatarId);
+        if (leagueProfile.IsEnabled)
+        {
+            leagueSummary = await LeagueService.GetRoomSummaryAsync();
+        }
+        StateHasChanged();
+    }
+
+    private async Task ToggleLeagueEnabledAsync()
+    {
+        if (leagueProfile != null)
+        {
+            await LeagueService.EnableLeagueAsync(!leagueProfile.IsEnabled);
+            await LoadLeagueAsync();
+        }
+    }
+
+    private async Task RegenerateSafeNameAsync()
+    {
+        await LeagueService.RegenerateSafeNameAsync();
+        await LoadLeagueAsync();
+    }
+
+    private async Task ChangeAvatarAsync(string? avatarId)
+    {
+        if (!string.IsNullOrEmpty(avatarId))
+        {
+            await LeagueService.SetAvatarAsync(avatarId);
+            await LoadLeagueAsync();
+        }
+    }
+
+    private async Task JoinRoomAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(roomCodeInput))
+        {
+            bool ok = await LeagueService.JoinRoomAsync(roomCodeInput.Trim());
+            if (ok)
+            {
+                roomCodeInput = string.Empty;
+                await LoadLeagueAsync();
+            }
+        }
+    }
+
+    private async Task LeaveRoomAsync()
+    {
+        await LeagueService.LeaveRoomAsync();
+        await LoadLeagueAsync();
+    }
+
+    private async Task CreateRoomAsync(bool isTeacher)
+    {
+        await LeagueService.CreateRoomAsync(isTeacher, isTeacher ? 500 : 250);
+        await LoadLeagueAsync();
+    }
+
+    private async Task ToggleUnder13Async()
+    {
+        if (leagueProfile != null)
+        {
+            await LeagueService.SetUnder13Async(!leagueProfile.IsUnder13);
+            await LoadLeagueAsync();
+        }
+    }
+
+    private async Task DeleteLeagueDataAsync()
+    {
+        await LeagueService.DeleteAllLeagueDataAsync();
+        await LoadLeagueAsync();
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
     }
 }

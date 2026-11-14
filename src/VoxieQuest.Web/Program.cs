@@ -26,6 +26,7 @@ builder.Services.AddScoped<ISessionTimerService, SessionTimerService>();
 builder.Services.AddScoped<IStreakService, StreakService>();
 builder.Services.AddScoped<IClassroomService, ClassroomService>();
 builder.Services.AddScoped<IIndiaMapService, IndiaMapService>();
+builder.Services.AddScoped<IWeeklyLeagueService, WeeklyLeagueService>();
 
 // Register Voice Subsystem & Pure C# Speech Matcher
 builder.Services.AddSingleton<ISpeechMatcher, SpeechMatcher>();

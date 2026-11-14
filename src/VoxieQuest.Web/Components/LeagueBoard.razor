@@ -1,0 +1,163 @@
+@namespace VoxieQuest.Web.Components
+@inject IWeeklyLeagueService LeagueService
+
+<div class="league-board-container" role="region" aria-label="Weekly Garden League Board">
+    <!-- Header with Theme & Days Left Progress Bar -->
+    <div class="league-header-card">
+        <div class="league-badge-pill">
+            <span class="badge-icon">🌻</span>
+            <span class="badge-title">@Summary.LeagueThemeName</span>
+        </div>
+        <div class="league-week-id">Week @Summary.WeekId</div>
+
+        <div class="league-timer-bar-wrap" title="@Summary.DaysRemainingInWeek days until next league begins">
+            <div class="league-timer-label">
+                <span>🌱 Days until new garden week:</span>
+                <strong>@(Summary.DaysRemainingInWeek == 0 ? "Ends tonight!" : $"{Summary.DaysRemainingInWeek} days left")</strong>
+            </div>
+            <div class="calm-progress-track">
+                <div class="calm-progress-fill" style="width: @(Math.Clamp((7 - Summary.DaysRemainingInWeek) * 14.28, 10, 100))%"></div>
+            </div>
+        </div>
+
+        @if (Summary.IsClassGoalMet || Summary.ClassTotalPoints > 0)
+        {
+            <div class="class-coop-goal-bar">
+                <div class="coop-label">
+                    <span>🏫 Team Goal:</span>
+                    <strong>@Summary.ClassTotalPoints / @Summary.ClassTargetGoal pts</strong>
+                </div>
+                <div class="coop-track">
+                    <div class="coop-fill" style="width: @(Math.Min(100, (int)Math.Round((double)Summary.ClassTotalPoints / Math.Max(1, Summary.ClassTargetGoal) * 100)))%"></div>
+                </div>
+            </div>
+        }
+
+        @if (Summary.IsOfflineFallback)
+        {
+            <div class="offline-note-banner" role="status">
+                <span>🍃 Voxie is resting — scores are safely saved on your device!</span>
+            </div>
+        }
+    </div>
+
+    <!-- Toggle between Garden Hill View & Accessible List View -->
+    <div class="view-mode-toggle">
+        <button type="button" class="toggle-btn @(isListView ? "" : "active")" @onclick="() => isListView = false" aria-pressed="@(!isListView)">
+            ⛰️ Garden Hill
+        </button>
+        <button type="button" class="toggle-btn @(isListView ? "active" : "")" @onclick="() => isListView = true" aria-pressed="@isListView">
+            📋 List View
+        </button>
+    </div>
+
+    @if (!isListView)
+    {
+        <!-- Picture-Book Garden Hill Podium (Top 5 only) -->
+        <div class="garden-hill-arena">
+            <svg class="hill-svg" viewBox="0 0 500 220" preserveAspectRatio="none">
+                <!-- Soft Green Rolling Hill Shape -->
+                <path d="M0,220 C100,140 180,60 250,50 C320,60 400,140 500,220 Z" fill="#C8E6C9" stroke="#1E2A4A" stroke-width="4"/>
+                <path d="M70,220 C160,110 340,110 430,220 Z" fill="#E8F5E9" opacity="0.6"/>
+            </svg>
+
+            <div class="hill-avatars-row">
+                @for (int i = 0; i < Summary.Top5.Count; i++)
+                {
+                    var entry = Summary.Top5[i];
+                    var avatar = PresetAvatars.GetById(entry.AvatarId);
+                    int spotClass = i + 1;
+
+                    <div class="hill-avatar-node spot-@spotClass @(entry.IsCurrentUser ? "is-user" : "")" title="@entry.DisplayName - @entry.WeeklyPoints pts">
+                        <div class="avatar-sticker" style="background-color: @avatar.ColorHex">
+                            <span class="avatar-emoji">@avatar.Emoji</span>
+                            @if (!IsUnder13)
+                            {
+                                <span class="rank-badge">#@entry.Rank</span>
+                            }
+                        </div>
+                        <div class="avatar-tag">
+                            <span class="avatar-name">@entry.DisplayName</span>
+                            <span class="avatar-stars">@entry.StarRating</span>
+                            <span class="avatar-pts">@entry.WeeklyPoints pts</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Accessible List View -->
+        <div class="league-list-view">
+            @foreach (var entry in Summary.Top5)
+            {
+                var avatar = PresetAvatars.GetById(entry.AvatarId);
+                <div class="league-list-row @(entry.IsCurrentUser ? "is-user" : "")">
+                    <div class="list-avatar-col" style="background-color: @avatar.ColorHex">
+                        <span>@avatar.Emoji</span>
+                    </div>
+                    <div class="list-info-col">
+                        <strong class="list-name">@entry.DisplayName @(entry.IsCurrentUser ? " (You!)" : "")</strong>
+                        <span class="list-stars">@entry.StarRating</span>
+                    </div>
+                    <div class="list-score-col">
+                        @if (!IsUnder13)
+                        {
+                            <span class="list-rank">Rank @entry.Rank • </span>
+                        }
+                        <strong class="list-pts">@entry.WeeklyPoints pts</strong>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Current User's Spot Highlight (If not in Top 5, shown separately so no one sees last place) -->
+    @if (Summary.CurrentUserEntry != null && !Summary.Top5.Any(e => e.AnonId == Summary.CurrentUserEntry.AnonId))
+    {
+        var myAvatar = PresetAvatars.GetById(Summary.CurrentUserEntry.AvatarId);
+        <div class="my-league-spot-card">
+            <div class="spot-title">✨ Your Garden Spot</div>
+            <div class="spot-details">
+                <span class="spot-avatar" style="background-color: @myAvatar.ColorHex">@myAvatar.Emoji</span>
+                <div class="spot-text">
+                    <strong>@Summary.CurrentUserEntry.DisplayName (You)</strong>
+                    <span class="spot-stars">@Summary.CurrentUserEntry.StarRating</span>
+                </div>
+                <div class="spot-points">
+                    @if (!IsUnder13)
+                    {
+                        <span class="spot-rank">Rank @Summary.CurrentUserEntry.Rank • </span>
+                    }
+                    <strong>@Summary.CurrentUserEntry.WeeklyPoints pts</strong>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Beat Your Own Best Panel -->
+    <div class="personal-best-footer">
+        <span class="pb-icon">🏆</span>
+        <div class="pb-text">
+            <span>Personal Best Week: <strong>@PersonalBest pts</strong></span>
+            @if (GrowthPercentage > 0)
+            {
+                <span class="growth-pill">🌱 +@GrowthPercentage% from last week!</span>
+            }
+            else
+            {
+                <span class="growth-pill">🌼 Growing stronger every day!</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public LeagueRoomSummary Summary { get; set; } = new();
+    [Parameter] public bool IsUnder13 { get; set; } = true;
+    [Parameter] public int PersonalBest { get; set; } = 0;
+    [Parameter] public int GrowthPercentage { get; set; } = 0;
+
+    private bool isListView = false;
+}

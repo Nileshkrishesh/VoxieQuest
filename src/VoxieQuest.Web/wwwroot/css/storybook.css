@@ -804,3 +804,753 @@ h1, h2, h3, h4, .font-heading {
     pointer-events: none;
     z-index: 0;
 }
+
+/* ==========================================================================
+   7. WEEKLY GARDEN LEAGUE & ACCESSIBLE GAMIFICATION SUITE
+   ========================================================================== */
+
+/* Compact Home Card */
+.league-card-compact {
+    background: #FFFDF7;
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 20px;
+    box-shadow: 0 6px 0 var(--color-storybook-ink);
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    cursor: pointer;
+    margin: 1rem 0;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.league-card-compact:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 0 var(--color-storybook-ink);
+}
+
+.card-left-icon {
+    font-size: 2.2rem;
+    background: #FEF3C7;
+    border: 2.5px solid var(--color-storybook-ink);
+    border-radius: 50%;
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-center-info {
+    flex: 1;
+}
+
+.league-pill-tag {
+    display: inline-block;
+    background: #FFD166;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-storybook-ink);
+    margin-bottom: 0.2rem;
+}
+
+.league-points-headline strong {
+    font-size: 1.3rem;
+    font-family: var(--font-heading);
+    color: var(--color-storybook-ink);
+}
+
+.league-points-headline .league-sub {
+    font-size: 0.85rem;
+    color: #64748B;
+    margin-left: 0.25rem;
+}
+
+.status-stars {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.status-rank {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #0284C7;
+}
+
+.card-right-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+}
+
+.daily-cap-pill {
+    background: #E2E8F0;
+    border: 1.5px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #334155;
+}
+
+.open-board-btn {
+    background: var(--color-sunny-yellow);
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+/* League Page Layout */
+.league-page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem 1rem 3rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.page-top-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.bouncy-back-btn {
+    background: #FFFDF7;
+    border: 3px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.4rem 1rem;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--color-storybook-ink);
+}
+
+.bouncy-back-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-storybook-ink);
+}
+
+.league-disabled-card {
+    background: #FFFDF7;
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 24px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 8px 0 var(--color-storybook-ink);
+}
+
+.disabled-mascot-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.parent-gate-btn {
+    background: var(--color-coral);
+    color: white;
+    border: 3px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.6rem 1.4rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--color-storybook-ink);
+    margin-top: 1rem;
+}
+
+.league-hero-banner {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FFFDF7 100%);
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 22px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 6px 0 var(--color-storybook-ink);
+}
+
+.mascot-wave-icon {
+    font-size: 3rem;
+}
+
+.hero-text h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.4rem;
+    color: var(--color-storybook-ink);
+}
+
+.hero-text p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+.avatar-badge-preview {
+    margin-left: auto;
+    font-size: 2.2rem;
+    background: #FFFDF7;
+    border: 2.5px solid var(--color-storybook-ink);
+    border-radius: 50%;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Daily Rest Cap Card */
+.daily-rest-cap-card {
+    background: #F0FDF4;
+    border: 3px solid #16A34A;
+    border-radius: 18px;
+    padding: 0.9rem 1.25rem;
+}
+
+.cap-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.92rem;
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+    color: #14532D;
+}
+
+.cap-track {
+    height: 12px;
+    background: #DCFCE7;
+    border: 2px solid #16A34A;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cap-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ADE80, #16A34A);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.cap-done-text {
+    display: block;
+    font-size: 0.85rem;
+    color: #15803D;
+    font-weight: 700;
+    margin-top: 0.4rem;
+}
+
+/* League Board Container */
+.league-board-container {
+    background: #FFFDF7;
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 0 var(--color-storybook-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.league-header-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.league-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #FFD166;
+    border: 2.5px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.15rem;
+    align-self: flex-start;
+}
+
+.league-week-id {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.league-timer-bar-wrap {
+    background: #F8FAFC;
+    border: 2px solid #CBD5E1;
+    border-radius: 14px;
+    padding: 0.6rem 0.9rem;
+}
+
+.league-timer-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+    color: #334155;
+}
+
+.calm-progress-track {
+    height: 10px;
+    background: #E2E8F0;
+    border: 1.5px solid var(--color-storybook-ink);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.calm-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38BDF8, #FBBF24);
+    border-radius: 4px;
+}
+
+.class-coop-goal-bar {
+    background: #E0F2FE;
+    border: 2px solid #0284C7;
+    border-radius: 14px;
+    padding: 0.6rem 0.9rem;
+}
+
+.coop-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0369A1;
+    margin-bottom: 0.3rem;
+}
+
+.coop-track {
+    height: 10px;
+    background: #BAE6FD;
+    border: 1.5px solid #0284C7;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.coop-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38BDF8, #059669);
+    border-radius: 4px;
+}
+
+.offline-note-banner {
+    background: #FEF3C7;
+    border: 2px solid #D97706;
+    border-radius: 12px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #92400E;
+}
+
+.view-mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    align-self: center;
+}
+
+.toggle-btn {
+    background: #F1F5F9;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.3rem 0.85rem;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.toggle-btn.active {
+    background: var(--color-sunny-yellow);
+    box-shadow: 0 2px 0 var(--color-storybook-ink);
+}
+
+/* Garden Hill SVG Arena */
+.garden-hill-arena {
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-radius: 20px;
+    overflow: hidden;
+    padding-bottom: 1rem;
+}
+
+.hill-svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hill-avatars-row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.hill-avatar-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.hill-avatar-node.spot-1 {
+    transform: translateY(-40px);
+}
+
+.hill-avatar-node.spot-2 {
+    transform: translateY(-20px);
+}
+
+.hill-avatar-node.spot-3 {
+    transform: translateY(-15px);
+}
+
+.hill-avatar-node.spot-4 {
+    transform: translateY(0);
+}
+
+.hill-avatar-node.spot-5 {
+    transform: translateY(5px);
+}
+
+.hill-avatar-node.is-user .avatar-sticker {
+    box-shadow: 0 0 0 4px #F59E0B, 0 6px 0 var(--color-storybook-ink);
+    animation: gentle-bounce 2s infinite ease-in-out;
+}
+
+@keyframes gentle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.avatar-sticker {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 3px solid var(--color-storybook-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 0 var(--color-storybook-ink);
+}
+
+.avatar-emoji {
+    font-size: 2rem;
+}
+
+.rank-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #FFD166;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 1px 5px;
+}
+
+.avatar-tag {
+    background: #FFFDF7;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 12px;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 0 var(--color-storybook-ink);
+}
+
+.avatar-name {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--color-storybook-ink);
+    max-width: 95px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.avatar-stars {
+    font-size: 0.7rem;
+}
+
+.avatar-pts {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #0284C7;
+}
+
+/* Accessible List View */
+.league-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.league-list-row {
+    background: #F8FAFC;
+    border: 2.5px solid var(--color-storybook-ink);
+    border-radius: 16px;
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 3px 0 var(--color-storybook-ink);
+}
+
+.league-list-row.is-user {
+    background: #FFFBEB;
+    border-color: #F59E0B;
+}
+
+.list-avatar-col {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--color-storybook-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.list-info-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-name {
+    font-size: 0.95rem;
+    color: var(--color-storybook-ink);
+}
+
+.list-stars {
+    font-size: 0.8rem;
+}
+
+.list-score-col {
+    font-size: 0.92rem;
+    color: #0369A1;
+}
+
+/* My League Spot Card */
+.my-league-spot-card {
+    background: #EFF6FF;
+    border: 2.5px solid #3B82F6;
+    border-radius: 16px;
+    padding: 0.75rem 1rem;
+}
+
+.spot-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #1D4ED8;
+    margin-bottom: 0.35rem;
+}
+
+.spot-details {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.spot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--color-storybook-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.spot-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Personal Best Footer */
+.personal-best-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #FEF3C7;
+    border: 2px solid #F59E0B;
+    border-radius: 14px;
+    padding: 0.6rem 0.9rem;
+}
+
+.pb-icon {
+    font-size: 1.6rem;
+}
+
+.pb-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.88rem;
+    color: #78350F;
+}
+
+.growth-pill {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #059669;
+}
+
+/* Growth SVG Chart */
+.weekly-growth-chart-wrap {
+    background: #FFFDF7;
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 0 var(--color-storybook-ink);
+}
+
+.chart-header {
+    margin-bottom: 0.75rem;
+}
+
+.chart-title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--color-storybook-ink);
+}
+
+.chart-subtitle {
+    font-size: 0.82rem;
+    color: #64748B;
+}
+
+.chart-svg-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.growth-svg {
+    width: 100%;
+    min-width: 420px;
+    height: auto;
+}
+
+.axis-text {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    fill: #64748B;
+}
+
+.axis-x-text {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 800;
+    fill: var(--color-storybook-ink);
+}
+
+.point-val {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 800;
+    fill: #0369A1;
+}
+
+/* Team India Cooperative Challenge Card */
+.team-india-coop-card {
+    background: linear-gradient(135deg, #FFFDF7 0%, #FEF3C7 100%);
+    border: 3.5px solid var(--color-storybook-ink);
+    border-radius: 22px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 6px 0 var(--color-storybook-ink);
+}
+
+.coop-badge-pill {
+    display: inline-block;
+    background: #FFD166;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 9999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-storybook-ink);
+    margin-bottom: 0.4rem;
+}
+
+.team-india-coop-card h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.25rem;
+    color: var(--color-storybook-ink);
+}
+
+.coop-desc {
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+}
+
+.coop-progress-bar-wrap {
+    background: #FFFDF7;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 16px;
+    padding: 0.75rem 1rem;
+}
+
+.coop-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.4rem;
+}
+
+.coop-track-large {
+    height: 18px;
+    background: #E2E8F0;
+    border: 2px solid var(--color-storybook-ink);
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.coop-fill-large {
+    height: 100%;
+    background: linear-gradient(90deg, #F97316 0%, #FFFFFF 50%, #16A34A 100%);
+    border-radius: 7px;
+    transition: width 0.4s ease;
+}

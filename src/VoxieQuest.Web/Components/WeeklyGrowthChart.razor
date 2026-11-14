@@ -1,0 +1,106 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="weekly-growth-chart-wrap" role="region" aria-label="8-Week Points Growth Chart">
+    <div class="chart-header">
+        <h4 class="chart-title">📈 Your 8-Week Garden Growth</h4>
+        <span class="chart-subtitle">Effort and consistency over time</span>
+    </div>
+
+    @if (PointsHistory == null || PointsHistory.Count == 0)
+    {
+        <div class="empty-chart-note">
+            <span>🌱 Play rounds this week to plant your first weekly score flower!</span>
+        </div>
+    }
+    else
+    {
+        <div class="chart-svg-container">
+            <svg class="growth-svg" viewBox="0 0 540 220" role="img" aria-label="Weekly points graph">
+                <!-- Soft dotted grid lines -->
+                <line x1="50" y1="30" x2="510" y2="30" stroke="#CBD5E1" stroke-dasharray="4,4" stroke-width="1.5" />
+                <line x1="50" y1="80" x2="510" y2="80" stroke="#CBD5E1" stroke-dasharray="4,4" stroke-width="1.5" />
+                <line x1="50" y1="130" x2="510" y2="130" stroke="#CBD5E1" stroke-dasharray="4,4" stroke-width="1.5" />
+                <line x1="50" y1="180" x2="510" y2="180" stroke="#1E2A4A" stroke-width="2" />
+
+                <!-- Y Axis labels -->
+                <text x="35" y="34" class="axis-text">150</text>
+                <text x="35" y="84" class="axis-text">100</text>
+                <text x="35" y="134" class="axis-text">50</text>
+                <text x="35" y="184" class="axis-text">0</text>
+
+                <!-- Chart Polygon / Bars -->
+                @{
+                    var historyList = PointsHistory.TakeLast(8).ToList();
+                    int count = historyList.Count;
+                    double stepX = count > 1 ? 440.0 / (count - 1) : 440.0;
+                    var pointsList = new List<(double X, double Y, int Pts, string Label)>();
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        var kvp = historyList[i];
+                        double x = 60 + (i * stepX);
+                        // Scale 0-150 points to Y: 180 down to 30
+                        double normalized = Math.Clamp(kvp.Value / 150.0, 0.0, 1.0);
+                        double y = 180 - (normalized * 150);
+                        string weekShort = kvp.Key.Contains("-W") ? "W" + kvp.Key.Split("-W")[1] : kvp.Key;
+                        pointsList.Add((x, y, kvp.Value, weekShort));
+                    }
+                }
+
+                @if (pointsList.Count > 1)
+                {
+                    <!-- Area under curve -->
+                    <path d="@GetAreaPath(pointsList)" fill="url(#gardenGrad)" opacity="0.4" />
+                    <!-- Connecting line -->
+                    <path d="@GetLinePath(pointsList)" fill="none" stroke="#4D96FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                }
+
+                <!-- Data point stickers -->
+                @foreach (var pt in pointsList)
+                {
+                    <circle cx="@pt.X" cy="@pt.Y" r="7" fill="#FFD166" stroke="#1E2A4A" stroke-width="3" />
+                    <g>
+                        <text x="@pt.X" y="@(pt.Y - 12)" class="point-val" text-anchor="middle">@pt.Pts</text>
+                        <text x="@pt.X" y="202" class="axis-x-text" text-anchor="middle">@pt.Label</text>
+                    </g>
+                }
+
+                <defs>
+                    <linearGradient id="gardenGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#4D96FF" />
+                        <stop offset="100%" stop-color="#C8E6C9" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Dictionary<string, int>? PointsHistory { get; set; }
+
+    private string GetLinePath(List<(double X, double Y, int Pts, string Label)> pts)
+    {
+        if (pts.Count == 0) return string.Empty;
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"M {pts[0].X:F1},{pts[0].Y:F1}");
+        for (int i = 1; i < pts.Count; i++)
+        {
+            sb.Append($" L {pts[i].X:F1},{pts[i].Y:F1}");
+        }
+        return sb.ToString();
+    }
+
+    private string GetAreaPath(List<(double X, double Y, int Pts, string Label)> pts)
+    {
+        if (pts.Count == 0) return string.Empty;
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"M {pts[0].X:F1},180");
+        foreach (var pt in pts)
+        {
+            sb.Append($" L {pt.X:F1},{pt.Y:F1}");
+        }
+        sb.Append($" L {pts[^1].X:F1},180 Z");
+        return sb.ToString();
+    }
+}
