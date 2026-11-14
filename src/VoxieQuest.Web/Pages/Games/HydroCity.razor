@@ -301,7 +301,7 @@
         cityGrid[5] = Pond;
         cityGrid[10] = Bioswale;
 
-        CalculateRunoff();
+        currentRunoffPercent = (int)cityGrid.Average(t => t.RunoffPercent);
 
         var challenge = new GameChallenge
         {
@@ -328,10 +328,10 @@
         else cityGrid[index] = Asphalt;
 
         await AudioService.PlaySoundAsync(SoundEffect.Click);
-        CalculateRunoff();
+        await CalculateRunoffAsync();
     }
 
-    private async void CalculateRunoff()
+    private async Task CalculateRunoffAsync()
     {
         currentRunoffPercent = (int)cityGrid.Average(t => t.RunoffPercent);
 
