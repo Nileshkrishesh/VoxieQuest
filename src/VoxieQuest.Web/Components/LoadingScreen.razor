@@ -1,0 +1,139 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="voxie-loading-screen" role="status" aria-live="polite">
+    <div class="loading-center-content">
+        <!-- Voxie Running in a loop with a progress trail -->
+        <div class="running-track">
+            <!-- Trail of stars & leaves -->
+            <div class="progress-trail">
+                <span class="trail-sparkle s-1"><StarIcon Size="18" FillColor="#FFC93C" /></span>
+                <span class="trail-sparkle s-2"><FlowerIcon Size="16" PetalColor="#7ED9A8" CenterColor="#FFC93C" /></span>
+                <span class="trail-sparkle s-3"><StarIcon Size="14" FillColor="#5BC0EB" /></span>
+                <span class="trail-sparkle s-4"><SleepingSeedIcon Size="14" FillColor="#FF9F43" /></span>
+            </div>
+
+            <!-- Running Voxie Mascot -->
+            <div class="running-voxie-bounce">
+                <FoxieFaceIcon Size="72" Class="running-head" />
+            </div>
+        </div>
+
+        <h2 class="loading-title">
+            VOXIE QUEST
+        </h2>
+
+        <p class="loading-status-text">
+            @Message
+        </p>
+
+        <!-- Progress dots -->
+        <div class="loading-dots-row">
+            <span class="dot d-1"></span>
+            <span class="dot d-2"></span>
+            <span class="dot d-3"></span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .voxie-loading-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: var(--color-cream-paper);
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .loading-center-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .running-track {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 180px;
+        height: 100px;
+    }
+
+    .running-voxie-bounce {
+        animation: voxie-run-gallop 0.6s infinite ease-in-out alternate;
+    }
+
+    .progress-trail {
+        position: absolute;
+        left: 0;
+        display: flex;
+        gap: 0.6rem;
+    }
+
+    .trail-sparkle {
+        animation: trail-drift 1.2s infinite linear;
+    }
+
+    .s-1 { animation-delay: 0s; }
+    .s-2 { animation-delay: 0.3s; }
+    .s-3 { animation-delay: 0.6s; }
+    .s-4 { animation-delay: 0.9s; }
+
+    .loading-title {
+        font-family: var(--font-heading);
+        font-size: clamp(2rem, 1.8rem + 0.9vw, 2.8rem);
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .loading-status-text {
+        font-family: var(--font-body);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        margin: 0;
+    }
+
+    .loading-dots-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .loading-dots-row .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: var(--radius-pill);
+        background: var(--color-sunny-yellow);
+        border: 2px solid var(--color-storybook-ink);
+        animation: dot-bounce 0.9s infinite ease-in-out;
+    }
+
+    .d-1 { animation-delay: 0s; }
+    .d-2 { animation-delay: 0.2s; }
+    .d-3 { animation-delay: 0.4s; }
+
+    @@keyframes voxie-run-gallop {
+        0% { transform: translateY(0) rotate(-3deg); }
+        100% { transform: translateY(-16px) rotate(4deg); }
+    }
+
+    @@keyframes trail-drift {
+        0% { transform: translateX(40px) scale(0.4); opacity: 1; }
+        100% { transform: translateX(-40px) scale(1.1); opacity: 0; }
+    }
+
+    @@keyframes dot-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>
+
+@code {
+    [Parameter] public string Message { get; set; } = "Warming up Voxie's magical ears...";
+}

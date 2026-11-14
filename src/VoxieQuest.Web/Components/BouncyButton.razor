@@ -1,12 +1,16 @@
 @namespace VoxieQuest.Web.Components
 @inject IAudioService AudioService
 
-<button class="bouncy-btn bouncy-btn-@Variant.ToString().ToLowerInvariant() @(Disabled ? "disabled" : "")"
+<button class="bouncy-btn bouncy-btn-@Variant.ToString().ToLowerInvariant() @(IsTall ? "bouncy-btn-tall" : "") @(Disabled ? "disabled" : "")"
         style="min-width:@(MinWidth)px; @Style"
         type="@Type"
         disabled="@Disabled"
         @onclick="HandleClick">
-    @if (!string.IsNullOrWhiteSpace(Icon))
+    @if (IconTemplate != null)
+    {
+        <span class="bouncy-btn-icon">@IconTemplate</span>
+    }
+    else if (!string.IsNullOrWhiteSpace(Icon))
     {
         <span class="bouncy-btn-icon">@Icon</span>
     }
@@ -20,40 +24,47 @@
 <style>
     .bouncy-btn {
         font-family: var(--font-heading);
-        font-size: 1.25rem;
+        font-size: clamp(1.1rem, 1rem + 0.35vw, 1.35rem);
         font-weight: 700;
-        padding: 0.85rem 1.75rem;
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-pill);
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        min-height: 60px;
+        padding: 0.75rem 1.75rem;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-hard-md);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.6rem;
+        gap: 0.65rem;
         position: relative;
         outline: none;
         user-select: none;
         text-decoration: none;
-        transform: translateY(0) scale(1, 1);
-        transition: transform 0.12s var(--spring-bounce), box-shadow 0.12s ease;
+        transform: translateY(0);
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
+        touch-action: manipulation;
+    }
+
+    .bouncy-btn-tall {
+        min-height: 72px;
+        padding: 1rem 2rem;
     }
 
     .bouncy-btn:hover:not(:disabled) {
-        transform: translateY(-3px) scale(1.02, 1.02);
-        box-shadow: 0 11px 0 var(--color-storybook-ink);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hard-lg);
     }
 
     /* Squishy tactile press */
     .bouncy-btn:active:not(:disabled) {
-        transform: translateY(6px) scale(0.96, 1.05);
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
+        transform: translateY(4px);
+        box-shadow: var(--shadow-hard-pressed);
     }
 
     .bouncy-btn.disabled, .bouncy-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        box-shadow: 0 4px 0 var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
         transform: none !important;
     }
 
@@ -83,15 +94,15 @@
         color: #FFFFFF;
     }
 
-    .bouncy-btn-purple {
-        background-color: var(--color-purple-dream);
-        color: #FFFFFF;
+    .bouncy-btn-white {
+        background-color: var(--color-cloud-white);
+        color: var(--color-storybook-ink);
     }
 
     .bouncy-btn-icon {
-        font-size: 1.4rem;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
     }
 
     .bouncy-btn-text {
@@ -107,38 +118,21 @@
         Mint,
         Blue,
         Orange,
-        Purple
+        White
     }
 
-    [Parameter]
-    public string Text { get; set; } = string.Empty;
-
-    [Parameter]
-    public string Icon { get; set; } = string.Empty;
-
-    [Parameter]
-    public ButtonVariant Variant { get; set; } = ButtonVariant.Yellow;
-
-    [Parameter]
-    public int MinWidth { get; set; } = 130;
-
-    [Parameter]
-    public bool Disabled { get; set; } = false;
-
-    [Parameter]
-    public string Type { get; set; } = "button";
-
-    [Parameter]
-    public string Style { get; set; } = string.Empty;
-
-    [Parameter]
-    public SoundEffect Sound { get; set; } = SoundEffect.Click;
-
-    [Parameter]
-    public EventCallback OnClick { get; set; }
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? IconTemplate { get; set; }
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Yellow;
+    [Parameter] public int MinWidth { get; set; } = 130;
+    [Parameter] public bool IsTall { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public SoundEffect Sound { get; set; } = SoundEffect.Click;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private async Task HandleClick()
     {

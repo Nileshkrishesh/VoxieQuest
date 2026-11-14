@@ -1,0 +1,94 @@
+@namespace VoxieQuest.Web.Components
+
+@if (IsVisible && !string.IsNullOrWhiteSpace(HintText))
+{
+    <div class="hint-bubble-container" role="note" aria-label="Helpful hint">
+        <div class="hint-card bounce-in-hint">
+            <HintBulbIcon Size="28" />
+            <div class="hint-body">
+                <span class="hint-title">Voxie's Whisper:</span>
+                <span class="hint-text">@HintText</span>
+            </div>
+            @if (OnDismiss.HasDelegate)
+            {
+                <button class="hint-close-btn" @onclick="DismissAsync" type="button" aria-label="Close hint">✕</button>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .hint-bubble-container {
+        position: relative;
+        margin: 0.5rem auto;
+        max-width: 480px;
+        width: 100%;
+        z-index: 10;
+    }
+
+    .hint-card {
+        background: var(--color-bg-warmth);
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-md);
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+    }
+
+    .hint-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        flex-grow: 1;
+    }
+
+    .hint-title {
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-soft-orange);
+    }
+
+    .hint-text {
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .hint-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: var(--color-storybook-ink);
+        cursor: pointer;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .bounce-in-hint {
+        animation: hint-bounce 0.3s var(--spring-squish) forwards;
+    }
+
+    @@keyframes hint-bounce {
+        0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public string HintText { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    private async Task DismissAsync()
+    {
+        if (OnDismiss.HasDelegate)
+        {
+            await OnDismiss.InvokeAsync();
+        }
+    }
+}

@@ -2,448 +2,244 @@
 @page "/game/paint"
 @inherits BaseGameComponent
 
-<div class="game-viewport">
+<div class="game-viewport paint-theme">
+    <!-- Sunny Meadow Parallax Backdrop -->
     <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
 
-    <!-- Top HUD: Round 1 to 10 Progress Bar & Star Counter -->
-    <div class="storybook-card game-hud-card">
-        <div class="hud-top-row">
-            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
-                <span>◀ Map</span>
-            </button>
-            <h3 class="hud-game-title">
-                🎨 @GameTitle
-            </h3>
-            <div class="star-badge hud-star-badge">
-                <span>⭐</span>
-                <span>@SessionStars</span>
-            </div>
-        </div>
-
-        <!-- 10 Round Stepper -->
-        <div class="round-stepper">
-            @for (int r = 1; r <= TotalRounds; r++)
-            {
-                var isCompleted = r < CurrentRound;
-                var isCurrent = r == CurrentRound;
-                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Round @r">
-                    @(isCompleted ? "★" : r.ToString())
-                </div>
-            }
-        </div>
-    </div>
+    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
+    <GameHeader Title="@GameTitle" 
+                CurrentRound="@CurrentRound" 
+                TotalRounds="@TotalRounds" 
+                Stars="@SessionStars" 
+                OnBack="ReturnToMapAsync" 
+                OnPause="() => isPauseOpen = true" />
 
     @if (ActiveChallenge != null)
     {
-        <div class="storybook-card art-stage">
-            <!-- Mascot and Speech Prompt: Responsive, shrinks to corner on phone -->
-            <div class="mascot-stage">
-                <div class="mascot-avatar-box">
-                    <Mascot State="@MascotState" Width="100" Height="100" />
-                    <StarBurst IsActive="@ShowStarBurst" />
+        <!-- Main Paper-Cut Question Stage -->
+        <QuestionCard Prompt="@ActiveChallenge.Prompt"
+                      HintText="@ActiveChallenge.Hint"
+                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
+                      MascotMood="@MascotState"
+                      OnRepeatPrompt="RepeatPromptAloudAsync">
+
+            <!-- Art Studio Easel & Paint Splat Stage -->
+            <div class="art-studio-stage">
+                <!-- Color Swatch Badge with Colorblind Texture Pattern -->
+                <div class="color-swatch-badge storybook-card-tilt" style="background-color: @ActiveChallenge.TargetColor;">
+                    <div class="swatch-pattern-layer @GetPatternClass(ActiveChallenge.TargetAnswer)"></div>
+                    <span class="swatch-label">@ActiveChallenge.TargetAnswer.ToUpperInvariant()</span>
                 </div>
-                
-                <div class="speech-bubble prompt-bubble">
-                    <span class="prompt-text">@ActiveChallenge.Prompt</span>
-                    <div class="prompt-actions-row">
-                        <button class="pill prompt-pill-btn" @onclick="RepeatPromptAloudAsync" type="button">
-                            <span>🔊 Read Aloud</span>
-                        </button>
-                        @if (AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))
+
+                <div class="easel-canvas-container">
+                    <!-- Smiling Paint Bucket Character -->
+                    <div class="paint-bucket-rig @(isSplashing ? "bucket-pour" : "bucket-breathe")">
+                        <svg class="bucket-svg" viewBox="0 0 100 110" fill="none">
+                            <path d="M25 45C25 15 75 15 75 45" stroke="#2B2D42" stroke-width="4.5" fill="none"/>
+                            <path d="M20 40H80L72 100H28L20 40Z" fill="#FFF8E7" stroke="#2B2D42" stroke-width="4.5" stroke-linejoin="round"/>
+                            <ellipse cx="50" cy="40" rx="30" ry="8" fill="@ActiveChallenge.TargetColor" stroke="#2B2D42" stroke-width="3"/>
+
+                            <!-- Bucket Eyes & Smile -->
+                            <circle cx="40" cy="65" r="5" fill="#2B2D42"/>
+                            <circle cx="60" cy="65" r="5" fill="#2B2D42"/>
+                            <circle cx="41.5" cy="63.5" r="1.5" fill="#FFFFFF"/>
+                            <circle cx="61.5" cy="63.5" r="1.5" fill="#FFFFFF"/>
+                            <path d="M44 76C47 80 53 80 56 76" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+
+                        <!-- Liquid Splat Animation during splash -->
+                        @if (isSplashing)
                         {
-                            <span class="pill hint-pill">
-                                💡 @ActiveChallenge.Hint
-                            </span>
+                            <div class="paint-liquid-splat" style="--paint-fill: @ActiveChallenge.TargetColor;">
+                                <svg viewBox="0 0 80 80" fill="none">
+                                    <path d="M40 10C50 10 65 25 60 40C68 45 75 55 65 65C55 75 45 68 40 70C35 68 25 75 15 65C5 55 12 45 20 40C15 25 30 10 40 10Z" 
+                                          fill="@ActiveChallenge.TargetColor" stroke="#2B2D42" stroke-width="3"/>
+                                </svg>
+                            </div>
                         }
                     </div>
-                </div>
-            </div>
 
-            <!-- Art Studio Canvas: Picture Outline & Paint Bucket (Scalable SVG) -->
-            <div class="art-easel-arena">
-                <!-- Friendly Smiling Paint Bucket Character -->
-                <div class="paint-bucket-character @(isSplashing ? "bucket-pouring" : "bucket-idle")">
-                    <svg class="bucket-svg" viewBox="0 0 100 110" preserveAspectRatio="xMidYMid meet" fill="none">
-                        <!-- Metal Handle -->
-                        <path d="M25 45C25 15 75 15 75 45" stroke="#2B2D42" stroke-width="4.5" fill="none"/>
-                        <!-- Bucket Body -->
-                        <path d="M20 40H80L72 100H28L20 40Z" fill="#F1F5F9" stroke="#2B2D42" stroke-width="4.5" stroke-linejoin="round"/>
-                        <!-- Paint Spill Inside Bucket -->
-                        <ellipse cx="50" cy="40" rx="30" ry="8" fill="@ActiveChallenge.TargetColor" stroke="#2B2D42" stroke-width="3"/>
-                        
-                        <!-- Big Googly Eyes -->
-                        <circle cx="40" cy="65" r="6" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2"/>
-                        <circle cx="42" cy="64" r="2.5" fill="#2B2D42"/>
-                        <circle cx="60" cy="65" r="6" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2"/>
-                        <circle cx="62" cy="64" r="2.5" fill="#2B2D42"/>
-
-                        <!-- Happy Smile -->
-                        <path d="M44 76C47 81 53 81 56 76" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
-                        <!-- Paint Drips -->
-                        <path d="M28 44C28 55 34 55 34 44" fill="@ActiveChallenge.TargetColor"/>
-                        <path d="M68 44C68 60 74 60 74 44" fill="@ActiveChallenge.TargetColor"/>
-                    </svg>
-
-                    <!-- Splattering Paint Stream during splash -->
-                    @if (isSplashing)
-                    {
-                        <div class="paint-splatter-stream" style="--paint-color: @ActiveChallenge.TargetColor;"></div>
-                    }
-                </div>
-
-                <!-- Canvas Picture with Black/White Outline morphing to Filled Color -->
-                <div class="coloring-canvas @(isColoredIn ? "canvas-colored" : "canvas-outline")">
-                    <svg class="picture-svg" viewBox="0 0 180 180" preserveAspectRatio="xMidYMid meet" fill="none">
-                        @RenderPictureOutline(ActiveChallenge.DisplayItem, isColoredIn ? ActiveChallenge.TargetColor : "#FFFDF7")
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Speech Transcript Feedback -->
-            <div class="feedback-container">
-                @if (!string.IsNullOrWhiteSpace(LastTranscript))
-                {
-                    <div class="pill feedback-pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)");">
-                        @(LastAnswerSuccess ? "🎨 Splash! You said: " : "👂 You said: ") "@LastTranscript"
+                    <!-- White Sketch Canvas Picture -->
+                    <div class="picture-canvas-frame @(isColoredIn ? "canvas-painted" : "canvas-sketch")">
+                        <svg class="canvas-artwork-svg" viewBox="0 0 180 180" fill="none">
+                            @RenderPictureOutline(ActiveChallenge.DisplayItem, isColoredIn ? ActiveChallenge.TargetColor : "#FFF8E7")
+                        </svg>
                     </div>
-                }
-                @if (!string.IsNullOrWhiteSpace(AttemptState.FeedbackMessage))
-                {
-                    <div class="feedback-msg">
-                        @AttemptState.FeedbackMessage
-                    </div>
-                }
-            </div>
-
-            <!-- Voice Mic Character or Practice Mode Fallback -->
-            @if (VoiceManager.Mode == VoiceMode.PracticeButtons || VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)
-            {
-                <PracticeInputPanel Question="@(new QuestionItem { TargetAnswer = ActiveChallenge.TargetAnswer, Category = GameCategory })" 
-                                    OnAnswerSelected="SubmitManualAnswerAsync" />
-            }
-            else
-            {
-                <div class="mic-thumb-reach">
-                    <MicCharacter VolumeLevel="@CurrentVolume" IsListening="@VoiceManager.IsListening" OnClick="ToggleListeningAsync" />
                 </div>
-            }
-
-            <div class="skip-action-row">
-                <button class="pill skip-btn" @onclick="SkipRoundAsync" type="button">
-                    <span>Next Picture ➔</span>
-                </button>
             </div>
-        </div>
+
+            <!-- Practice Mode 2x2 Answer Chips Fallback -->
+            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
+            {
+                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
+            }
+        </QuestionCard>
+
+        <!-- Giant Bottom Center Voice Microphone Button -->
+        <MicButton IsListening="@VoiceManager.IsListening" 
+                   VolumeLevel="@CurrentVolume" 
+                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+                   OnToggleListening="ToggleListeningAsync" />
     }
+
+    <!-- Celebratory Burst / Gentle Encouragement -->
+    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
+                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+                   HintText="@ActiveChallenge?.Hint" />
+
+    <!-- 10-Round Quest Completion Celebration -->
+    <RewardScreen IsOpen="@IsRewardScreenOpen" 
+                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
+                  OnPlayAgain="StartGameSessionAsync" 
+                  OnNextQuest="ReturnToMapAsync" />
+
+    <!-- Paper Card Pause Sheet -->
+    <PauseSheet IsOpen="@isPauseOpen" 
+                OnResume="() => isPauseOpen = false" 
+                OnReturnToMap="ReturnToMapAsync" />
 </div>
 
-<Confetti IsActive="@IsRewardScreenOpen" />
-<CelebrationModal IsVisible="@IsRewardScreenOpen" 
-                  StarsEarned="@SessionStars" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnReturnHome="ReturnToMapAsync" />
-
 <style>
-    .game-viewport {
+    .paint-theme {
         display: flex;
         flex-direction: column;
-        gap: clamp(0.75rem, 2vw, 1.25rem);
-        max-width: 780px;
-        margin: 0 auto;
-        position: relative;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .game-hud-card {
-        padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(0.75rem, 2vw, 1.4rem);
-        background: rgba(255, 253, 247, 0.95);
-        border: var(--border-ink-thick);
-        box-shadow: var(--shadow-chunky-sm);
-        border-radius: var(--border-radius-md);
-    }
-
-    .hud-top-row {
-        display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .hud-back-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        padding: 0.35rem 0.85rem;
-        font-weight: 800;
-        touch-action: manipulation;
-    }
-
-    .hud-game-title {
-        margin: 0;
-        font-size: clamp(1.1rem, 3vw, 1.4rem);
-        color: #F59E0B;
-        text-align: center;
-        text-shadow: 1px 1px 0 var(--color-storybook-ink);
-    }
-
-    .hud-star-badge {
-        font-size: clamp(0.95rem, 2vw, 1.1rem);
-        padding: 0.35rem 0.85rem;
-        min-height: 40px;
-    }
-
-    .round-stepper {
-        display: flex;
-        justify-content: center;
-        gap: clamp(0.2rem, 1vw, 0.5rem);
-        margin-top: 0.6rem;
-        flex-wrap: wrap;
-    }
-
-    .round-dot {
-        width: clamp(26px, 5vw, 32px);
-        height: clamp(26px, 5vw, 32px);
-        border-radius: 50%;
-        border: 2px solid var(--color-storybook-ink);
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: clamp(0.72rem, 1.8vw, 0.85rem);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.completed {
-        background: var(--color-mint);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.current {
-        background: var(--color-sunny-yellow);
-        transform: scale(1.15);
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
-    }
-
-    .art-stage {
-        text-align: center;
-        background: linear-gradient(180deg, #FFFDF7 0%, #FEF3C7 100%);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-md);
-        box-shadow: var(--shadow-chunky-md);
-        padding: clamp(0.75rem, 2vw, 1.5rem);
-        overflow: hidden;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .mascot-stage {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(0.5rem, 2vw, 1rem);
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: clamp(0.75rem, 2vw, 1.25rem);
+        padding-top: calc(var(--header-h) + 0.5rem);
+        padding-bottom: calc(var(--nav-h) + 1rem);
         position: relative;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
     }
 
-    .mascot-avatar-box {
+    .art-studio-stage {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0.5rem 0;
+        position: relative;
+    }
+
+    .color-swatch-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: var(--border-storybook);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 1.4rem;
+        box-shadow: var(--shadow-hard-sm);
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+    }
+
+    .swatch-pattern-layer {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+    }
+
+    .swatch-label {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 1rem + 0.5vw, 1.6rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        background: rgba(255, 255, 255, 0.85);
+        padding: 0.15rem 0.6rem;
+        border-radius: var(--radius-pill);
+        border: 2px solid var(--color-storybook-ink);
+        position: relative;
+        z-index: 2;
+    }
+
+    .easel-canvas-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 620px;
+        min-height: 220px;
+    }
+
+    .paint-bucket-rig {
+        width: 90px;
+        height: 100px;
         position: relative;
         flex-shrink: 0;
     }
 
-    .prompt-bubble {
-        max-width: 460px;
-        flex: 1 1 240px;
-    }
-
-    .prompt-text {
-        font-size: clamp(1.05rem, 2.5vw, 1.3rem);
-        font-weight: 800;
-        display: block;
-        line-height: 1.35;
-    }
-
-    .prompt-actions-row {
-        margin-top: 0.5rem;
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .prompt-pill-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        font-size: 0.88rem;
-        touch-action: manipulation;
-    }
-
-    .hint-pill {
-        background: #FFE5EC;
-        color: var(--color-coral);
-        border-color: var(--color-coral);
-        font-size: 0.88rem;
-        min-height: var(--tap-min);
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .art-easel-arena {
-        position: relative;
-        height: clamp(210px, 30vh, 250px);
-        background: white;
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-md);
-        box-shadow: inset 0 6px 0 rgba(43, 45, 66, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        padding: clamp(0.5rem, 1.5vw, 1rem);
-        overflow: hidden;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .paint-bucket-character {
-        position: relative;
-        transition: transform 0.3s ease;
-        max-width: 110px;
-        width: 30%;
-    }
-
     .bucket-svg {
         width: 100%;
-        height: auto;
-        display: block;
+        height: 100%;
     }
 
-    .bucket-idle {
-        animation: bucket-gentle-sway 2.5s ease-in-out infinite alternate;
-    }
-
-    .bucket-pouring {
-        animation: bucket-pour-splash 1.4s var(--spring-bounce) forwards;
-    }
-
-    .coloring-canvas {
-        transition: transform 0.3s ease;
-        max-width: 180px;
-        width: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .picture-svg {
-        width: 100%;
-        height: auto;
-        display: block;
-    }
-
-    .canvas-colored {
-        animation: canvas-pop-celebrate 0.6s var(--spring-bounce);
-    }
-
-    .paint-splatter-stream {
+    .paint-liquid-splat {
         position: absolute;
-        top: 30px;
-        left: 70px;
-        width: 140px;
-        height: 60px;
-        background: radial-gradient(circle, var(--paint-color) 40%, transparent 70%);
-        border-radius: 50%;
-        animation: splatter-burst 0.7s ease-out forwards;
-        pointer-events: none;
+        top: 15px;
+        right: -60px;
+        width: 70px;
+        height: 70px;
+        z-index: 5;
+        animation: splat-burst 0.5s var(--spring-squish) forwards;
     }
 
-    .feedback-container {
-        min-height: 48px;
-        margin: 0.5rem 0;
+    .picture-canvas-frame {
+        width: 180px;
+        height: 180px;
+        background: #FFFFFF;
+        border: var(--border-storybook-thick);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-md);
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 0.5rem;
+        transition: transform 0.3s ease;
     }
 
-    .feedback-pill {
-        font-size: clamp(0.95rem, 2.2vw, 1.15rem);
-        max-width: 100%;
+    .canvas-artwork-svg {
+        width: 100%;
+        height: 100%;
     }
 
-    .feedback-msg {
-        color: var(--color-coral);
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 1.05rem;
-        margin-top: 0.3rem;
+    /* Animation States */
+    .bucket-breathe {
+        animation: bucket-gentle-bob 2.2s infinite ease-in-out alternate;
     }
 
-    .mic-thumb-reach {
-        margin: 0.6rem 0;
-        display: flex;
-        justify-content: center;
-        touch-action: manipulation;
+    .bucket-pour {
+        animation: bucket-tilt-pour 0.8s var(--spring-squish) forwards;
     }
 
-    .skip-action-row {
-        margin-top: 0.75rem;
-        display: flex;
-        justify-content: center;
-        gap: 0.75rem;
+    .canvas-painted {
+        transform: scale(1.05) rotate(1deg);
+        animation: canvas-sparkle 0.4s var(--spring-squish);
     }
 
-    .skip-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        font-size: 0.95rem;
-        opacity: 0.9;
-        touch-action: manipulation;
+    @@keyframes bucket-gentle-bob {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-6px); }
     }
 
-    @@keyframes bucket-gentle-sway {
-        0% { transform: rotate(-4deg); }
-        100% { transform: rotate(4deg); }
-    }
-
-    @@keyframes bucket-pour-splash {
+    @@keyframes bucket-tilt-pour {
         0% { transform: rotate(0deg); }
-        35% { transform: rotate(50deg) translateX(15px); }
-        70% { transform: rotate(50deg) translateX(15px); }
+        40% { transform: rotate(35deg) translateY(-8px); }
         100% { transform: rotate(0deg); }
     }
 
-    @@keyframes splatter-burst {
-        0% { transform: scale(0.2); opacity: 1; }
-        60% { transform: scale(1.4); opacity: 0.9; }
-        100% { transform: scale(2); opacity: 0; }
+    @@keyframes splat-burst {
+        0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
+        70% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
 
-    @@keyframes canvas-pop-celebrate {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.15) rotate(3deg); }
-        100% { transform: scale(1); }
-    }
-
-    /* Landscape Phones (max-height: 500px) */
-    @@media (max-height: 500px) {
-        .game-viewport {
-            gap: 0.5rem;
-        }
-
-        .mascot-stage {
-            flex-direction: row;
-            margin-bottom: 0.35rem;
-        }
-
-        .art-easel-arena {
-            height: 160px;
-        }
-
-        .prompt-text {
-            font-size: 1rem;
-        }
+    @@keyframes canvas-sparkle {
+        0% { transform: scale(0.95); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1.05) rotate(1deg); }
     }
 </style>
 
@@ -453,29 +249,30 @@
 
     private bool isSplashing = false;
     private bool isColoredIn = false;
+    private bool isPauseOpen = false;
 
     private static readonly (string ObjectName, string ColorName, string Hex, string Clue)[] EasyColors = new[]
     {
-        ("apple", "red", "#EF476F", "Like a sweet crunchy apple"),
-        ("sun", "yellow", "#FFD166", "Shines warm in the sky"),
-        ("leaf", "green", "#06D6A0", "Grows on big green trees"),
-        ("ocean", "blue", "#4EA8DE", "Splashes in ocean waves"),
-        ("orange_fruit", "orange", "#F78C6B", "Sweet citrus fruit"),
-        ("heart", "red", "#EF476F", "Symbol of love"),
-        ("banana", "yellow", "#FFD166", "Peel it and eat it!"),
-        ("frog_pic", "green", "#06D6A0", "Jumps across lily pads"),
-        ("sky", "blue", "#4EA8DE", "Look up at the daytime sky"),
-        ("carrot", "orange", "#F78C6B", "Crunchy rabbit snack")
+        ("apple", "red", "#FF6B6B", "Like a sweet crunchy apple"),
+        ("sun", "yellow", "#FFC93C", "Shines warm in the sky"),
+        ("leaf", "green", "#7ED9A8", "Grows on big green trees"),
+        ("ocean", "blue", "#5BC0EB", "Splashes in ocean waves"),
+        ("orange_fruit", "orange", "#FF9F43", "Sweet citrus fruit"),
+        ("heart", "red", "#FF6B6B", "Symbol of love"),
+        ("banana", "yellow", "#FFC93C", "Peel it and eat it!"),
+        ("frog_pic", "green", "#7ED9A8", "Jumps across lily pads"),
+        ("sky", "blue", "#5BC0EB", "Look up at the daytime sky"),
+        ("carrot", "orange", "#FF9F43", "Crunchy rabbit snack")
     };
 
     private static readonly (string ObjectName, string ColorName, string Hex, string Clue)[] MediumColors = new[]
     {
-        ("grapes", "purple", "#8338EC", "Juicy round berries"),
+        ("grapes", "purple", "#C77DFF", "Juicy round berries"),
         ("flamingo", "pink", "#FF85A1", "Graceful wading bird"),
         ("bear", "brown", "#8D5B4C", "Fuzzy teddy bear"),
         ("cloud_pic", "white", "#FFFFFF", "Fluffy white clouds"),
         ("night_sky", "black", "#2B2D42", "Midnight sky with stars"),
-        ("plum", "purple", "#8338EC", "Sweet stone fruit"),
+        ("plum", "purple", "#C77DFF", "Sweet stone fruit"),
         ("rose", "pink", "#FF85A1", "Blooms in the garden"),
         ("acorn", "brown", "#8D5B4C", "Falls from oak trees"),
         ("snowman", "white", "#FFFFFF", "Built of cold snow"),
@@ -484,16 +281,16 @@
 
     private static readonly (string ObjectName, string ColorName, string Hex, string Clue)[] HardColors = new[]
     {
-        ("gold_star", "golden", "#FFD166", "Bright shining trophy"),
-        ("emerald_gem", "emerald", "#06D6A0", "Sparkling green jewel"),
-        ("coral_reef", "coral", "#EF476F", "Deep sea coral habitat"),
-        ("lavender_flower", "lavender", "#A78BFA", "Fragrant purple flowers"),
-        ("amber_sun", "amber", "#F59E0B", "Warm glow of sunset"),
+        ("gold_star", "golden", "#FFC93C", "Bright shining trophy"),
+        ("emerald_gem", "emerald", "#7ED9A8", "Sparkling green jewel"),
+        ("coral_reef", "coral", "#FF6B6B", "Deep sea coral habitat"),
+        ("lavender_flower", "lavender", "#C77DFF", "Fragrant purple flowers"),
+        ("amber_sun", "amber", "#FF9F43", "Warm glow of sunset"),
         ("silver_coin", "silver", "#CBD5E1", "Gleaming shiny coin"),
-        ("turquoise_wave", "turquoise", "#2DD4BF", "Tropical lagoon water"),
-        ("ruby_ring", "ruby", "#E11D48", "Deep red precious stone"),
-        ("indigo_night", "indigo", "#4338CA", "Deep shade between blue and violet"),
-        ("rainbow_arch", "rainbow", "#FFD166", "Seven colors in the sky")
+        ("turquoise_wave", "turquoise", "#5BC0EB", "Tropical lagoon water"),
+        ("ruby_ring", "ruby", "#FF6B6B", "Deep red precious stone"),
+        ("indigo_night", "indigo", "#2B2D42", "Deep shade of midnight"),
+        ("rainbow_arch", "rainbow", "#FFC93C", "Seven colors in the sky")
     };
 
     protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
@@ -534,6 +331,21 @@
         return Task.FromResult(challenge);
     }
 
+    private string GetPatternClass(string colorName) => colorName.ToLowerInvariant() switch
+    {
+        "red" or "coral" => "pattern-stripes",
+        "blue" or "turquoise" => "pattern-dots",
+        "green" or "emerald" => "pattern-grid",
+        _ => ""
+    };
+
+    private List<string> GetPracticeChoices()
+    {
+        if (ActiveChallenge == null) return new();
+        var target = ActiveChallenge.TargetAnswer;
+        return new List<string> { target, "red", "blue", "yellow" }.Distinct().Take(4).ToList();
+    }
+
     protected override async Task OnChallengeSolvedAsync(GameChallenge challenge)
     {
         isSplashing = true;
@@ -553,11 +365,11 @@
         if (objectName.Contains("apple"))
         {
             builder.AddMarkupContent(0, $@"
-                <path d='M90 35C90 15 105 15 110 25C110 25 100 35 90 35Z' fill='#06D6A0' stroke='#2B2D42' stroke-width='3.5'/>
+                <path d='M90 35C90 15 105 15 110 25C110 25 100 35 90 35Z' fill='#7ED9A8' stroke='#2B2D42' stroke-width='3.5'/>
                 <path d='M90 35V20' stroke='#2B2D42' stroke-width='4' stroke-linecap='round'/>
                 <path d='M90 50C70 30 35 45 35 85C35 135 75 160 90 160C105 160 145 135 145 85C145 45 110 30 90 50Z' 
                       fill='{fillColor}' stroke='#2B2D42' stroke-width='4.5' stroke-linejoin='round'/>
-                <circle cx='65' cy='75' r='6' fill='#FFFDF7' opacity='0.6'/>
+                <circle cx='65' cy='75' r='6' fill='#FFF8E7' opacity='0.6'/>
             ");
         }
         else if (objectName.Contains("sun"))
@@ -568,10 +380,6 @@
                 <line x1='90' y1='155' x2='90' y2='170' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
                 <line x1='25' y1='90' x2='10' y2='90' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
                 <line x1='155' y1='90' x2='170' y2='90' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
-                <line x1='45' y1='45' x2='35' y2='35' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
-                <line x1='135' y1='135' x2='145' y2='145' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
-                <line x1='45' y1='135' x2='35' y2='145' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
-                <line x1='135' y1='45' x2='145' y2='35' stroke='#2B2D42' stroke-width='4.5' stroke-linecap='round'/>
                 <circle cx='76' cy='85' r='5' fill='#2B2D42'/>
                 <circle cx='104' cy='85' r='5' fill='#2B2D42'/>
                 <path d='M80 100C85 106 95 106 100 100' stroke='#2B2D42' stroke-width='3.5' stroke-linecap='round'/>
@@ -582,25 +390,15 @@
             builder.AddMarkupContent(0, $@"
                 <path d='M90 55C75 25 35 35 35 75C35 115 80 145 90 155C100 145 145 115 145 75C145 35 105 25 90 55Z' 
                       fill='{fillColor}' stroke='#2B2D42' stroke-width='4.5' stroke-linejoin='round'/>
-                <circle cx='60' cy='65' r='7' fill='#FFFDF7' opacity='0.5'/>
-            ");
-        }
-        else if (objectName.Contains("leaf") || objectName.Contains("tree"))
-        {
-            builder.AddMarkupContent(0, $@"
-                <path d='M40 140C40 140 30 80 80 40C130 80 140 140 140 140C90 155 50 150 40 140Z' 
-                      fill='{fillColor}' stroke='#2B2D42' stroke-width='4.5' stroke-linejoin='round'/>
-                <line x1='80' y1='40' x2='90' y2='155' stroke='#2B2D42' stroke-width='4' stroke-linecap='round'/>
+                <circle cx='60' cy='65' r='7' fill='#FFF8E7' opacity='0.5'/>
             ");
         }
         else
         {
             builder.AddMarkupContent(0, $@"
-                <path d='M90 20L110 65L160 70L122 105L134 155L90 128L46 155L58 105L20 70L70 65L90 20Z' 
+                <path d='M40 140C40 140 30 80 80 40C130 80 140 140 140 140C90 155 50 150 40 140Z' 
                       fill='{fillColor}' stroke='#2B2D42' stroke-width='4.5' stroke-linejoin='round'/>
-                <circle cx='80' cy='82' r='4' fill='#2B2D42'/>
-                <circle cx='100' cy='82' r='4' fill='#2B2D42'/>
-                <path d='M84 94C87 98 93 98 96 94' stroke='#2B2D42' stroke-width='3' stroke-linecap='round'/>
+                <line x1='80' y1='40' x2='90' y2='155' stroke='#2B2D42' stroke-width='4' stroke-linecap='round'/>
             ");
         }
     };

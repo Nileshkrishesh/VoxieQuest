@@ -1,0 +1,22 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class" aria-hidden="true">
+    <!-- Sprout Leaves -->
+    <path d="M18 10C16 6 12 6 11 8C10 10 14 11 18 10Z" fill="#7ED9A8" stroke="@StrokeColor" stroke-width="2"/>
+    <path d="M18 10C20 5 24 5 25 7C26 9 22 10 18 10Z" fill="#7ED9A8" stroke="@StrokeColor" stroke-width="2"/>
+    <!-- Seed Body -->
+    <ellipse cx="18" cy="22" rx="9" ry="10" fill="@FillColor" stroke="@StrokeColor" stroke-width="2.5"/>
+    <!-- Sleeping Eyes (cute closed arcs) -->
+    <path d="M13.5 21C14 22.5 15.5 22.5 16 21" stroke="@StrokeColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M20 21C20.5 22.5 22 22.5 22.5 21" stroke="@StrokeColor" stroke-width="2" stroke-linecap="round"/>
+    <!-- Gentle Zzz -->
+    <text x="25" y="16" font-family="sans-serif" font-size="9" font-weight="900" fill="#5BC0EB">z</text>
+    <text x="28" y="10" font-family="sans-serif" font-size="7" font-weight="900" fill="#5BC0EB">z</text>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string FillColor { get; set; } = "#FFF8E7";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

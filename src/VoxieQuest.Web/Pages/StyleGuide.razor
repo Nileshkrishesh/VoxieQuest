@@ -1,0 +1,398 @@
+@page "/styleguide"
+@inject IAudioService AudioService
+
+<div class="styleguide-viewport">
+    <!-- Header Banner -->
+    <div class="storybook-card styleguide-hero">
+        <FoxieFaceIcon Size="64" />
+        <h1 class="styleguide-main-title">Voxie Quest Design System</h1>
+        <p class="styleguide-main-sub">
+            Hand-Crafted Children's Picture-Book Design Tokens, Components &amp; Accessible Flat SVGs
+        </p>
+        <span class="sticker-pill sticker-pill-yellow">
+            Strict 4px Navy Outlines • Hard Offset Shadows • Zero Emojis
+        </span>
+    </div>
+
+    <!-- Section 1: Color Palette & Design Tokens -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">1. Picture-Book Color Tokens</h2>
+        <div class="swatches-grid">
+            <div class="swatch-card" style="background:#FFC93C;">
+                <span class="swatch-name">Sunny Yellow</span>
+                <span class="swatch-hex">#FFC93C</span>
+            </div>
+            <div class="swatch-card" style="background:#5BC0EB; color:#FFF;">
+                <span class="swatch-name">Sky Blue</span>
+                <span class="swatch-hex">#5BC0EB</span>
+            </div>
+            <div class="swatch-card" style="background:#FF6B6B; color:#FFF;">
+                <span class="swatch-name">Coral</span>
+                <span class="swatch-hex">#FF6B6B</span>
+            </div>
+            <div class="swatch-card" style="background:#7ED9A8;">
+                <span class="swatch-name">Mint Green</span>
+                <span class="swatch-hex">#7ED9A8</span>
+            </div>
+            <div class="swatch-card" style="background:#FF9F43; color:#FFF;">
+                <span class="swatch-name">Soft Orange</span>
+                <span class="swatch-hex">#FF9F43</span>
+            </div>
+            <div class="swatch-card" style="background:#FFF8E7; border:3px solid #2B2D42;">
+                <span class="swatch-name">Cream Paper</span>
+                <span class="swatch-hex">#FFF8E7</span>
+            </div>
+            <div class="swatch-card" style="background:#2B2D42; color:#FFF;">
+                <span class="swatch-name">Navy Ink</span>
+                <span class="swatch-hex">#2B2D42</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Flat Inline SVG Icons (Zero Emojis!) -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">2. Original Flat SVG Icons (No Emojis)</h2>
+        <div class="icons-showcase-grid">
+            <div class="icon-item-card">
+                <FoxieFaceIcon Size="44" />
+                <span class="icon-label">Foxie Mascot</span>
+            </div>
+            <div class="icon-item-card">
+                <StarIcon Size="44" FillColor="#FFC93C" />
+                <span class="icon-label">Star (Effort)</span>
+            </div>
+            <div class="icon-item-card">
+                <SunIcon Size="44" FillColor="#FFC93C" />
+                <span class="icon-label">Sun (Life/Calm)</span>
+            </div>
+            <div class="icon-item-card">
+                <SleepingSeedIcon Size="44" FillColor="#FFF8E7" />
+                <span class="icon-label">Sleeping Seed (Lock)</span>
+            </div>
+            <div class="icon-item-card">
+                <FlowerIcon Size="44" PetalColor="#7ED9A8" CenterColor="#FFC93C" />
+                <span class="icon-label">Bloomed Flower</span>
+            </div>
+            <div class="icon-item-card">
+                <MicIcon Size="44" FillColor="#7ED9A8" />
+                <span class="icon-label">Microphone</span>
+            </div>
+            <div class="icon-item-card">
+                <SpeakerIcon Size="44" FillColor="#5BC0EB" />
+                <span class="icon-label">Speaker</span>
+            </div>
+            <div class="icon-item-card">
+                <HomeIcon Size="44" FillColor="#FFF8E7" />
+                <span class="icon-label">Home</span>
+            </div>
+            <div class="icon-item-card">
+                <GamesIcon Size="44" FillColor="#5BC0EB" />
+                <span class="icon-label">Games</span>
+            </div>
+            <div class="icon-item-card">
+                <TrophyIcon Size="44" CupColor="#FFC93C" />
+                <span class="icon-label">Trophy</span>
+            </div>
+            <div class="icon-item-card">
+                <ShieldIcon Size="44" FillColor="#FF6B6B" />
+                <span class="icon-label">Parent Shield</span>
+            </div>
+            <div class="icon-item-card">
+                <FlameIcon Size="44" FillColor="#FF9F43" />
+                <span class="icon-label">Streak Flame</span>
+            </div>
+            <div class="icon-item-card">
+                <HintBulbIcon Size="44" FillColor="#FFC93C" />
+                <span class="icon-label">Hint Lightbulb</span>
+            </div>
+            <div class="icon-item-card">
+                <PauseIcon Size="44" FillColor="#FFC93C" />
+                <span class="icon-label">Pause</span>
+            </div>
+            <div class="icon-item-card">
+                <ReplayIcon Size="44" FillColor="#5BC0EB" />
+                <span class="icon-label">Replay</span>
+            </div>
+            <div class="icon-item-card">
+                <NextIcon Size="44" FillColor="#7ED9A8" />
+                <span class="icon-label">Next Arrow</span>
+            </div>
+            <div class="icon-item-card">
+                <ArrowBackIcon Size="44" FillColor="#FFC93C" />
+                <span class="icon-label">Back Arrow</span>
+            </div>
+            <div class="icon-item-card">
+                <RocketIcon Size="44" />
+                <span class="icon-label">Rocket</span>
+            </div>
+            <div class="icon-item-card">
+                <FrogIcon Size="44" />
+                <span class="icon-label">Frog</span>
+            </div>
+            <div class="icon-item-card">
+                <PaletteIcon Size="44" />
+                <span class="icon-label">Color Palette</span>
+            </div>
+            <div class="icon-item-card">
+                <SafariIcon Size="44" />
+                <span class="icon-label">Safari Lion</span>
+            </div>
+            <div class="icon-item-card">
+                <BlocksIcon Size="44" />
+                <span class="icon-label">Toy Blocks</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: BouncyButton Variants & Squishy States -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">3. Tactile Bouncy Buttons (Min 72px Tall)</h2>
+        <div class="buttons-showcase-row">
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" Text="Sunny Yellow" IsTall="true">
+                <IconTemplate><StarIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Blue" Text="Sky Blue" IsTall="true">
+                <IconTemplate><RocketIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Coral" Text="Coral Red" IsTall="true">
+                <IconTemplate><SunIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Mint" Text="Mint Green" IsTall="true">
+                <IconTemplate><FlowerIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Orange" Text="Soft Orange" IsTall="true">
+                <IconTemplate><FlameIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+
+            <BouncyButton Variant="BouncyButton.ButtonVariant.White" Text="Paper White" IsTall="true">
+                <IconTemplate><HomeIcon Size="24" /></IconTemplate>
+            </BouncyButton>
+        </div>
+    </section>
+
+    <!-- Section 4: Game Header & Round Stepper -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">4. GameHeader with 10 Seeds Blooming to Flowers</h2>
+        <GameHeader Title="Letter Rocket" CurrentRound="4" TotalRounds="10" Stars="6" />
+    </section>
+
+    <!-- Section 5: Question Card with Speech Bubble -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">5. Paper-Cut QuestionCard with Voxie Speech Bubble</h2>
+        <QuestionCard Prompt="Say the letter: A! A is for Apple!"
+                      HintText="Starts with AA as in Apple!"
+                      ShowHint="true"
+                      MascotMood="Mascot.MascotState.Happy">
+            <div style="text-align:center; padding:1.5rem; background:#FFF8E7; border:3px dashed #2B2D42; border-radius:18px;">
+                <span style="font-family:var(--font-heading); font-size:3.5rem; font-weight:700; color:#2B2D42;">A</span>
+            </div>
+        </QuestionCard>
+    </section>
+
+    <!-- Section 6: Giant Microphone Button States -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">6. Giant Voice Mic Character Button</h2>
+        <div class="mics-showcase-row">
+            <div class="mic-demo-box">
+                <MicButton State="MicButton.MicState.Ready" />
+                <span class="mic-caption">Ready / Idle</span>
+            </div>
+            <div class="mic-demo-box">
+                <MicButton IsListening="true" VolumeLevel="0.7f" />
+                <span class="mic-caption">Listening (Active Volume)</span>
+            </div>
+            <div class="mic-demo-box">
+                <MicButton State="MicButton.MicState.Thinking" />
+                <span class="mic-caption">Evaluating Speech</span>
+            </div>
+            <div class="mic-demo-box">
+                <MicButton State="MicButton.MicState.Done" />
+                <span class="mic-caption">Super Answer!</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 7: Practice Mode 2x2 Answer Chips -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">7. Practice Mode 2x2 Answer Chips</h2>
+        <AnswerChips Options="@(new List<string> { "Apple", "Banana", "Cherry", "Date" })" />
+    </section>
+
+    <!-- Section 8: Accessible Colorblind Texture Patterns -->
+    <section class="styleguide-section">
+        <h2 class="section-heading">8. Tactile Colorblind Patterns</h2>
+        <div class="patterns-showcase-grid">
+            <div class="pattern-sample pattern-stripes" style="background:#FF6B6B;">
+                <span>Stripes (Red/Coral)</span>
+            </div>
+            <div class="pattern-sample pattern-dots" style="background:#5BC0EB;">
+                <span>Dots (Blue/Cyan)</span>
+            </div>
+            <div class="pattern-sample pattern-grid" style="background:#7ED9A8;">
+                <span>Grid (Green/Mint)</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .styleguide-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 4rem 1rem;
+    }
+
+    .styleguide-hero {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--color-paper-light);
+    }
+
+    .styleguide-main-title {
+        font-family: var(--font-heading);
+        font-size: clamp(2rem, 1.8rem + 1vw, 2.8rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .styleguide-main-sub {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        margin: 0;
+    }
+
+    .styleguide-section {
+        background: var(--color-cloud-white);
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        padding: 1.5rem;
+    }
+
+    .section-heading {
+        font-family: var(--font-heading);
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        border-bottom: 3px dashed var(--color-storybook-ink);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .swatches-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 1rem;
+    }
+
+    .swatch-card {
+        height: 100px;
+        border-radius: var(--radius-sm);
+        border: var(--border-storybook);
+        box-shadow: var(--shadow-hard-sm);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0.6rem;
+        color: var(--color-storybook-ink);
+    }
+
+    .swatch-name {
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .swatch-hex {
+        font-family: monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .icons-showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .icon-item-card {
+        background: var(--color-bg-warmth);
+        border: var(--border-storybook-thin);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-hard-sm);
+        padding: 0.75rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        text-align: center;
+    }
+
+    .icon-label {
+        font-family: var(--font-heading);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .buttons-showcase-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .mics-showcase-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        gap: 1.5rem;
+    }
+
+    .mic-demo-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .mic-caption {
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .patterns-showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .pattern-sample {
+        height: 80px;
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 0 #2B2D42;
+    }
+</style>

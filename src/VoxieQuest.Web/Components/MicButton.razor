@@ -1,0 +1,222 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+<div class="giant-mic-wrapper">
+    <!-- Concentric Volume Pulsing Rings -->
+    @if (IsListening)
+    {
+        <div class="volume-ring ring-outer" style="transform: scale(@(1.15f + (VolumeLevel * 0.75f))); opacity: @(0.35f + (VolumeLevel * 0.45f));"></div>
+        <div class="volume-ring ring-inner" style="transform: scale(@(1.05f + (VolumeLevel * 0.45f))); opacity: @(0.55f + (VolumeLevel * 0.35f));"></div>
+    }
+
+    <!-- Main Tactile Mic Sphere -->
+    <button class="mic-sphere @GetStateClass()" 
+            @onclick="HandleClick" 
+            type="button" 
+            aria-label="@GetAriaLabel()">
+        
+        <!-- Animated Mic Character SVG Face -->
+        <svg class="mic-face-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Mic Grille Stripes on Top -->
+            <path d="M28 20C32 17 48 17 52 20" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+            <path d="M32 15C36 13 44 13 48 15" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- Face by State -->
+            @if (CurrentState == MicState.Listening)
+            {
+                <!-- Wide Listening Eyes -->
+                <circle cx="28" cy="36" r="4.5" fill="#2B2D42"/>
+                <circle cx="52" cy="36" r="4.5" fill="#2B2D42"/>
+                <circle cx="30" cy="34" r="1.5" fill="#FFFFFF"/>
+                <circle cx="54" cy="34" r="1.5" fill="#FFFFFF"/>
+                
+                <!-- Open Talking Mouth that scales with volume -->
+                <ellipse cx="40" cy="50" rx="@(5 + (VolumeLevel * 8))" ry="@(4 + (VolumeLevel * 9))" fill="#2B2D42"/>
+                <ellipse cx="40" cy="51" rx="@(3 + (VolumeLevel * 5))" ry="@(2 + (VolumeLevel * 5))" fill="#FF6B6B"/>
+            }
+            else if (CurrentState == MicState.Thinking)
+            {
+                <!-- Thinking Looking Up Eyes -->
+                <circle cx="28" cy="32" r="4" fill="#2B2D42"/>
+                <circle cx="52" cy="32" r="4" fill="#2B2D42"/>
+                <circle cx="30" cy="30" r="1.5" fill="#FFFFFF"/>
+                <circle cx="54" cy="30" r="1.5" fill="#FFFFFF"/>
+                
+                <!-- O-shape wondering mouth -->
+                <circle cx="40" cy="48" r="4" fill="#2B2D42"/>
+            }
+            else if (CurrentState == MicState.Done)
+            {
+                <!-- Cheerful Wink & Rosy Cheeks -->
+                <path d="M23 36C25 33 29 33 31 36" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="52" cy="35" r="4" fill="#2B2D42"/>
+                <path d="M33 46C37 50 43 50 47 46" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+                <!-- Cheeks -->
+                <circle cx="23" cy="42" r="3" fill="#FF6B6B" opacity="0.8"/>
+                <circle cx="57" cy="42" r="3" fill="#FF6B6B" opacity="0.8"/>
+            }
+            else
+            {
+                <!-- Friendly Ready Smile -->
+                <circle cx="29" cy="35" r="3.5" fill="#2B2D42"/>
+                <circle cx="51" cy="35" r="3.5" fill="#2B2D42"/>
+                <circle cx="30.5" cy="33.5" r="1.2" fill="#FFFFFF"/>
+                <circle cx="52.5" cy="33.5" r="1.2" fill="#FFFFFF"/>
+                <path d="M33 46C37 50 43 50 47 46" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+            }
+        </svg>
+
+        <!-- Live Status Pill Label below Face -->
+        <span class="mic-status-badge">
+            @GetStatusText()
+        </span>
+    </button>
+</div>
+
+<style>
+    .giant-mic-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0.5rem auto;
+    }
+
+    .volume-ring {
+        position: absolute;
+        border-radius: var(--radius-pill);
+        border: 4px solid var(--color-mint);
+        pointer-events: none;
+        transition: transform 0.08s ease-out, opacity 0.08s ease-out;
+    }
+
+    .ring-outer {
+        width: 130px;
+        height: 130px;
+        background: rgba(126, 217, 168, 0.2);
+    }
+
+    .ring-inner {
+        width: 110px;
+        height: 110px;
+        background: rgba(126, 217, 168, 0.35);
+    }
+
+    .mic-sphere {
+        width: 96px;
+        height: 96px;
+        border-radius: var(--radius-pill);
+        border: var(--border-storybook);
+        box-shadow: var(--shadow-hard-md);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+        outline: none;
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease, background-color 0.2s ease;
+        touch-action: manipulation;
+    }
+
+    .mic-sphere:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: var(--shadow-hard-lg);
+    }
+
+    .mic-sphere:active {
+        transform: translateY(4px) scale(0.96);
+        box-shadow: var(--shadow-hard-pressed);
+    }
+
+    /* States */
+    .mic-ready {
+        background: var(--color-sunny-yellow);
+    }
+
+    .mic-listening {
+        background: var(--color-mint);
+        animation: pulse-border 1.5s infinite ease-in-out;
+    }
+
+    .mic-thinking {
+        background: var(--color-sky-blue);
+    }
+
+    .mic-done {
+        background: var(--color-soft-orange);
+    }
+
+    .mic-face-svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .mic-status-badge {
+        font-family: var(--font-heading);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.1rem 0.5rem;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--color-storybook-ink);
+        margin-top: -4px;
+    }
+
+    @@keyframes pulse-border {
+        0%, 100% { box-shadow: var(--shadow-hard-md); }
+        50% { box-shadow: 0 0 0 6px rgba(126, 217, 168, 0.4), var(--shadow-hard-md); }
+    }
+</style>
+
+@code {
+    public enum MicState
+    {
+        Ready,
+        Listening,
+        Thinking,
+        Done
+    }
+
+    [Parameter] public bool IsListening { get; set; } = false;
+    [Parameter] public float VolumeLevel { get; set; } = 0.0f;
+    [Parameter] public MicState State { get; set; } = MicState.Ready;
+    [Parameter] public EventCallback OnToggleListening { get; set; }
+
+    private MicState CurrentState => IsListening ? MicState.Listening : State;
+
+    private string GetStateClass() => CurrentState switch
+    {
+        MicState.Listening => "mic-listening",
+        MicState.Thinking => "mic-thinking",
+        MicState.Done => "mic-done",
+        _ => "mic-ready"
+    };
+
+    private string GetStatusText() => CurrentState switch
+    {
+        MicState.Listening => (VolumeLevel > 0.12f ? "I hear you!" : "Listening..."),
+        MicState.Thinking => "Thinking...",
+        MicState.Done => "Super!",
+        _ => "Tap to Speak"
+    };
+
+    private string GetAriaLabel() => CurrentState switch
+    {
+        MicState.Listening => "Microphone is listening. Speak your answer.",
+        MicState.Thinking => "Evaluating your voice answer.",
+        MicState.Done => "Answer received.",
+        _ => "Tap microphone to speak aloud."
+    };
+
+    private async Task HandleClick()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        if (OnToggleListening.HasDelegate)
+        {
+            await OnToggleListening.InvokeAsync();
+        }
+    }
+}

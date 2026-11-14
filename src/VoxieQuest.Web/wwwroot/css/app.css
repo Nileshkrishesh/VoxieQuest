@@ -1,9 +1,11 @@
 /* ==========================================================================
-   VOXIE QUEST - Responsive Storybook Design System & Design Tokens
-   Mobile-First, Fluid Sizing (clamp), Notched Safe Areas & 100dvh
+   VOXIE QUEST - Hand-Crafted Picture-Book Design System & Design Tokens
+   Strict 4px Solid Navy Outlines · Hard Offset Shadows · No Blurry Shading
+   Color Palette: Sunny Yellow, Sky Blue, Coral, Mint, Soft Orange, Cream
+   Typography: Fredoka (Headings) & Nunito (Body) · Zero Emojis (Pure SVGs)
    ========================================================================== */
 
-/* 1. Local Offline Google Fonts */
+/* 1. Offline & Local Fonts */
 @font-face {
     font-family: 'Fredoka';
     src: url('../fonts/Fredoka.ttf') format('truetype');
@@ -20,60 +22,62 @@
     font-display: swap;
 }
 
-/* 2. Color Palette & Storybook Design Tokens */
+/* 2. Unified Design Tokens */
 :root {
-    /* Primary Storybook Palette */
-    --color-sunny-yellow: #FFD166;
-    --color-sky-blue: #4EA8DE;
-    --color-coral: #EF476F;
-    --color-mint: #06D6A0;
-    --color-soft-orange: #F78C6B;
-    --color-purple-dream: #8338EC;
-    --color-cream-paper: #FFFDF7;
+    /* Primary Picture-Book Palette */
+    --color-sunny-yellow: #FFC93C;
+    --color-sky-blue: #5BC0EB;
+    --color-coral: #FF6B6B;
+    --color-mint: #7ED9A8;
+    --color-soft-orange: #FF9F43;
+    --color-cream-paper: #FFF8E7;
     --color-storybook-ink: #2B2D42;
     --color-cloud-white: #FFFFFF;
+    --color-paper-light: #FFFDF9;
+    --color-paper-card: #FFF8E7;
 
     /* Tonal Backgrounds */
-    --color-bg-meadow: #E8FBF4;
-    --color-bg-warmth: #FFF9DB;
-    --color-bg-sky: #E7F5FF;
-    --color-bg-peach: #FFE8D6;
+    --color-bg-meadow: #EAF8EF;
+    --color-bg-warmth: #FFF9E6;
+    --color-bg-sky: #E8F5FD;
+    --color-bg-peach: #FFEEDB;
+    --color-night-sky: #1F2438;
 
     /* Typography */
     --font-heading: 'Fredoka', cursive, 'Comic Sans MS', sans-serif;
     --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    --font-size-base: clamp(1rem, 0.95rem + 0.35vw, 1.25rem);
+    --font-size-lg: clamp(1.25rem, 1.15rem + 0.6vw, 1.75rem);
+    --font-size-hero: clamp(1.75rem, 1.45rem + 1.2vw, 2.75rem);
 
-    /* Fluid Sizing Tokens & Spacing Scale */
-    --header-h: clamp(58px, 9vh, 72px);
-    --nav-h: clamp(66px, 9.5vh, 78px);
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 1rem;
-    --space-4: 1.5rem;
-    --space-5: 2.5rem;
-    --radius: clamp(14px, 2.5vw, 24px);
+    /* Dimensions & Safe Area */
+    --header-h: clamp(62px, 8.5vh, 76px);
+    --nav-h: clamp(68px, 9vh, 80px);
     --tap-min: 56px;
+    --btn-h-tall: 72px;
+    --radius-sm: 14px;
+    --radius-md: 20px;
+    --radius-lg: 28px;
+    --radius-pill: 9999px;
 
-    /* Thick Storybook Outlines & Rounded Borders */
-    --border-ink-thin: 2.5px solid var(--color-storybook-ink);
-    --border-ink-thick: 3.5px solid var(--color-storybook-ink);
-    --border-ink-heavy: 5px solid var(--color-storybook-ink);
-    --border-radius-sm: 14px;
-    --border-radius-md: var(--radius);
-    --border-radius-lg: 28px;
-    --border-radius-pill: 9999px;
+    /* 4px Navy Solid Borders */
+    --border-width: 4px;
+    --border-storybook: 4px solid var(--color-storybook-ink);
+    --border-storybook-thick: 4px solid var(--color-storybook-ink);
+    --border-storybook-heavy: 5px solid var(--color-storybook-ink);
+    --border-storybook-thin: 2.5px solid var(--color-storybook-ink);
 
-    /* Chunky Tactile Shadows */
-    --shadow-chunky-sm: 0 3px 0 var(--color-storybook-ink);
-    --shadow-chunky-md: 0 5px 0 var(--color-storybook-ink);
-    --shadow-chunky-lg: 0 8px 0 var(--color-storybook-ink);
-    --shadow-chunky-pressed: 0 2px 0 var(--color-storybook-ink);
+    /* Chunky Hard Offset Shadows (No blur!) */
+    --shadow-hard-sm: 3px 3px 0 var(--color-storybook-ink);
+    --shadow-hard-md: 5px 5px 0 var(--color-storybook-ink);
+    --shadow-hard-lg: 8px 8px 0 var(--color-storybook-ink);
+    --shadow-hard-pressed: 1px 1px 0 var(--color-storybook-ink);
 
-    /* Squishy Button Spring Timing */
-    --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Tactile Squishy Spring */
+    --spring-squish: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 3. Base Elements & Box Sizing (No horizontal page scroll at any width from 320px up) */
+/* 3. Global CSS Reset & Paper Grain Background */
 *, *::before, *::after {
     box-sizing: border-box;
     user-select: none;
@@ -81,222 +85,160 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html {
-    font-size: 16px;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-}
-
-body {
+html, body {
     margin: 0;
     padding: 0;
-    min-height: 100dvh;
-    width: 100%;
-    overflow-x: hidden;
     font-family: var(--font-body);
-    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
-    color: var(--color-storybook-ink);
-    background-color: var(--color-cream-paper);
-    background-image: 
-        radial-gradient(#E2E8F0 1.5px, transparent 1.5px),
-        radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, #FFFDF7 1.5px);
-    background-size: 32px 32px;
-    background-position: 0 0, 16px 16px;
-    position: relative;
-    line-height: 1.45;
-}
-
-/* Crayon Grain Overlay */
-body::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100dvh;
-    pointer-events: none;
-    opacity: 0.035;
-    z-index: 9999;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-/* Fluid Typography */
-h1 {
-    font-family: var(--font-heading);
-    font-size: clamp(1.75rem, 5vw, 2.75rem);
-    color: var(--color-storybook-ink);
-    margin: 0 0 var(--space-2) 0;
-    font-weight: 800;
-    line-height: 1.2;
-}
-
-h2 {
-    font-family: var(--font-heading);
-    font-size: clamp(1.35rem, 3.8vw, 2.15rem);
-    color: var(--color-storybook-ink);
-    margin: 0 0 var(--space-2) 0;
-    font-weight: 800;
-    line-height: 1.25;
-}
-
-h3 {
-    font-family: var(--font-heading);
-    font-size: clamp(1.1rem, 2.8vw, 1.5rem);
-    color: var(--color-storybook-ink);
-    margin: 0 0 var(--space-1) 0;
-    font-weight: 800;
-    line-height: 1.3;
-}
-
-h4, h5, .font-heading {
-    font-family: var(--font-heading);
-    color: var(--color-storybook-ink);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-}
-
-/* Images & SVGs: scalable and responsive */
-img, svg {
-    max-width: 100%;
-    height: auto;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-/* Prevent iOS auto-zoom on inputs by ensuring text >= 16px */
-input, select, textarea, button {
-    font-family: inherit;
     font-size: 16px;
+    background-color: var(--color-cream-paper);
+    color: var(--color-storybook-ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
     touch-action: manipulation;
 }
 
-/* Accessible focus ring in palette sky blue */
-:focus-visible {
-    outline: 3px solid var(--color-sky-blue);
-    outline-offset: 3px;
-    border-radius: var(--border-radius-sm);
-}
-
-/* 4. Storybook Card Container */
-.storybook-card {
-    background: var(--color-cream-paper);
-    border: var(--border-ink-thick);
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-chunky-md);
-    padding: clamp(0.9rem, 2.5vw, 1.5rem);
-    position: relative;
-    max-width: 100%;
-    box-sizing: border-box;
-    transition: transform 0.15s var(--spring-bounce), box-shadow 0.15s var(--spring-bounce);
-}
-
-/* Touch & Hover Isolation: hover effects ONLY on pointer-capable devices */
-@media (hover: hover) and (pointer: fine) {
-    .storybook-card-hover:hover {
-        transform: translateY(-4px) scale(1.01);
-        box-shadow: var(--shadow-chunky-lg);
-    }
-}
-
-/* Tactile Active Pressed State for Touch Devices */
-.storybook-card:active,
-button:active,
-.btn-story:active,
-.pill:active {
-    transform: translateY(2px) scale(0.98);
-}
-
-/* 5. Cloud Wipe Page Transition */
-.cloud-wipe-overlay {
+/* Picture-book paper grain overlay */
+body::before {
+    content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100dvh;
+    top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    z-index: 10000;
-    display: flex;
+    background-image: 
+        radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(43, 45, 66, 0.02) 1.5px, transparent 1.5px);
+    background-size: 24px 24px, 12px 12px;
+    background-position: 0 0, 6px 6px;
+    z-index: 9999;
+    opacity: 0.7;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--color-storybook-ink);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+/* Keyboard focus rings in high-contrast palette */
+:focus-visible {
+    outline: 4px solid var(--color-sky-blue) !important;
+    outline-offset: 3px !important;
+}
+
+/* 4. Common UI Utility Classes */
+.storybook-card {
+    background: var(--color-paper-light);
+    border: var(--border-storybook);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-hard-md);
+    padding: clamp(1rem, 2.5vw, 1.75rem);
+    position: relative;
+    transition: transform 0.15s var(--spring-squish), box-shadow 0.15s ease;
+}
+
+.storybook-card-tilt {
+    transform: rotate(-1deg);
+}
+.storybook-card-tilt:hover {
+    transform: rotate(0deg) scale(1.01);
+}
+
+.sticker-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border: var(--border-storybook-thin);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-hard-sm);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    background: var(--color-cloud-white);
+    color: var(--color-storybook-ink);
+}
+
+.sticker-pill-yellow { background: var(--color-sunny-yellow); }
+.sticker-pill-blue   { background: var(--color-sky-blue); color: var(--color-cloud-white); }
+.sticker-pill-mint   { background: var(--color-mint); }
+.sticker-pill-coral  { background: var(--color-coral); color: var(--color-cloud-white); }
+.sticker-pill-orange { background: var(--color-soft-orange); color: var(--color-cloud-white); }
+
+/* Bouncy Squishy Button Core */
+.squishy-btn {
+    min-height: var(--tap-min);
+    padding: 0.75rem 1.75rem;
+    font-family: var(--font-heading);
+    font-size: clamp(1.1rem, 1rem + 0.35vw, 1.4rem);
+    font-weight: 700;
+    color: var(--color-storybook-ink);
+    background: var(--color-sunny-yellow);
+    border: var(--border-storybook);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-hard-md);
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    gap: 0.65rem;
+    text-decoration: none;
+    transform: translateY(0);
+    transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
+    touch-action: manipulation;
 }
 
-.cloud-wipe-active {
-    animation: cloud-wipe-animation 0.9s var(--spring-bounce) forwards;
+.squishy-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hard-lg);
 }
 
-@keyframes cloud-wipe-animation {
-    0% {
-        clip-path: circle(0% at 50% 50%);
-        opacity: 0.95;
-    }
-    45%, 55% {
-        clip-path: circle(120% at 50% 50%);
-        opacity: 1;
-    }
-    100% {
-        clip-path: circle(0% at 50% 50%);
-        opacity: 0;
-    }
+.squishy-btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: var(--shadow-hard-pressed);
 }
 
-/* 6. General Playful Animations */
-@keyframes gentle-bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
+.squishy-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: var(--shadow-hard-sm);
 }
 
-@keyframes ear-wiggle {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-8deg); }
-    75% { transform: rotate(8deg); }
+.squishy-btn-tall {
+    min-height: var(--btn-h-tall);
+    padding: 1rem 2rem;
 }
 
-@keyframes tail-wag {
-    0%, 100% { transform: rotate(-10deg); }
-    50% { transform: rotate(15deg); }
+/* Colorblind Texture Patterns */
+.pattern-stripes {
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(43, 45, 66, 0.12) 10px, rgba(43, 45, 66, 0.12) 20px) !important;
 }
 
-@keyframes soft-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+.pattern-dots {
+    background-image: radial-gradient(rgba(43, 45, 66, 0.15) 3px, transparent 3px) !important;
+    background-size: 16px 16px !important;
 }
 
-.anim-bob {
-    animation: gentle-bob 3s ease-in-out infinite;
+.pattern-grid {
+    background-image: linear-gradient(rgba(43, 45, 66, 0.12) 2px, transparent 2px), linear-gradient(90deg, rgba(43, 45, 66, 0.12) 2px, transparent 2px) !important;
+    background-size: 18px 18px !important;
 }
 
-.anim-wiggle {
-    animation: ear-wiggle 0.6s ease-in-out infinite;
+/* OpenDyslexic / Dyslexia Accessibility Mode */
+body.dyslexic-mode, .dyslexic-mode * {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+    letter-spacing: 0.05em;
+    word-spacing: 0.15em;
+    line-height: 1.6;
 }
 
-.anim-wag {
-    animation: tail-wag 0.4s ease-in-out infinite;
-}
-
-/* 7. Respect Prefers-Reduced-Motion */
+/* 5. Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.001ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
-        scroll-behavior: auto !important;
-    }
-
-    .anim-bob, .anim-wiggle, .anim-wag, .flame-dance, .star-bounce, .pop-bounce {
-        animation: none !important;
-    }
-
-    .confetti-piece {
-        display: none !important;
-    }
-}
-
-/* 8. Mobile Breakpoint Helpers */
-@media (max-width: 599px) {
-    :root {
-        --tap-min: 56px;
     }
 }

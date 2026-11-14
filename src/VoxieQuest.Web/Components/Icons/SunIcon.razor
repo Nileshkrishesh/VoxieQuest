@@ -1,0 +1,27 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class" aria-hidden="true">
+    <!-- Sun Rays -->
+    <path d="M18 2V6M18 30V34M2 18H6M30 18H34M6.7 6.7L9.5 9.5M26.5 26.5L29.3 29.3M6.7 29.3L9.5 26.5M26.5 9.5L29.3 6.7" 
+          stroke="@StrokeColor" stroke-width="3" stroke-linecap="round"/>
+    <!-- Center Disc -->
+    <circle cx="18" cy="18" r="10" fill="@FillColor" stroke="@StrokeColor" stroke-width="3"/>
+    <!-- Cute Happy Face -->
+    @if (ShowFace)
+    {
+        <circle cx="14.5" cy="16.5" r="1.5" fill="@StrokeColor"/>
+        <circle cx="21.5" cy="16.5" r="1.5" fill="@StrokeColor"/>
+        <path d="M14.5 20.5C15.5 22 20.5 22 21.5 20.5" stroke="@StrokeColor" stroke-width="2" stroke-linecap="round"/>
+        <!-- Rosy Cheeks -->
+        <circle cx="12" cy="19" r="1.2" fill="#FF6B6B"/>
+        <circle cx="24" cy="19" r="1.2" fill="#FF6B6B"/>
+    }
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string FillColor { get; set; } = "#FFC93C";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public bool ShowFace { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+}

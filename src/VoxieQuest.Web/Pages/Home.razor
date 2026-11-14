@@ -36,7 +36,7 @@
                         <span>Quick Play!</span>
                     </button>
                     <button class="btn-story btn-story-mint hero-map-btn" @onclick='() => NavigateTo("map")' type="button">
-                        <span style="font-size:1.2rem;">🗺️</span>
+                        <FlowerIcon Size="20" PetalColor="#7ED9A8" CenterColor="#FFC93C" />
                         <span>Trail Map</span>
                     </button>
                 </div>
@@ -81,10 +81,11 @@
                 <div class="milestone-flame-burst">
                     <StreakBadge Size="56" />
                 </div>
-                <h2 class="milestone-title">🎉 @activeMilestone.Title</h2>
+                <h2 class="milestone-title">@activeMilestone.Title</h2>
                 <p class="milestone-msg">@activeMilestone.Message</p>
                 <div class="milestone-reward-pill">
-                    <span>⭐ +5 Bonus Stars &amp; Sticker Unlocked!</span>
+                    <StarIcon Size="18" FillColor="#FFC93C" />
+                    <span>+5 Bonus Stars &amp; Sticker Unlocked!</span>
                 </div>
                 <button class="btn-story btn-story-green milestone-btn" @onclick="DismissMilestone" type="button">
                     <span>Awesome! ➔</span>

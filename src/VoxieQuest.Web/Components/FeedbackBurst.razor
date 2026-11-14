@@ -1,0 +1,186 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="feedback-burst-root" aria-live="polite">
+    @if (ShowSuccess)
+    {
+        <div class="success-burst-layer">
+            <!-- Confetti Particle Rain -->
+            <Confetti IsActive="true" ParticleCount="32" />
+
+            <!-- Golden Star Particles -->
+            <div class="star-burst-cluster">
+                @for (int s = 0; s < 6; s++)
+                {
+                    var angle = s * 60;
+                    <div class="radiating-star" style="--angle: @(angle)deg; --delay: @(s * 0.05)s;">
+                        <StarIcon Size="28" FillColor="#FFC93C" />
+                    </div>
+                }
+            </div>
+
+            <!-- Joy Banner -->
+            <div class="joy-banner-pill bounce-in-anim">
+                <StarIcon Size="24" FillColor="#FFC93C" />
+                <span class="joy-text">@GetSuccessText()</span>
+                <StarIcon Size="24" FillColor="#FFC93C" />
+            </div>
+        </div>
+    }
+    else if (ShowEncourage)
+    {
+        <div class="encourage-bubble-layer wiggle-gentle-anim">
+            <div class="encourage-card">
+                <HintBulbIcon Size="28" />
+                <div class="encourage-content">
+                    <span class="encourage-title">Almost there!</span>
+                    @if (!string.IsNullOrWhiteSpace(HintText))
+                    {
+                        <span class="encourage-sub">💡 @HintText</span>
+                    }
+                    else
+                    {
+                        <span class="encourage-sub">Take a breath and try once more!</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .feedback-burst-root {
+        position: relative;
+        pointer-events: none;
+        z-index: 50;
+    }
+
+    .success-burst-layer {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 200;
+    }
+
+    .star-burst-cluster {
+        position: relative;
+        width: 1px;
+        height: 1px;
+    }
+
+    .radiating-star {
+        position: absolute;
+        top: 0; left: 0;
+        animation: star-radiate 0.8s var(--spring-squish) forwards;
+        animation-delay: var(--delay);
+    }
+
+    .joy-banner-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--color-sunny-yellow);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.8rem 2rem;
+        box-shadow: var(--shadow-hard-lg);
+        pointer-events: auto;
+        transform: scale(1);
+    }
+
+    .joy-text {
+        font-family: var(--font-heading);
+        font-size: clamp(1.4rem, 1.2rem + 0.6vw, 2rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .bounce-in-anim {
+        animation: banner-bounce-in 0.5s var(--spring-squish) forwards;
+    }
+
+    /* Supportive miss recovery (warm yellow/sky blue, never red) */
+    .encourage-bubble-layer {
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: auto;
+        z-index: 150;
+    }
+
+    .encourage-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--color-bg-warmth);
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.5rem;
+        box-shadow: var(--shadow-hard-md);
+    }
+
+    .encourage-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .encourage-title {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .encourage-sub {
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-soft-orange);
+    }
+
+    .wiggle-gentle-anim {
+        animation: gentle-wiggle-box 0.6s ease-in-out;
+    }
+
+    @@keyframes banner-bounce-in {
+        0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+        70% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @@keyframes star-radiate {
+        0% { transform: rotate(var(--angle)) translateY(0) scale(0.5); opacity: 1; }
+        100% { transform: rotate(var(--angle)) translateY(-120px) scale(1.2); opacity: 0; }
+    }
+
+    @@keyframes gentle-wiggle-box {
+        0%, 100% { transform: translateX(-50%) rotate(0deg); }
+        25% { transform: translateX(calc(-50% - 6px)) rotate(-2deg); }
+        75% { transform: translateX(calc(-50% + 6px)) rotate(2deg); }
+    }
+</style>
+
+@code {
+    [Parameter] public bool ShowSuccess { get; set; } = false;
+    [Parameter] public bool ShowEncourage { get; set; } = false;
+    [Parameter] public string HintText { get; set; } = string.Empty;
+
+    private static readonly string[] SuccessQuotes = new[]
+    {
+        "Super Job!",
+        "Star Power!",
+        "Hooray!",
+        "Magical Answer!",
+        "Brilliant!"
+    };
+
+    private string GetSuccessText()
+    {
+        var idx = Math.Abs(DateTime.UtcNow.Second % SuccessQuotes.Length);
+        return SuccessQuotes[idx];
+    }
+}

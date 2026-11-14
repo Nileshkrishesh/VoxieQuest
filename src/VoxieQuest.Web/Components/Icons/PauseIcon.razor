@@ -1,0 +1,13 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class" aria-hidden="true">
+    <rect x="9" y="8" width="6" height="20" rx="3" fill="@FillColor" stroke="@StrokeColor" stroke-width="2.5"/>
+    <rect x="21" y="8" width="6" height="20" rx="3" fill="@FillColor" stroke="@StrokeColor" stroke-width="2.5"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string FillColor { get; set; } = "#FFC93C";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

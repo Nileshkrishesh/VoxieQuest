@@ -1,0 +1,254 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+<div class="game-header-bar">
+    <div class="header-main-row">
+        <!-- Big Back Arrow Button -->
+        <button class="pill header-back-pill" @onclick="HandleBackClick" type="button" aria-label="Return to map">
+            <ArrowBackIcon Size="24" />
+            <span class="back-text">Map</span>
+        </button>
+
+        <!-- Game Title Sticker -->
+        <div class="game-title-sticker">
+            <span class="sticker-text">@Title</span>
+        </div>
+
+        <div class="header-right-actions">
+            <!-- Star Counter -->
+            <div class="star-pill-badge" title="Stars collected this quest!">
+                <StarIcon Size="22" FillColor="#FFC93C" />
+                <span class="star-count-num">@Stars</span>
+            </div>
+
+            <!-- Sound Mute Toggle -->
+            <button class="pill header-sound-btn" @onclick="ToggleMute" type="button" aria-label="Toggle Sound">
+                <SpeakerIcon Size="20" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
+            </button>
+
+            @if (OnPause.HasDelegate)
+            {
+                <!-- Pause Button -->
+                <button class="pill header-pause-btn" @onclick="HandlePauseClick" type="button" aria-label="Pause Game">
+                    <PauseIcon Size="20" FillColor="#FFC93C" />
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- 10 Little Seeds Growing into Flowers Stepper -->
+    <div class="stepper-garden-row" role="progressbar" aria-valuenow="@CurrentRound" aria-valuemin="1" aria-valuemax="@TotalRounds">
+        @for (int r = 1; r <= TotalRounds; r++)
+        {
+            var isCompleted = r < CurrentRound;
+            var isCurrent = r == CurrentRound;
+            <div class="garden-step @(isCompleted ? "bloomed" : (isCurrent ? "sprouting" : "dormant"))" 
+                 title="@(isCompleted ? $"Round {r}: Bloomed Flower!" : (isCurrent ? $"Round {r}: Growing Now" : $"Round {r}: Little Seed"))">
+                @if (isCompleted)
+                {
+                    <FlowerIcon Size="24" PetalColor="@GetFlowerPetalColor(r)" CenterColor="#FFC93C" Class="bloom-pop-anim" />
+                }
+                else if (isCurrent)
+                {
+                    <div class="sprout-pulse-box">
+                        <SleepingSeedIcon Size="24" FillColor="#FFC93C" Class="sprout-glow" />
+                        <span class="step-num-bubble">@r</span>
+                    </div>
+                }
+                else
+                {
+                    <SleepingSeedIcon Size="20" FillColor="#E2E8F0" Class="seed-dim" />
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .game-header-bar {
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto 0.75rem auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        z-index: 20;
+    }
+
+    .header-main-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .header-back-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--color-sunny-yellow);
+        color: var(--color-storybook-ink);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.45rem 1.1rem;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.05rem;
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
+    }
+
+    .header-back-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hard-md);
+    }
+    .header-back-pill:active {
+        transform: translateY(2px);
+        box-shadow: var(--shadow-hard-pressed);
+    }
+
+    .game-title-sticker {
+        background: var(--color-cloud-white);
+        border: var(--border-storybook);
+        border-radius: var(--radius-sm);
+        padding: 0.4rem 1.25rem;
+        box-shadow: var(--shadow-hard-sm);
+        transform: rotate(-1deg);
+        text-align: center;
+    }
+
+    .sticker-text {
+        font-family: var(--font-heading);
+        font-size: clamp(1.1rem, 1rem + 0.4vw, 1.4rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .header-right-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .header-sound-btn, .header-pause-btn {
+        background: var(--color-cloud-white);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.45rem 0.65rem;
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.1s var(--spring-squish);
+    }
+    .header-sound-btn:active, .header-pause-btn:active {
+        transform: translateY(2px);
+        box-shadow: var(--shadow-hard-pressed);
+    }
+
+    /* Stepper garden row: row of 10 seeds to flowers */
+    .stepper-garden-row {
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-hard-sm);
+        padding: 0.4rem 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        gap: 0.25rem;
+    }
+
+    .garden-step {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .sprout-pulse-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: gentle-wobble 2s infinite ease-in-out;
+    }
+
+    .step-num-bubble {
+        position: absolute;
+        bottom: -2px;
+        right: -4px;
+        background: var(--color-storybook-ink);
+        color: #FFFFFF;
+        font-family: var(--font-heading);
+        font-size: 0.65rem;
+        font-weight: 700;
+        border-radius: var(--radius-pill);
+        width: 15px;
+        height: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bloom-pop-anim {
+        animation: flower-bloom 0.4s var(--spring-squish) forwards;
+    }
+
+    .seed-dim {
+        opacity: 0.5;
+    }
+
+    @@keyframes flower-bloom {
+        0% { transform: scale(0.4) rotate(-20deg); }
+        80% { transform: scale(1.25) rotate(10deg); }
+        100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @@keyframes gentle-wobble {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.12); }
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Quest";
+    [Parameter] public int CurrentRound { get; set; } = 1;
+    [Parameter] public int TotalRounds { get; set; } = 10;
+    [Parameter] public int Stars { get; set; } = 0;
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnPause { get; set; }
+
+    private string GetFlowerPetalColor(int round) => (round % 4) switch
+    {
+        0 => "#5BC0EB", // Sky Blue
+        1 => "#FF6B6B", // Coral
+        2 => "#FFC93C", // Sunny Yellow
+        _ => "#7ED9A8"  // Mint
+    };
+
+    private async Task HandleBackClick()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnBack.HasDelegate)
+        {
+            await OnBack.InvokeAsync();
+        }
+    }
+
+    private async Task HandlePauseClick()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnPause.HasDelegate)
+        {
+            await OnPause.InvokeAsync();
+        }
+    }
+
+    private async Task ToggleMute()
+    {
+        await AudioService.SetMutedAsync(!AudioService.IsMuted);
+    }
+}

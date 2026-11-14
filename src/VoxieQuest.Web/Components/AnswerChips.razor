@@ -1,0 +1,107 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+@if (Options != null && Options.Any())
+{
+    <div class="answer-chips-grid">
+        @for (int i = 0; i < Options.Count; i++)
+        {
+            var option = Options[i];
+            var variantClass = GetVariantClass(i);
+            <button class="answer-chip-btn @variantClass" 
+                    @onclick="() => SelectOptionAsync(option)" 
+                    type="button" 
+                    disabled="@Disabled">
+                <span class="chip-label">@option</span>
+            </button>
+        }
+    </div>
+}
+
+<style>
+    .answer-chips-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 520px;
+        margin: 0.75rem auto;
+    }
+
+    .answer-chip-btn {
+        min-height: 64px;
+        padding: 0.8rem 1rem;
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-md);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
+        touch-action: manipulation;
+    }
+
+    .answer-chip-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hard-lg);
+    }
+
+    .answer-chip-btn:active:not(:disabled) {
+        transform: translateY(4px);
+        box-shadow: var(--shadow-hard-pressed);
+    }
+
+    .answer-chip-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .chip-label {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 1.1rem + 0.4vw, 1.6rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    /* Sticker Colors */
+    .chip-yellow { background-color: var(--color-sunny-yellow); }
+    .chip-blue   { background-color: var(--color-sky-blue); color: #FFFFFF; }
+    .chip-coral  { background-color: var(--color-coral); color: #FFFFFF; }
+    .chip-mint   { background-color: var(--color-mint); }
+
+    .chip-blue .chip-label, .chip-coral .chip-label {
+        color: #FFFFFF;
+    }
+
+    @@media (max-width: 420px) {
+        .answer-chips-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public List<string> Options { get; set; } = new();
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public EventCallback<string> OnAnswerSelected { get; set; }
+
+    private string GetVariantClass(int index) => (index % 4) switch
+    {
+        0 => "chip-yellow",
+        1 => "chip-blue",
+        2 => "chip-mint",
+        _ => "chip-coral"
+    };
+
+    private async Task SelectOptionAsync(string option)
+    {
+        if (Disabled) return;
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnAnswerSelected.HasDelegate)
+        {
+            await OnAnswerSelected.InvokeAsync(option);
+        }
+    }
+}

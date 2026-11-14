@@ -2,631 +2,337 @@
 @page "/game/builder"
 @inherits BaseGameComponent
 
-<div class="game-viewport">
+<div class="game-viewport builder-theme">
+    <!-- Cloud & Sky Parallax Backdrop -->
     <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Clouds" />
 
-    <!-- Top HUD: Round 1 to 10 Stepper & Star Counter -->
-    <div class="storybook-card game-hud-card">
-        <div class="hud-top-row">
-            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
-                <span>◀ Map</span>
-            </button>
-            <h3 class="hud-game-title">
-                🧱 @GameTitle
-            </h3>
-            <div class="star-badge hud-star-badge">
-                <span>⭐</span>
-                <span>@SessionStars</span>
-            </div>
-        </div>
-
-        <!-- 10 Round Stepper -->
-        <div class="round-stepper">
-            @for (int r = 1; r <= TotalRounds; r++)
-            {
-                var isCompleted = r < CurrentRound;
-                var isCurrent = r == CurrentRound;
-                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Round @r">
-                    @(isCompleted ? "★" : r.ToString())
-                </div>
-            }
-        </div>
-    </div>
+    <!-- Unified Game Header with 10 Sprouting Flowers Stepper -->
+    <GameHeader Title="@GameTitle" 
+                CurrentRound="@CurrentRound" 
+                TotalRounds="@TotalRounds" 
+                Stars="@SessionStars" 
+                OnBack="ReturnToMapAsync" 
+                OnPause="() => isPauseOpen = true" />
 
     @if (ActiveChallenge != null)
     {
-        <!-- Main Word Workshop Stage -->
-        <div class="storybook-card builder-stage">
-            <!-- Mascot Voxie Builder & Prompt -->
-            <div class="mascot-stage">
-                <div class="mascot-avatar-box">
-                    <Mascot State="@MascotState" Width="100" Height="100" />
-                    <StarBurst IsActive="@ShowStarBurst" />
-                </div>
+        <!-- Main Paper-Cut Question Stage -->
+        <QuestionCard Prompt="@ActiveChallenge.Prompt"
+                      HintText="@ActiveChallenge.Hint"
+                      ShowHint="@(AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))"
+                      MascotMood="@MascotState"
+                      OnRepeatPrompt="RepeatPromptAloudAsync">
 
-                <div class="speech-bubble prompt-bubble">
-                    <span class="prompt-text">@ActiveChallenge.Prompt</span>
-                    <div class="prompt-actions-row">
-                        <button class="pill prompt-pill-btn" @onclick="SpellLettersAloudAsync" type="button" style="background:var(--color-sunny-yellow);">
-                            <span>🔊 Spell Aloud</span>
-                        </button>
-                        <button class="pill prompt-pill-btn" @onclick="RepeatPromptAloudAsync" type="button">
-                            <span>🗣️ Repeat Prompt</span>
-                        </button>
-                        @if (AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))
-                        {
-                            <span class="pill hint-pill">
-                                💡 @ActiveChallenge.Hint
-                            </span>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <!-- The Workbench: Toy Blocks Assembly Arena -->
-            <div class="workshop-arena">
+            <!-- Wooden Workbench Arena -->
+            <div class="workbench-arena">
                 @if (isWordAssembled)
                 {
-                    <!-- Revealed Picture & Assembled Word Banner -->
-                    <div class="assembled-showcase showcase-pop-in">
-                        <div class="picture-card-wrapper">
-                            <span class="picture-card-emoji">@ActiveChallenge.RevealedPicture</span>
+                    <!-- Completed Toy Comes to Life with Eyes and Celebration Wiggle -->
+                    <div class="assembled-toy-showcase toy-wiggle-anim">
+                        <div class="toy-icon-plaque">
+                            <BlocksIcon Size="64" />
                         </div>
-                        <div class="assembled-word-tag">
-                            @ActiveChallenge.TargetAnswer.ToUpperInvariant()!
+                        <div class="assembled-word-badge storybook-card-tilt">
+                            <span class="assembled-text">@ActiveChallenge.TargetAnswer.ToUpperInvariant()</span>
                         </div>
-                        <span class="pill" style="background:var(--color-mint); color:var(--color-storybook-ink); font-size:1rem; margin-top:0.4rem;">
-                            ✨ Snap! Built perfectly!
+                        <span class="sticker-pill sticker-pill-mint">
+                            Snap! Toy Built Perfectly!
                         </span>
                     </div>
                 }
                 else
                 {
-                    <!-- Separated Interactive Wooden Blocks Waiting to be Built -->
-                    <div class="blocks-tray @(isSnapping ? "blocks-snapping" : "")">
+                    <!-- Chunky Wooden Letter Blocks Tray with Gravity Bounce -->
+                    <div class="blocks-shelf-tray @(isSnapping ? "blocks-snapping-anim" : "")">
                         @for (int i = 0; i < ActiveChallenge.LetterBlocks.Count; i++)
                         {
                             var letter = ActiveChallenge.LetterBlocks[i];
                             var blockBg = GetBlockColor(i);
-                            <div class="toy-letter-block block-float" style="background:@blockBg; animation-delay:@(i * 0.12)s;">
-                                <div class="block-bevel">
-                                    <span class="block-letter">@letter</span>
+                            <div class="wooden-letter-block block-drop-in" 
+                                 style="background-color: @blockBg; animation-delay: @(i * 0.12)s;">
+                                <div class="block-grain-inset">
+                                    <span class="block-char">@letter</span>
                                 </div>
                             </div>
                         }
                     </div>
 
-                    <!-- Magnetic Workbench Rail -->
-                    <div class="workbench-rail">
-                        <div class="rail-groove"></div>
-                        <span class="rail-label">Say the word to snap blocks together!</span>
+                    <!-- Magnetic Workbench Slot Rail that fills as spoken -->
+                    <div class="workbench-rail-base">
+                        <div class="rail-slots-groove">
+                            @for (int i = 0; i < ActiveChallenge.LetterBlocks.Count; i++)
+                            {
+                                <div class="groove-slot">
+                                    <span class="groove-placeholder">•</span>
+                                </div>
+                            }
+                        </div>
+                        <span class="rail-instruction-label">Speak the whole word to assemble!</span>
                     </div>
                 }
             </div>
 
-            <!-- Speech Feedback Area (Never 'Wrong'!) -->
-            <div class="feedback-container">
-                @if (!string.IsNullOrWhiteSpace(LastTranscript))
-                {
-                    <div class="pill feedback-pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)");">
-                        @(LastAnswerSuccess ? "🌟 Click! You said: " : "👂 You said: ") "@LastTranscript"
-                    </div>
-                }
-                @if (!string.IsNullOrWhiteSpace(AttemptState.FeedbackMessage))
-                {
-                    <div class="feedback-msg">
-                        @AttemptState.FeedbackMessage
-                    </div>
-                }
-            </div>
-
-            <!-- Voice Character or Practice Mode Fallback -->
-            @if (VoiceManager.Mode == VoiceMode.PracticeButtons || VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)
+            <!-- Practice Mode 2x2 Answer Chips Fallback -->
+            @if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual && GetPracticeChoices().Any())
             {
-                <PracticeInputPanel Question="@(new QuestionItem { TargetAnswer = ActiveChallenge.TargetAnswer, Category = GameCategory })" 
-                                    OnAnswerSelected="SubmitManualAnswerAsync" />
+                <AnswerChips Options="@GetPracticeChoices()" OnAnswerSelected="SubmitManualAnswerAsync" />
             }
-            else
-            {
-                <div class="mic-thumb-reach">
-                    <MicCharacter VolumeLevel="@CurrentVolume" IsListening="@VoiceManager.IsListening" OnClick="ToggleListeningAsync" />
-                </div>
-            }
+        </QuestionCard>
 
-            <div class="skip-action-row">
-                <button class="pill skip-btn" @onclick="SkipRoundAsync" type="button">
-                    <span>Next Word ➔</span>
-                </button>
-            </div>
-        </div>
+        <!-- Giant Bottom Center Voice Microphone Button -->
+        <MicButton IsListening="@VoiceManager.IsListening" 
+                   VolumeLevel="@CurrentVolume" 
+                   State="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+                   OnToggleListening="ToggleListeningAsync" />
     }
+
+    <!-- Celebratory Burst / Gentle Encouragement -->
+    <FeedbackBurst ShowSuccess="@ShowStarBurst" 
+                   ShowEncourage="@(AttemptState.AttemptCount > 0 && !LastAnswerSuccess && !AttemptState.IsExhausted)"
+                   HintText="@ActiveChallenge?.Hint" />
+
+    <!-- 10-Round Quest Completion Celebration -->
+    <RewardScreen IsOpen="@IsRewardScreenOpen" 
+                  StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))" 
+                  OnPlayAgain="StartGameSessionAsync" 
+                  OnNextQuest="ReturnToMapAsync" />
+
+    <!-- Paper Card Pause Sheet -->
+    <PauseSheet IsOpen="@isPauseOpen" 
+                OnResume="() => isPauseOpen = false" 
+                OnReturnToMap="ReturnToMapAsync" />
 </div>
 
-<!-- Celebratory Confetti & 10-Round Reward Modal -->
-<Confetti IsActive="@IsRewardScreenOpen" />
-<CelebrationModal IsVisible="@IsRewardScreenOpen" 
-                  StarsEarned="@SessionStars" 
-                  OnPlayAgain="StartGameSessionAsync" 
-                  OnReturnHome="ReturnToMapAsync" />
-
 <style>
-    .game-viewport {
+    .builder-theme {
         display: flex;
         flex-direction: column;
-        gap: clamp(0.75rem, 2vw, 1.25rem);
-        max-width: 780px;
-        margin: 0 auto;
-        position: relative;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .game-hud-card {
-        padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(0.75rem, 2vw, 1.4rem);
-        background: rgba(255, 253, 247, 0.95);
-        border: var(--border-ink-thick);
-        box-shadow: var(--shadow-chunky-sm);
-        border-radius: var(--border-radius-md);
-    }
-
-    .hud-top-row {
-        display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: clamp(0.75rem, 2vw, 1.25rem);
+        padding-top: calc(var(--header-h) + 0.5rem);
+        padding-bottom: calc(var(--nav-h) + 1rem);
+        position: relative;
     }
 
-    .hud-back-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        padding: 0.35rem 0.85rem;
-        font-weight: 800;
-        touch-action: manipulation;
-    }
-
-    .hud-game-title {
-        margin: 0;
-        font-size: clamp(1.1rem, 3vw, 1.4rem);
-        color: var(--color-coral);
-        text-align: center;
-        text-shadow: 1px 1px 0 var(--color-storybook-ink);
-    }
-
-    .hud-star-badge {
-        font-size: clamp(0.95rem, 2vw, 1.1rem);
-        padding: 0.35rem 0.85rem;
-        min-height: 40px;
-    }
-
-    .round-stepper {
-        display: flex;
-        justify-content: center;
-        gap: clamp(0.2rem, 1vw, 0.5rem);
-        margin-top: 0.6rem;
-        flex-wrap: wrap;
-    }
-
-    .round-dot {
-        width: clamp(26px, 5vw, 32px);
-        height: clamp(26px, 5vw, 32px);
-        border-radius: 50%;
-        border: 2px solid var(--color-storybook-ink);
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: clamp(0.72rem, 1.8vw, 0.85rem);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.completed {
-        background: var(--color-mint);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.current {
-        background: var(--color-sunny-yellow);
-        transform: scale(1.15);
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
-    }
-
-    .builder-stage {
-        text-align: center;
-        background: var(--color-cream-paper);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-md);
-        box-shadow: var(--shadow-chunky-md);
-        padding: clamp(0.75rem, 2vw, 1.5rem);
-        overflow: hidden;
+    .workbench-arena {
         width: 100%;
-        box-sizing: border-box;
-    }
-
-    .mascot-stage {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(0.5rem, 2vw, 1rem);
-        position: relative;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .mascot-avatar-box {
-        position: relative;
-        flex-shrink: 0;
-    }
-
-    .prompt-bubble {
-        max-width: 460px;
-        flex: 1 1 240px;
-    }
-
-    .prompt-text {
-        font-size: clamp(1.05rem, 2.5vw, 1.3rem);
-        font-weight: 800;
-        display: block;
-        line-height: 1.35;
-    }
-
-    .prompt-actions-row {
-        margin-top: 0.5rem;
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .prompt-pill-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        font-size: 0.88rem;
-        touch-action: manipulation;
-    }
-
-    .hint-pill {
-        background: #FFE5EC;
-        color: var(--color-coral);
-        border-color: var(--color-coral);
-        font-size: 0.88rem;
-        min-height: var(--tap-min);
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .workshop-arena {
-        position: relative;
-        min-height: clamp(210px, 30vh, 260px);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: clamp(0.5rem, 1.5vw, 1rem) 0;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Blocks Tray */
-    .blocks-tray {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(0.5rem, 2vw, 1.25rem);
-        flex-wrap: wrap;
-        margin-bottom: 1.25rem;
-        transition: gap 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        width: 100%;
-    }
-
-    .blocks-snapping {
-        gap: 0.2rem !important;
-        animation: snap-rumble 0.4s ease-in-out;
-    }
-
-    /* Chunky Toy Letter Blocks */
-    .toy-letter-block {
-        width: clamp(56px, 15vw, 76px);
-        height: clamp(56px, 15vw, 76px);
-        border-radius: var(--border-radius-sm);
-        border: var(--border-ink-thick);
-        box-shadow: var(--shadow-chunky-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        cursor: pointer;
-        user-select: none;
-        touch-action: manipulation;
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @@media (hover: hover) and (pointer: fine) {
-        .toy-letter-block:hover {
-            transform: translateY(-6px) scale(1.06);
-        }
-    }
-
-    .block-bevel {
-        width: clamp(44px, 12vw, 60px);
-        height: clamp(44px, 12vw, 60px);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .block-letter {
-        font-family: var(--font-heading);
-        font-size: clamp(1.8rem, 5vw, 2.4rem);
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        line-height: 1;
-        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
-    }
-
-    .block-float {
-        animation: block-hover 2.4s ease-in-out infinite alternate;
-    }
-
-    /* Magnetic Workbench Rail */
-    .workbench-rail {
-        width: 90%;
-        max-width: 480px;
-        height: 24px;
-        background: #E2E8F0;
-        border: 3px solid var(--color-storybook-ink);
-        border-radius: 12px;
-        position: relative;
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .rail-groove {
-        position: absolute;
-        width: 90%;
-        height: 6px;
-        background: #CBD5E1;
-        border-radius: 3px;
-    }
-
-    .rail-label {
-        position: absolute;
-        bottom: -26px;
-        font-size: clamp(0.75rem, 2vw, 0.85rem);
-        font-weight: 700;
-        color: #64748B;
-        font-family: var(--font-heading);
-        white-space: nowrap;
-    }
-
-    /* Assembled Word Showcase */
-    .assembled-showcase {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: white;
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-md);
-        padding: clamp(0.85rem, 2vw, 1.2rem) clamp(1.2rem, 3vw, 2.2rem);
-        box-shadow: var(--shadow-chunky-md);
-    }
-
-    .picture-card-wrapper {
-        width: clamp(72px, 15vw, 96px);
-        height: clamp(72px, 15vw, 96px);
-        border-radius: 50%;
-        background: #E0F2FE;
-        border: 3.5px solid var(--color-storybook-ink);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 0 var(--color-storybook-ink);
-    }
-
-    .picture-card-emoji {
-        font-size: clamp(2.8rem, 8vw, 4rem);
-        line-height: 1;
-    }
-
-    .assembled-word-tag {
-        font-family: var(--font-heading);
-        font-size: clamp(1.4rem, 4vw, 2rem);
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        margin-top: 0.5rem;
-        letter-spacing: 0.08em;
-    }
-
-    .showcase-pop-in {
-        animation: showcase-bounce 0.7s var(--spring-bounce) forwards;
-    }
-
-    .feedback-container {
-        min-height: 48px;
         margin: 0.5rem 0;
+    }
+
+    .blocks-shelf-tray {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+        min-height: 110px;
+        width: 100%;
+        max-width: 600px;
+        padding: 0.5rem;
+    }
+
+    .wooden-letter-block {
+        width: clamp(60px, 12vw, 76px);
+        height: clamp(60px, 12vw, 76px);
+        border: var(--border-storybook);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-hard-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: default;
+    }
+
+    .block-grain-inset {
+        width: 82%;
+        height: 82%;
+        border: 2px dashed rgba(43, 45, 66, 0.3);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    .block-char {
+        font-family: var(--font-heading);
+        font-size: clamp(1.8rem, 1.5rem + 0.8vw, 2.4rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .workbench-rail-base {
+        width: 100%;
+        max-width: 540px;
+        background: #E8D5B5;
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-md);
+        padding: 0.75rem 1.25rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
     }
 
-    .feedback-pill {
-        font-size: clamp(0.95rem, 2.2vw, 1.15rem);
-        max-width: 100%;
-    }
-
-    .feedback-msg {
-        color: var(--color-coral);
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 1.05rem;
-        margin-top: 0.3rem;
-    }
-
-    .mic-thumb-reach {
-        margin: 0.6rem 0;
+    .rail-slots-groove {
         display: flex;
-        justify-content: center;
-        touch-action: manipulation;
-    }
-
-    .skip-action-row {
-        margin-top: 0.75rem;
-        display: flex;
-        justify-content: center;
         gap: 0.75rem;
     }
 
-    .skip-btn {
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
+    .groove-slot {
+        width: 52px;
+        height: 14px;
+        background: #C4A482;
+        border-radius: 4px;
+        border: 2px solid var(--color-storybook-ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .groove-placeholder {
+        color: var(--color-storybook-ink);
+        font-size: 0.8rem;
+    }
+
+    .rail-instruction-label {
+        font-family: var(--font-heading);
         font-size: 0.95rem;
-        opacity: 0.9;
-        touch-action: manipulation;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
     }
 
-    @@keyframes block-hover {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-5px); }
+    .assembled-toy-showcase {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--color-cloud-white);
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        padding: 1.25rem 2rem;
+        box-shadow: var(--shadow-hard-md);
     }
 
-    @@keyframes snap-rumble {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+    .toy-icon-plaque {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    @@keyframes showcase-bounce {
-        0% { transform: scale(0.3) rotate(-5deg); opacity: 0; }
-        60% { transform: scale(1.1) rotate(2deg); opacity: 1; }
-        80% { transform: scale(0.96) rotate(-1deg); }
-        100% { transform: scale(1) rotate(0deg); }
+    .assembled-word-badge {
+        background: var(--color-sunny-yellow);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.4rem 1.5rem;
+        box-shadow: var(--shadow-hard-sm);
     }
 
-    /* Landscape Phones (max-height: 500px) */
-    @@media (max-height: 500px) {
-        .game-viewport {
-            gap: 0.5rem;
-        }
+    .assembled-text {
+        font-family: var(--font-heading);
+        font-size: clamp(1.6rem, 1.4rem + 0.8vw, 2.2rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        letter-spacing: 0.08em;
+    }
 
-        .mascot-stage {
-            flex-direction: row;
-            margin-bottom: 0.35rem;
-        }
+    /* Animation States */
+    .block-drop-in {
+        animation: block-drop 0.6s var(--spring-squish) backwards;
+    }
 
-        .workshop-arena {
-            min-height: 160px;
-        }
+    .blocks-snapping-anim {
+        animation: blocks-snap 0.4s var(--spring-squish);
+    }
 
-        .prompt-text {
-            font-size: 1rem;
-        }
+    .toy-wiggle-anim {
+        animation: toy-wiggle-joy 0.8s var(--spring-squish) forwards;
+    }
+
+    @@keyframes block-drop {
+        0% { transform: translateY(-60px) rotate(-10deg); opacity: 0; }
+        70% { transform: translateY(6px) rotate(4deg); opacity: 1; }
+        100% { transform: translateY(0) rotate(0); opacity: 1; }
+    }
+
+    @@keyframes blocks-snap {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15) translateY(-8px); }
+        100% { transform: scale(1); }
+    }
+
+    @@keyframes toy-wiggle-joy {
+        0% { transform: scale(0.5); opacity: 0; }
+        50% { transform: scale(1.1) rotate(6deg); opacity: 1; }
+        75% { transform: scale(0.95) rotate(-6deg); }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
 </style>
 
 @code {
-    protected override SkillCategory GameCategory => SkillCategory.Spelling;
+    protected override SkillCategory GameCategory => SkillCategory.Phonics;
     protected override string GameTitle => "Word Builder";
 
     private bool isWordAssembled = false;
     private bool isSnapping = false;
+    private bool isPauseOpen = false;
 
-    private IReadOnlyList<QuestionItem>? _curriculumQuestions;
-
-    private static readonly (string Word, string[] Blocks, string Emoji, string Hint)[] FallbackEasy = new[]
+    private static readonly (string Word, string[] Blocks, string Hint)[] FallbackEasy = new[]
     {
-        ("cat", new[] { "C", "A", "T" }, "🐱", "A purring furry pet who loves yarn"),
-        ("sun", new[] { "S", "U", "N" }, "☀️", "Shines warm and bright in daytime"),
-        ("dog", new[] { "D", "O", "G" }, "🐶", "Loyal puppy friend who wags its tail"),
-        ("pig", new[] { "P", "I", "G" }, "🐷", "Pink farm animal who says oink"),
-        ("bat", new[] { "B", "A", "T" }, "🦇", "Nocturnal creature who flies with wings"),
-        ("bus", new[] { "B", "U", "S" }, "🚌", "Big yellow vehicle carrying students"),
-        ("hat", new[] { "H", "A", "T" }, "🎩", "You wear it proudly on your head"),
-        ("bug", new[] { "B", "U", "G" }, "🐛", "Little crawler resting on a garden leaf"),
-        ("cup", new[] { "C", "U", "P" }, "☕", "You drink sweet cocoa or juice from it"),
-        ("bed", new[] { "B", "E", "D" }, "🛏️", "Cozy place you sleep and dream at night")
+        ("cat", new[] { "C", "A", "T" }, "Purring fluffy pet that says meow"),
+        ("sun", new[] { "S", "U", "N" }, "Warm bright star in our daytime sky"),
+        ("dog", new[] { "D", "O", "G" }, "Loyal four-legged friend who barks"),
+        ("pig", new[] { "P", "I", "G" }, "Pink farm buddy who says oink"),
+        ("bat", new[] { "B", "A", "T" }, "Flies at night or hits a baseball"),
+        ("bus", new[] { "B", "U", "S" }, "Big yellow vehicle carrying students"),
+        ("hat", new[] { "H", "A", "T" }, "You wear it on top of your head"),
+        ("bug", new[] { "B", "U", "G" }, "Little crawling beetle in the garden"),
+        ("cup", new[] { "C", "U", "P" }, "You drink sweet cocoa or juice from it"),
+        ("bed", new[] { "B", "E", "D" }, "Cozy place you sleep and dream at night")
     };
 
-    private static readonly (string Word, string[] Blocks, string Emoji, string Hint)[] FallbackMedium = new[]
+    private static readonly (string Word, string[] Blocks, string Hint)[] FallbackMedium = new[]
     {
-        ("frog", new[] { "F", "R", "O", "G" }, "🐸", "Green hopper in the lily pond"),
-        ("star", new[] { "S", "T", "A", "R" }, "⭐", "Twinkles high in the dark night sky"),
-        ("fish", new[] { "F", "I", "S", "H" }, "🐟", "Swims with shiny fins and gills"),
-        ("duck", new[] { "D", "U", "C", "K" }, "🦆", "Feathered friend who says quack quack"),
-        ("moon", new[] { "M", "O", "O", "N" }, "🌙", "Glows silver in our night sky"),
-        ("tree", new[] { "T", "R", "E", "E" }, "🌳", "Tall with green leaves and brown branches"),
-        ("bird", new[] { "B", "I", "R", "D" }, "🐦", "Feathered singer soaring in the breeze"),
-        ("ship", new[] { "S", "H", "I", "P" }, "🚢", "Sails proudly across ocean waves"),
-        ("lion", new[] { "L", "I", "O", "N" }, "🦁", "Golden king of the grassy savanna"),
-        ("ball", new[] { "B", "A", "L", "L" }, "⚽", "Round toy you kick, bounce, and throw")
+        ("frog", new[] { "F", "R", "O", "G" }, "Green hopper in the lily pond"),
+        ("star", new[] { "S", "T", "A", "R" }, "Twinkles high in the dark night sky"),
+        ("fish", new[] { "F", "I", "S", "H" }, "Swims with shiny fins and gills"),
+        ("duck", new[] { "D", "U", "C", "K" }, "Feathered friend who says quack quack"),
+        ("moon", new[] { "M", "O", "O", "N" }, "Glows silver in our night sky"),
+        ("tree", new[] { "T", "R", "E", "E" }, "Tall with green leaves and brown branches"),
+        ("bird", new[] { "B", "I", "R", "D" }, "Feathered singer soaring in the breeze"),
+        ("ship", new[] { "S", "H", "I", "P" }, "Sails proudly across ocean waves"),
+        ("lion", new[] { "L", "I", "O", "N" }, "Golden king of the grassy savanna"),
+        ("ball", new[] { "B", "A", "L", "L" }, "Round toy you kick, bounce, and throw")
     };
 
-    private static readonly (string Word, string[] Blocks, string Emoji, string Hint)[] FallbackHard = new[]
+    private static readonly (string Word, string[] Blocks, string Hint)[] FallbackHard = new[]
     {
-        ("apple", new[] { "A", "P", "P", "L", "E" }, "🍎", "Sweet crunchy red orchard fruit"),
-        ("tiger", new[] { "T", "I", "G", "E", "R" }, "🐯", "Striped mighty cat in the jungle"),
-        ("river", new[] { "R", "I", "V", "E", "R" }, "🏞️", "Flows fresh water winding to the ocean"),
-        ("heart", new[] { "H", "E", "A", "R", "T" }, "❤️", "Beats inside your chest with love"),
-        ("cloud", new[] { "C", "L", "O", "U", "D" }, "☁️", "Fluffy white shape floating in sky"),
-        ("plant", new[] { "P", "L", "A", "N", "T" }, "🌱", "Grows from soil toward the sun"),
-        ("robot", new[] { "R", "O", "B", "O", "T" }, "🤖", "Mechanical buddy with gears and lights"),
-        ("train", new[] { "T", "R", "A", "I", "N" }, "🚂", "Travels on rails saying choo-choo"),
-        ("space", new[] { "S", "P", "A", "C", "E" }, "🪐", "Realm of stars, planets, and rockets"),
-        ("magic", new[] { "M", "A", "G", "I", "C" }, "🪄", "Sparkling wonder with a star wand")
+        ("apple", new[] { "A", "P", "P", "L", "E" }, "Sweet crunchy red orchard fruit"),
+        ("tiger", new[] { "T", "I", "G", "E", "R" }, "Striped mighty cat in the jungle"),
+        ("river", new[] { "R", "I", "V", "E", "R" }, "Flows fresh water winding to the ocean"),
+        ("heart", new[] { "H", "E", "A", "R", "T" }, "Beats inside your chest with love"),
+        ("cloud", new[] { "C", "L", "O", "U", "D" }, "Fluffy white shape floating in sky"),
+        ("plant", new[] { "P", "L", "A", "N", "T" }, "Grows from soil toward the sun"),
+        ("robot", new[] { "R", "O", "B", "O", "T" }, "Mechanical buddy with gears and lights"),
+        ("train", new[] { "T", "R", "A", "I", "N" }, "Travels on rails saying choo-choo"),
+        ("space", new[] { "S", "P", "A", "C", "E" }, "Realm of stars, planets, and rockets"),
+        ("magic", new[] { "M", "A", "G", "I", "C" }, "Sparkling wonder with a star wand")
     };
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        try
-        {
-            _curriculumQuestions = await QuestionService.LoadCustomQuestionsAsync("data/wordbuilder.json");
-        }
-        catch
-        {
-            // Fallback list used seamlessly
-        }
-    }
-
-    protected override async Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
     {
         isWordAssembled = false;
         isSnapping = false;
         var index = (round - 1) % 10;
 
-        // Try loaded curriculum first
-        if (_curriculumQuestions != null && _curriculumQuestions.Count > 0)
-        {
-            var matchingTier = _curriculumQuestions.Where(q => q.Difficulty == difficulty).ToList();
-            if (matchingTier.Count > index)
-            {
-                var q = matchingTier[index];
-                var blocks = q.TargetAnswer.ToUpperInvariant().Select(c => c.ToString()).ToList();
-                var emoji = !string.IsNullOrWhiteSpace(q.IconSvg) ? q.IconSvg : GetEmojiForWord(q.TargetAnswer);
-
-                return new GameChallenge
-                {
-                    Id = q.Id,
-                    Category = SkillCategory.Phonics,
-                    Difficulty = difficulty,
-                    Prompt = q.Prompt,
-                    TargetAnswer = q.TargetAnswer.ToLowerInvariant(),
-                    AcceptedAnswers = q.AcceptedAnswers,
-                    Hint = q.Hint,
-                    RewardStars = q.RewardStars,
-                    DisplayItem = q.TargetAnswer,
-                    LetterBlocks = blocks,
-                    RevealedPicture = emoji
-                };
-            }
-        }
-
-        // Resilient Fallback Catalog
         var catalog = difficulty switch
         {
             DifficultyLevel.Hard => FallbackHard,
@@ -637,7 +343,7 @@
         var item = catalog[index];
         var spelled = string.Join(" - ", item.Blocks);
 
-        return new GameChallenge
+        return Task.FromResult(new GameChallenge
         {
             Id = $"builder_{(int)difficulty}_{index + 1}",
             Category = SkillCategory.Phonics,
@@ -648,71 +354,36 @@
             Hint = item.Hint,
             RewardStars = (int)difficulty,
             DisplayItem = item.Word,
-            LetterBlocks = item.Blocks.ToList(),
-            RevealedPicture = item.Emoji
-        };
+            LetterBlocks = item.Blocks.ToList()
+        });
+    }
+
+    private List<string> GetPracticeChoices()
+    {
+        if (ActiveChallenge == null) return new();
+        var target = ActiveChallenge.TargetAnswer;
+        return new List<string> { target, "cat", "dog", "sun" }.Distinct().Take(4).ToList();
     }
 
     protected override async Task OnChallengeSolvedAsync(GameChallenge challenge)
     {
-        // 1. Trigger snapping animation
         isSnapping = true;
         StateHasChanged();
         await AudioService.PlaySoundAsync(SoundEffect.Pop);
 
         await Task.Delay(450);
 
-        // 2. Reveal assembled word card and picture
         isWordAssembled = true;
         isSnapping = false;
         StateHasChanged();
     }
 
-    private async Task SpellLettersAloudAsync()
+    private static string GetBlockColor(int index) => (index % 5) switch
     {
-        if (ActiveChallenge == null || ActiveChallenge.LetterBlocks.Count == 0) return;
-        var spelledOut = string.Join(", ", ActiveChallenge.LetterBlocks);
-        await VoiceManager.SpeakAsync($"{spelledOut}! What word does that build?");
-    }
-
-    private static string GetBlockColor(int index)
-    {
-        var colors = new[] { "#FFD166", "#4EA8DE", "#EF476F", "#06D6A0", "#F78C6B", "#C084FC" };
-        return colors[index % colors.Length];
-    }
-
-    private static string GetEmojiForWord(string word) => (word ?? "").ToLowerInvariant().Trim() switch
-    {
-        "cat" => "🐱",
-        "sun" => "☀️",
-        "dog" => "🐶",
-        "pig" => "🐷",
-        "bat" => "🦇",
-        "bus" => "🚌",
-        "hat" => "🎩",
-        "bug" => "🐛",
-        "cup" => "☕",
-        "bed" => "🛏️",
-        "frog" => "🐸",
-        "star" => "⭐",
-        "fish" => "🐟",
-        "duck" => "🦆",
-        "moon" => "🌙",
-        "tree" => "🌳",
-        "bird" => "🐦",
-        "ship" => "🚢",
-        "lion" => "🦁",
-        "ball" => "⚽",
-        "apple" => "🍎",
-        "tiger" => "🐯",
-        "river" => "🏞️",
-        "heart" => "❤️",
-        "cloud" => "☁️",
-        "plant" => "🌱",
-        "robot" => "🤖",
-        "train" => "🚂",
-        "space" => "🪐",
-        "magic" => "🪄",
-        _ => "🌟"
+        0 => "#FFC93C", // Sunny Yellow
+        1 => "#5BC0EB", // Sky Blue
+        2 => "#FF6B6B", // Coral
+        3 => "#7ED9A8", // Mint
+        _ => "#FF9F43"  // Soft Orange
     };
 }

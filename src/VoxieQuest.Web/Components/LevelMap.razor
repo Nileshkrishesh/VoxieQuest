@@ -6,7 +6,7 @@
 <div class="level-map-container storybook-panel">
     <div class="level-map-header">
         <div class="map-title-badge">
-            <span class="map-icon">🗺️</span>
+            <FlowerIcon Size="32" PetalColor="#FFC93C" CenterColor="#FF9F43" />
             <div>
                 <h3 class="m-0 font-display">@GameTitle Trail</h3>
                 <span class="subtext">Follow the winding garden trail to level 10!</span>
@@ -15,7 +15,7 @@
 
         <div class="map-tier-indicator">
             <span class="tier-pill tier-@State.CurrentTier.ToString().ToLowerInvariant()">
-                @State.CurrentTier.ToIcon() @State.CurrentTier.ToFriendlyName() Tier
+                @State.CurrentTier.ToFriendlyName() Tier
             </span>
         </div>
     </div>
@@ -91,30 +91,33 @@
 
                     @if (!progress.IsUnlocked)
                     {
-                        <!-- Sleeping seed 🌱💤 - NEVER a red padlock! -->
-                        <g><text x="@cx" y="@(cy + 8)" text-anchor="middle" font-size="26" class="sleeping-seed">🌱</text></g>
-                        <g><text x="@(cx + 14)" y="@(cy - 12)" text-anchor="middle" font-size="14" class="sleeping-zzz">💤</text></g>
+                        <!-- Sleeping seed SVG - NEVER a red padlock! -->
+                        <g transform="translate(@(cx - 16), @(cy - 16))">
+                            <SleepingSeedIcon Size="32" FillColor="#FFF8E7" StrokeColor="#2B2D42" />
+                        </g>
                     }
                     else
                     {
                         @if (progress.IsBossRound)
                         {
                             <!-- Boss round mini challenge crown / trophy -->
-                            <g><text x="@cx" y="@(cy - 2)" text-anchor="middle" font-size="24">@(lvl == 10 ? "🏆" : "👑")</text></g>
-                            <g><text x="@cx" y="@(cy + 18)" text-anchor="middle" font-size="13" font-weight="900" fill="#2C3E50">Boss</text></g>
+                            <g transform="translate(@(cx - 14), @(cy - 20))">
+                                <TrophyIcon Size="28" CupColor="#FFC93C" StrokeColor="#2B2D42" />
+                            </g>
+                            <g><text x="@cx" y="@(cy + 18)" text-anchor="middle" font-size="12" font-weight="900" fill="#2B2D42">Boss</text></g>
                         }
                         else
                         {
                             <!-- Standard Level Number -->
-                            <g><text x="@cx" y="@(cy + 8)" text-anchor="middle" font-size="20" font-weight="900" fill="#2C3E50">@lvl</text></g>
+                            <g><text x="@cx" y="@(cy + 8)" text-anchor="middle" font-size="20" font-weight="900" fill="#2B2D42">@lvl</text></g>
                         }
 
                         <!-- Stars Badge (1-3 stars) below node if completed -->
                         @if (progress.IsCompleted)
                         {
                             <g class="stars-cluster" transform="translate(@(cx - 24), @(cy + 22))">
-                                <rect x="0" y="0" width="48" height="18" rx="9" fill="#2C3E50" />
-                                <text x="24" y="13" text-anchor="middle" font-size="12" fill="#FFD700">
+                                <rect x="0" y="0" width="48" height="18" rx="9" fill="#2B2D42" />
+                                <text x="24" y="13" text-anchor="middle" font-size="12" fill="#FFC93C">
                                     @(new string('★', Math.Clamp(progress.StarsEarned, 1, 3)))
                                 </text>
                             </g>
@@ -125,9 +128,9 @@
                     @if (progress.IsBossRound && progress.IsCompleted && !string.IsNullOrEmpty(progress.SpecialSticker))
                     {
                         <g transform="translate(@(cx - 50), @(cy - 48))">
-                            <rect width="100" height="20" rx="10" fill="#FFEB3B" stroke="#2C3E50" stroke-width="2" />
-                            <text x="50" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#2C3E50">
-                                ⭐ Boss Mastered!
+                            <rect width="100" height="20" rx="10" fill="#FFC93C" stroke="#2B2D42" stroke-width="2" />
+                            <text x="50" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#2B2D42">
+                                Boss Mastered!
                             </text>
                         </g>
                     }
@@ -138,16 +141,16 @@
 
     <div class="trail-legend">
         <div class="legend-item">
-            <span class="legend-icon">🌱💤</span>
+            <SleepingSeedIcon Size="22" />
             <span>Resting Seed (Plays next)</span>
         </div>
         <div class="legend-item">
-            <span class="legend-icon">✨</span>
+            <StarIcon Size="20" FillColor="#FFC93C" />
             <span>Current Stop</span>
         </div>
         <div class="legend-item">
-            <span class="legend-icon">👑 / 🏆</span>
-            <span>Boss Adventure (Levels 5 & 10)</span>
+            <TrophyIcon Size="20" CupColor="#FFC93C" />
+            <span>Boss Adventure (Levels 5 &amp; 10)</span>
         </div>
     </div>
 </div>

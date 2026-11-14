@@ -8,7 +8,7 @@
 <div class="profile-page-container">
     <!-- Profile Page Header -->
     <div class="storybook-card profile-header-card">
-        <h2 class="profile-header-title">👤 Adventurer Profiles</h2>
+        <h2 class="profile-header-title">Adventurer Profiles</h2>
         <p class="profile-header-sub">
             Choose who is playing or create a new profile! (Up to 4 adventurers)
         </p>
@@ -22,20 +22,21 @@
             <div class="storybook-card profile-slot-card @(isActive ? "slot-active" : "")" 
                  @onclick="() => SelectProfile(profile.Id)">
                 <div class="profile-avatar-emoji">
-                    @GetAvatarEmoji(profile.Avatar)
+                    <FoxieFaceIcon Size="48" />
                 </div>
                 <h3 class="profile-name-text">@profile.Name</h3>
                 <div class="profile-stats-pill">
-                    Age @profile.Age • ⭐ @profile.TotalStars Stars
+                    <StarIcon Size="16" FillColor="#FFC93C" />
+                    <span>Age @profile.Age • @profile.TotalStars Stars</span>
                 </div>
                 <div class="profile-time-text">
-                    ⏱️ Played: @profile.FormattedPlayTime
+                    Played: @profile.FormattedPlayTime
                 </div>
 
                 @if (isActive)
                 {
                     <span class="pill status-pill-active">
-                        ✓ Playing Now!
+                        Playing Now!
                     </span>
                 }
                 else
@@ -52,7 +53,7 @@
         {
             <div class="storybook-card add-profile-slot" 
                  @onclick="ToggleNewProfileForm">
-                <div class="add-plus-icon">➕</div>
+                <div class="add-plus-icon">+</div>
                 <h3 class="add-title-text">Add Adventurer</h3>
                 <p class="add-slots-rem">@(4 - ProgressService.Profiles.Count) slots remaining</p>
             </div>
@@ -100,14 +101,13 @@
 
                 <div>
                     <label class="form-field-label">Choose Companion Avatar:</label>
-                    <!-- Grid of big avatars: 2 cols on phone, 4 on tablet and up -->
                     <div class="avatar-picker-grid">
                         @foreach (var avatar in Enum.GetValues<AvatarType>())
                         {
                             <button type="button" 
                                     class="pill avatar-choice-btn @(newAvatar == avatar ? "avatar-selected" : "")" 
                                     @onclick="() => newAvatar = avatar">
-                                <span class="avatar-choice-emoji">@GetAvatarEmoji(avatar)</span>
+                                <FoxieFaceIcon Size="28" />
                                 <span class="avatar-choice-name">@avatar.ToString().Replace("Chameleon","").Replace("Lion","").Replace("Penguin","").Replace("Monkey","")</span>
                             </button>
                         }
@@ -121,7 +121,7 @@
 
                 <div class="form-actions-row">
                     <button class="btn-story btn-story-mint save-adv-btn" type="button" @onclick="CreateProfile">
-                        <span>Save Adventurer ✨</span>
+                        <span>Save Adventurer</span>
                     </button>
                     <button class="btn-story btn-story-coral cancel-adv-btn" type="button" @onclick="ToggleNewProfileForm">
                         <span>Cancel</span>
@@ -136,52 +136,53 @@
     {
         <div class="storybook-card badges-card">
             <h3 class="badges-title">
-                🏆 @ProgressService.ActiveProfile.Name's Badges (@ProgressService.ActiveProfile.Badges.Count unlocked)
+                <TrophyIcon Size="28" CupColor="#FFC93C" />
+                <span>@ProgressService.ActiveProfile.Name's Badges (@ProgressService.ActiveProfile.Badges.Count unlocked)</span>
             </h3>
             <div class="badges-grid">
                 <div class="badge-item">
-                    <span class="badge-icon">🌟</span>
+                    <StarIcon Size="24" FillColor="#FFC93C" />
                     <span>First Step</span>
                 </div>
                 @if (ProgressService.ActiveProfile.Badges.Contains("star_collector_10"))
                 {
                     <div class="badge-item" style="background:#FFF3B0;">
-                        <span class="badge-icon">⭐</span>
+                        <StarIcon Size="24" FillColor="#FFC93C" />
                         <span>10 Stars</span>
                     </div>
                 }
                 @if (ProgressService.ActiveProfile.Badges.Contains("star_champion_50"))
                 {
                     <div class="badge-item" style="background:#FFF3B0;">
-                        <span class="badge-icon">👑</span>
+                        <TrophyIcon Size="24" CupColor="#FFC93C" />
                         <span>50 Stars</span>
                     </div>
                 }
                 @if (ProgressService.ActiveProfile.Badges.Contains("phonics_star"))
                 {
                     <div class="badge-item" style="background:#D8F3DC;">
-                        <span class="badge-icon">🏝️</span>
+                        <FlowerIcon Size="24" PetalColor="#7ED9A8" CenterColor="#FFC93C" />
                         <span>Phonics Star</span>
                     </div>
                 }
                 @if (ProgressService.ActiveProfile.Badges.Contains("word_wizard"))
                 {
                     <div class="badge-item" style="background:#E0AAFF;">
-                        <span class="badge-icon">🌲</span>
+                        <BlocksIcon Size="24" />
                         <span>Word Wizard</span>
                     </div>
                 }
                 @if (ProgressService.ActiveProfile.Badges.Contains("number_ninja"))
                 {
                     <div class="badge-item" style="background:#CAF0F8;">
-                        <span class="badge-icon">🔢</span>
+                        <FrogIcon Size="24" />
                         <span>Number Whiz</span>
                     </div>
                 }
                 @if (ProgressService.ActiveProfile.Badges.Contains("story_teller"))
                 {
                     <div class="badge-item" style="background:#FFD6A5;">
-                        <span class="badge-icon">🏰</span>
+                        <SunIcon Size="24" />
                         <span>Story Teller</span>
                     </div>
                 }

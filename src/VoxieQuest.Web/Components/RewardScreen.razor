@@ -1,0 +1,232 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+
+@if (IsOpen)
+{
+    <div class="reward-screen-backdrop" role="dialog" aria-modal="true" aria-labelledby="reward-title">
+        <!-- Confetti explosion -->
+        <Confetti IsActive="true" ParticleCount="48" />
+
+        <div class="reward-paper-card bounce-in-card">
+            <!-- Header Mascot & Title -->
+            <div class="reward-header-area">
+                <Mascot State="Mascot.MascotState.Happy" Width="100" Height="100" />
+                <h2 id="reward-title" class="reward-title">
+                    Quest Completed!
+                </h2>
+                <p class="reward-subtitle">
+                    Voxie is dancing with joy! Look at what you earned:
+                </p>
+            </div>
+
+            <!-- Sticker Drop Area -->
+            <div class="sticker-drop-stage">
+                <div class="celebration-sticker sticker-drop-anim">
+                    <FlowerIcon Size="64" PetalColor="#FF6B6B" CenterColor="#FFC93C" />
+                    <span class="sticker-badge-label">Quest Champion</span>
+                </div>
+            </div>
+
+            <!-- 1 to 3 Star Sequential Pop Animation -->
+            <div class="star-pop-cluster">
+                @for (int s = 1; s <= 3; s++)
+                {
+                    var isEarned = s <= StarsEarned;
+                    <div class="star-pop-slot @(isEarned ? "earned star-pop-" + s : "dim")">
+                        <StarIcon Size="44" FillColor="@(isEarned ? "#FFC93C" : "#E2E8F0")" StrokeColor="#2B2D42" />
+                    </div>
+                }
+            </div>
+
+            <!-- Garden Bloom Toast -->
+            <div class="garden-bloom-pill">
+                <FlowerIcon Size="22" PetalColor="#5BC0EB" CenterColor="#FFC93C" />
+                <span>A new flower is blooming in your Skill Garden!</span>
+            </div>
+
+            <!-- Big Squishy Action Buttons -->
+            <div class="reward-actions-row">
+                <BouncyButton Variant="BouncyButton.ButtonVariant.White" 
+                              Text="Play Again" 
+                              IsTall="true" 
+                              OnClick="HandlePlayAgain">
+                    <IconTemplate>
+                        <ReplayIcon Size="24" />
+                    </IconTemplate>
+                </BouncyButton>
+
+                <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                              Text="Next Quest" 
+                              IsTall="true" 
+                              OnClick="HandleNextQuest">
+                    <IconTemplate>
+                        <NextIcon Size="24" />
+                    </IconTemplate>
+                </BouncyButton>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .reward-screen-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(43, 45, 66, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 1000;
+        touch-action: manipulation;
+    }
+
+    .reward-paper-card {
+        background: var(--color-paper-light);
+        border: var(--border-storybook-heavy);
+        border-radius: var(--radius-lg);
+        box-shadow: 10px 10px 0 var(--color-storybook-ink);
+        padding: clamp(1.5rem, 3vw, 2.5rem);
+        max-width: 540px;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .reward-title {
+        font-family: var(--font-heading);
+        font-size: clamp(1.8rem, 1.5rem + 0.9vw, 2.5rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0.25rem 0;
+    }
+
+    .reward-subtitle {
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        margin: 0;
+    }
+
+    .sticker-drop-stage {
+        padding: 0.5rem 0;
+    }
+
+    .celebration-sticker {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--color-sunny-yellow);
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-hard-md);
+        padding: 1rem 1.75rem;
+        transform: rotate(-2deg);
+    }
+
+    .sticker-badge-label {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .sticker-drop-anim {
+        animation: sticker-drop 0.6s var(--spring-squish) forwards;
+    }
+
+    .star-pop-cluster {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+    }
+
+    .star-pop-slot {
+        transition: transform 0.3s ease;
+    }
+
+    .star-pop-1 { animation: star-pop-in 0.4s var(--spring-squish) 0.3s backwards; }
+    .star-pop-2 { animation: star-pop-in 0.4s var(--spring-squish) 0.6s backwards; }
+    .star-pop-3 { animation: star-pop-in 0.4s var(--spring-squish) 0.9s backwards; }
+
+    .garden-bloom-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--color-bg-meadow);
+        border: var(--border-storybook-thin);
+        border-radius: var(--radius-pill);
+        padding: 0.4rem 1rem;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .reward-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .bounce-in-card {
+        animation: card-bounce 0.5s var(--spring-squish) forwards;
+    }
+
+    @@keyframes card-bounce {
+        0% { transform: scale(0.6) translateY(40px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    @@keyframes sticker-drop {
+        0% { transform: translateY(-80px) rotate(-15deg); opacity: 0; }
+        70% { transform: translateY(10px) rotate(4deg); opacity: 1; }
+        100% { transform: translateY(0) rotate(-2deg); opacity: 1; }
+    }
+
+    @@keyframes star-pop-in {
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.35) rotate(15deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; } = false;
+    [Parameter] public int StarsEarned { get; set; } = 3;
+    [Parameter] public EventCallback OnPlayAgain { get; set; }
+    [Parameter] public EventCallback OnNextQuest { get; set; }
+
+    private async Task HandlePlayAgain()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnPlayAgain.HasDelegate)
+        {
+            await OnPlayAgain.InvokeAsync();
+        }
+    }
+
+    private async Task HandleNextQuest()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnNextQuest.HasDelegate)
+        {
+            await OnNextQuest.InvokeAsync();
+        }
+        else
+        {
+            Navigation.NavigateTo("games");
+        }
+    }
+}

@@ -1,0 +1,18 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class" aria-hidden="true">
+    <!-- Outer Flame -->
+    <path d="M18 3C15 9 10 13 10 19C10 24 13.5 29 18 29C22.5 29 26 24 26 19C26 13 23 10 21 8C20 12 18 13 16 11C16 8 18 3 18 3Z" 
+          fill="@FillColor" stroke="@StrokeColor" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Inner Flame Core -->
+    <path d="M18 14C16.5 17 14 19 14 22C14 24.5 15.8 26.5 18 26.5C20.2 26.5 22 24.5 22 22C22 19 20 17.5 19 16C18.5 18 17.5 18 17 17C17 15.5 18 14 18 14Z" 
+          fill="@CoreColor" stroke="@StrokeColor" stroke-width="1.8"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string FillColor { get; set; } = "#FF9F43";
+    [Parameter] public string CoreColor { get; set; } = "#FFC93C";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

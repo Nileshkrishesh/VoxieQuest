@@ -2,15 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;900&display=swap');
 
 :root {
-    --color-sunny-yellow: #FFD166;
-    --color-sky-blue: #4EA8DE;
-    --color-coral: #EF476F;
-    --color-mint: #06D6A0;
-    --color-soft-orange: #F78C6B;
-    --color-cream-paper: #FFFDF7;
+    --color-sunny-yellow: #FFC93C;
+    --color-sky-blue: #5BC0EB;
+    --color-coral: #FF6B6B;
+    --color-mint: #7ED9A8;
+    --color-soft-orange: #FF9F43;
+    --color-cream-paper: #FFF8E7;
     --color-storybook-ink: #2B2D42;
-    --color-purple-dream: #8338EC;
     --color-cloud-white: #FFFFFF;
+    --color-purple-dream: #FF9F43; /* Replaced purple gradient with soft orange */
 
     --font-heading: 'Fredoka', cursive, system-ui, sans-serif;
     --font-body: 'Nunito', system-ui, sans-serif;
@@ -20,9 +20,9 @@
     --border-radius-md: 18px;
     --border-radius-full: 9999px;
 
-    --shadow-chunky: 0 6px 0 var(--color-storybook-ink);
-    --shadow-chunky-lg: 0 10px 0 var(--color-storybook-ink);
-    --shadow-chunky-pressed: 0 2px 0 var(--color-storybook-ink);
+    --shadow-chunky: 5px 5px 0 var(--color-storybook-ink);
+    --shadow-chunky-lg: 8px 8px 0 var(--color-storybook-ink);
+    --shadow-chunky-pressed: 1px 1px 0 var(--color-storybook-ink);
 }
 
 * {

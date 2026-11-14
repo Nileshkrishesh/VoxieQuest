@@ -1,0 +1,166 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+@if (IsOpen)
+{
+    <div class="pause-sheet-backdrop" @onclick="HandleResume" role="dialog" aria-modal="true" aria-label="Game Paused">
+        <div class="pause-paper-sheet slide-up-anim" @onclick:stopPropagation="true">
+            <!-- Sheet Grip Handle -->
+            <div class="sheet-grip-handle"></div>
+
+            <div class="pause-header">
+                <PauseIcon Size="32" FillColor="#FFC93C" />
+                <h3 class="pause-title">Game Paused</h3>
+            </div>
+
+            <p class="pause-subtext">Take your time, Little Explorer! Voxie is waiting right here.</p>
+
+            <div class="pause-actions-list">
+                <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                              Text="Resume Game" 
+                              IsTall="true" 
+                              OnClick="HandleResume">
+                    <IconTemplate>
+                        <NextIcon Size="22" />
+                    </IconTemplate>
+                </BouncyButton>
+
+                <BouncyButton Variant="BouncyButton.ButtonVariant.White" 
+                              Text="@(AudioService.IsMuted ? "Unmute Sound" : "Mute Sound")" 
+                              IsTall="false" 
+                              OnClick="ToggleMute">
+                    <IconTemplate>
+                        <SpeakerIcon Size="22" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
+                    </IconTemplate>
+                </BouncyButton>
+
+                <button class="pill pause-map-pill" @onclick="HandleReturnToMap" type="button">
+                    <ArrowBackIcon Size="20" />
+                    <span>Return to Map</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .pause-sheet-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(43, 45, 66, 0.65);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 1000;
+        touch-action: manipulation;
+    }
+
+    .pause-paper-sheet {
+        background: var(--color-paper-light);
+        border: var(--border-storybook-heavy);
+        border-bottom: none;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        box-shadow: 0 -8px 0 var(--color-storybook-ink);
+        padding: 1.5rem 2rem 2.5rem 2rem;
+        max-width: 520px;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sheet-grip-handle {
+        width: 54px;
+        height: 6px;
+        border-radius: var(--radius-pill);
+        background: var(--color-storybook-ink);
+        margin-bottom: 0.5rem;
+    }
+
+    .pause-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .pause-title {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .pause-subtext {
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        margin: 0;
+    }
+
+    .pause-actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 340px;
+        margin-top: 0.5rem;
+    }
+
+    .pause-map-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--color-storybook-ink);
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0.5rem;
+        text-decoration: underline;
+    }
+
+    .slide-up-anim {
+        animation: sheet-slide-up 0.35s var(--spring-squish) forwards;
+    }
+
+    @@keyframes sheet-slide-up {
+        0% { transform: translateY(100%); }
+        100% { transform: translateY(0); }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; } = false;
+    [Parameter] public EventCallback OnResume { get; set; }
+    [Parameter] public EventCallback OnReturnToMap { get; set; }
+
+    private async Task HandleResume()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnResume.HasDelegate)
+        {
+            await OnResume.InvokeAsync();
+        }
+    }
+
+    private async Task HandleReturnToMap()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnReturnToMap.HasDelegate)
+        {
+            await OnReturnToMap.InvokeAsync();
+        }
+    }
+
+    private async Task ToggleMute()
+    {
+        await AudioService.SetMutedAsync(!AudioService.IsMuted);
+    }
+}
