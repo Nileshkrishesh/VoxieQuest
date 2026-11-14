@@ -1,0 +1,609 @@
+@page "/game/gearwork-maze"
+@page "/games/gearwork-maze"
+@inherits BaseGameComponent
+
+<div class="game-viewport">
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Clouds" />
+
+    <!-- Top HUD -->
+    <div class="storybook-card game-hud-card">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
+                <span>◀ Map</span>
+            </button>
+            <h3 class="hud-game-title">
+                ⚙️ @GameTitle
+            </h3>
+            <div class="star-badge hud-star-badge">
+                <span>⭐</span>
+                <span>@SessionStars</span>
+            </div>
+        </div>
+
+        <div class="round-stepper">
+            @for (int r = 1; r <= 5; r++)
+            {
+                var isCompleted = r < CurrentRound;
+                var isCurrent = r == CurrentRound;
+                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Maze Level @r">
+                    @(isCompleted ? "★" : r.ToString())
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Maze Arena -->
+    <div class="storybook-card maze-arena">
+        <div class="maze-header-bar">
+            <span>🦔 Guide Grover to his Burrow 🏠 • Avoid Steam Vents 💨</span>
+        </div>
+
+        <!-- 5x5 SVG Clockwork Maze Grid -->
+        <div class="maze-grid-wrapper">
+            <svg width="100%" height="280" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid meet">
+                <!-- Maze Background Floor -->
+                <rect x="10" y="10" width="280" height="260" rx="16" fill="#F1F5F9" stroke="#2B2D42" stroke-width="3" />
+
+                <!-- 5x5 Grid Cells -->
+                @for (int row = 0; row < 5; row++)
+                {
+                    for (int col = 0; col < 5; col++)
+                    {
+                        var cx = 20 + col * 52;
+                        var cy = 20 + row * 50;
+                        var isVent = obstacles.Contains((col, row));
+                        var isGoal = (col == goalX && row == goalY);
+                        var isGrover = (col == groverX && row == groverY);
+
+                        <rect x="@cx" y="@cy" width="48" height="46" rx="8" 
+                              fill="@(isVent ? "#FEE2E2" : (isGoal ? "#FEF08A" : "#FFFFFF"))" 
+                              stroke="#CBD5E1" stroke-width="1.5" />
+
+                        @if (isVent)
+                        {
+                            <g transform="translate(@cx, @cy)">
+                                <text x="24" y="30" font-size="20" text-anchor="middle">💨</text>
+                            </g>
+                        }
+                        else if (isGoal)
+                        {
+                            <g transform="translate(@cx, @cy)">
+                                <text x="24" y="30" font-size="24" text-anchor="middle">🏠</text>
+                            </g>
+                        }
+                        else if (isGrover)
+                        {
+                            <g transform="translate(@cx, @cy)">
+                                <text x="24" y="32" font-size="26" text-anchor="middle">@groverFacingEmoji</text>
+                            </g>
+                        }
+                    }
+                }
+            </svg>
+        </div>
+
+        <!-- Status message -->
+        <div class="grover-status-bar @(isGoalReached ? "status-success" : (hasBumped ? "status-alert" : ""))">
+            @if (isGoalReached)
+            {
+                <span>🎉 Hooray! Grover made it home safely!</span>
+            }
+            else if (hasBumped)
+            {
+                <span>⚠️ Ouch! Bumped into a barrier! Program reset — try again!</span>
+            }
+            else if (isRunningProgram)
+            {
+                <span>⚙️ Executing clockwork gears... Step @(executionStepIndex + 1)</span>
+            }
+            else
+            {
+                <span>Add move commands to Grover's command tape below!</span>
+            }
+        </div>
+    </div>
+
+    <!-- Command Tape Tray -->
+    <div class="storybook-card command-tape-card">
+        <div class="tape-header">
+            <span class="tape-title">Command Tape (@commandTape.Count / 8):</span>
+            <button class="pill-btn clear-tape-btn" type="button" @onclick="ClearTape" disabled="@(isRunningProgram || !commandTape.Any())">
+                ↺ Clear
+            </button>
+        </div>
+
+        <div class="command-tape-strip">
+            @if (!commandTape.Any())
+            {
+                <span class="tape-empty-msg">Tape is empty. Tap commands below or shout "Forward"!</span>
+            }
+            else
+            {
+                @for (int i = 0; i < commandTape.Count; i++)
+                {
+                    var cmd = commandTape[i];
+                    var isCurrentStep = isRunningProgram && executionStepIndex == i;
+                    <div class="tape-slot @(isCurrentStep ? "active-step" : "")">
+                        <span class="slot-num">@(i + 1)</span>
+                        <span class="slot-icon">@GetCommandIcon(cmd)</span>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Command Palette Buttons -->
+        @if (!isGoalReached)
+        {
+            <div class="commands-palette">
+                <button class="cmd-btn" type="button" @onclick='() => AddCommand("F")' disabled="@(commandTape.Count >= 8 || isRunningProgram)">
+                    <span class="cmd-icon">⬆</span>
+                    <span class="cmd-label">Forward</span>
+                </button>
+                <button class="cmd-btn" type="button" @onclick='() => AddCommand("L")' disabled="@(commandTape.Count >= 8 || isRunningProgram)">
+                    <span class="cmd-icon">↺</span>
+                    <span class="cmd-label">Turn Left</span>
+                </button>
+                <button class="cmd-btn" type="button" @onclick='() => AddCommand("R")' disabled="@(commandTape.Count >= 8 || isRunningProgram)">
+                    <span class="cmd-icon">↻</span>
+                    <span class="cmd-label">Turn Right</span>
+                </button>
+            </div>
+
+            <div class="run-actions-bar">
+                <button class="btn-story btn-story-green run-btn" type="button" @onclick="RunProgramAsync" disabled="@(isRunningProgram || !commandTape.Any())">
+                    <span>▶ Run Program!</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="celebrate-next-bar">
+                <button class="btn-story btn-story-yellow advance-btn" type="button" @onclick="AdvanceMaze">
+                    <span>Next Level ➔</span>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .game-viewport {
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        padding-bottom: 3rem;
+    }
+
+    .game-hud-card {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+    }
+
+    .hud-game-title {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 3vw, 1.5rem);
+        margin: 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .hud-star-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        background: #FEF08A;
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+        border: 2px solid var(--color-storybook-ink);
+    }
+
+    .round-stepper {
+        display: flex;
+        justify-content: center;
+        gap: var(--space-2);
+    }
+
+    .round-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #F1F5F9;
+        border: 2px solid var(--color-storybook-ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+    }
+
+    .round-dot.completed {
+        background: #22C55E;
+        color: white;
+    }
+
+    .round-dot.current {
+        background: #FFD166;
+        transform: scale(1.15);
+    }
+
+    .maze-arena {
+        padding: var(--space-3);
+        background: #FFFDF7;
+        text-align: center;
+    }
+
+    .maze-header-bar {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: var(--space-2);
+    }
+
+    .maze-grid-wrapper {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .grover-status-bar {
+        margin-top: var(--space-2);
+        padding: 8px 12px;
+        background: #F1F5F9;
+        border-radius: 12px;
+        font-family: var(--font-body);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #334155;
+    }
+
+    .grover-status-bar.status-success {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .grover-status-bar.status-alert {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .command-tape-card {
+        padding: var(--space-3);
+        background: #FFFDF7;
+    }
+
+    .tape-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+    }
+
+    .tape-title {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 1rem;
+        color: #1E293B;
+    }
+
+    .pill-btn {
+        background: #F1F5F9;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 4px 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .command-tape-strip {
+        display: flex;
+        gap: 8px;
+        min-height: 58px;
+        background: #E2E8F0;
+        border-radius: 12px;
+        padding: 8px;
+        align-items: center;
+        overflow-x: auto;
+        margin-bottom: var(--space-3);
+    }
+
+    .tape-empty-msg {
+        font-size: 0.88rem;
+        color: #64748B;
+        font-weight: 600;
+        margin: auto;
+    }
+
+    .tape-slot {
+        flex: 0 0 44px;
+        height: 44px;
+        background: white;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        transition: transform 0.15s ease;
+    }
+
+    .tape-slot.active-step {
+        background: #FEF08A;
+        transform: scale(1.15);
+        border-color: #D97706;
+    }
+
+    .slot-num {
+        font-size: 9px;
+        color: #94A3B8;
+        line-height: 1;
+    }
+
+    .slot-icon {
+        font-size: 18px;
+        line-height: 1.1;
+    }
+
+    .commands-palette {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: var(--space-3);
+    }
+
+    .cmd-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60px;
+        background: #F8FAFC;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: 14px;
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+        cursor: pointer;
+        padding: 6px;
+        touch-action: manipulation;
+    }
+
+    .cmd-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 var(--color-storybook-ink);
+    }
+
+    .cmd-icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .cmd-label {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1E293B;
+    }
+
+    .run-actions-bar, .celebrate-next-bar {
+        display: flex;
+        justify-content: center;
+    }
+
+    .run-btn, .advance-btn {
+        width: 100%;
+        min-height: 54px;
+        font-size: 1.15rem;
+        font-family: var(--font-heading);
+    }
+</style>
+
+@code {
+    protected override string GameTitle => "Grover's Gearwork Maze";
+    protected override SkillCategory GameCategory => SkillCategory.Numbers;
+
+    private int groverX = 0;
+    private int groverY = 0;
+    private int groverDirection = 0; // 0 = East, 1 = South, 2 = West, 3 = North
+    private int goalX = 4;
+    private int goalY = 4;
+
+    private HashSet<(int X, int Y)> obstacles = new();
+    private List<string> commandTape = new();
+    private bool isRunningProgram = false;
+    private int executionStepIndex = -1;
+    private bool isGoalReached = false;
+    private bool hasBumped = false;
+
+    private string groverFacingEmoji => groverDirection switch
+    {
+        0 => "🦔", // East
+        1 => "🦔", // South
+        2 => "🦔", // West
+        _ => "🦔"  // North
+    };
+
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    {
+        groverX = 0;
+        groverY = 0;
+        groverDirection = 0;
+        isGoalReached = false;
+        hasBumped = false;
+        isRunningProgram = false;
+        commandTape.Clear();
+        executionStepIndex = -1;
+
+        goalX = 4;
+        goalY = 4;
+
+        // Level-specific maze obstacles
+        obstacles.Clear();
+        if (round <= 2)
+        {
+            obstacles.Add((2, 0));
+            obstacles.Add((2, 1));
+            obstacles.Add((2, 3));
+        }
+        else if (round <= 4)
+        {
+            obstacles.Add((1, 1));
+            obstacles.Add((1, 2));
+            obstacles.Add((3, 2));
+            obstacles.Add((3, 3));
+        }
+        else
+        {
+            obstacles.Add((1, 0));
+            obstacles.Add((1, 1));
+            obstacles.Add((3, 1));
+            obstacles.Add((1, 3));
+            obstacles.Add((3, 3));
+            obstacles.Add((2, 4));
+        }
+
+        var challenge = new GameChallenge
+        {
+            Category = GameCategory,
+            Difficulty = difficulty,
+            Prompt = "Slot Forward, Left, and Right commands to guide Grover around the steam vents into his cozy burrow!",
+            TargetAnswer = "run",
+            AcceptedAnswers = new() { "run", "go", "start", "forward", "left", "right" },
+            DisplayItem = "⚙️",
+            RewardStars = 2
+        };
+
+        return Task.FromResult(challenge);
+    }
+
+    protected override async Task OnChallengeSolvedAsync(GameChallenge challenge)
+    {
+        await RunProgramAsync();
+    }
+
+    private async Task AddCommand(string cmd)
+    {
+        if (commandTape.Count < 8 && !isRunningProgram)
+        {
+            commandTape.Add(cmd);
+            await AudioService.PlaySoundAsync(SoundEffect.Click);
+        }
+    }
+
+    private void ClearTape()
+    {
+        commandTape.Clear();
+        hasBumped = false;
+    }
+
+    private string GetCommandIcon(string cmd) => cmd switch
+    {
+        "F" => "⬆",
+        "L" => "↺",
+        "R" => "↻",
+        _ => "?"
+    };
+
+    private async Task RunProgramAsync()
+    {
+        if (!commandTape.Any() || isRunningProgram) return;
+
+        isRunningProgram = true;
+        hasBumped = false;
+        groverX = 0;
+        groverY = 0;
+        groverDirection = 0;
+        StateHasChanged();
+
+        for (int i = 0; i < commandTape.Count; i++)
+        {
+            executionStepIndex = i;
+            var cmd = commandTape[i];
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+
+            if (cmd == "L")
+            {
+                groverDirection = (groverDirection + 3) % 4;
+            }
+            else if (cmd == "R")
+            {
+                groverDirection = (groverDirection + 1) % 4;
+            }
+            else if (cmd == "F")
+            {
+                var nextX = groverX;
+                var nextY = groverY;
+
+                if (groverDirection == 0) nextX++;
+                else if (groverDirection == 1) nextY++;
+                else if (groverDirection == 2) nextX--;
+                else if (groverDirection == 3) nextY--;
+
+                // Boundary & obstacle collision check
+                if (nextX < 0 || nextX > 4 || nextY < 0 || nextY > 4 || obstacles.Contains((nextX, nextY)))
+                {
+                    hasBumped = true;
+                    await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+                    isRunningProgram = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                groverX = nextX;
+                groverY = nextY;
+            }
+
+            StateHasChanged();
+            await Task.Delay(400);
+
+            if (groverX == goalX && groverY == goalY)
+            {
+                isGoalReached = true;
+                isRunningProgram = false;
+                await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+
+                if (ProgressService.ActiveProfile != null)
+                {
+                    ProgressService.ActiveProfile.NourishGardenSkill(
+                        "cog_computational_logic",
+                        "Computational Maze Routing",
+                        OutcomeCategory.Cognitive,
+                        30,
+                        $"Routed Grover through subterranean steam maze level {CurrentRound} with {commandTape.Count} commands."
+                    );
+                    await ProgressService.RecordChallengeAttemptAsync(SkillCategory.Numbers, true, 2);
+                }
+                StateHasChanged();
+                return;
+            }
+        }
+
+        isRunningProgram = false;
+        if (!isGoalReached)
+        {
+            hasBumped = true;
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+        }
+        StateHasChanged();
+    }
+
+    private async Task AdvanceMaze()
+    {
+        if (CurrentRound < 5)
+        {
+            await SkipRoundAsync();
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+            await ReturnToMapAsync();
+        }
+    }
+}

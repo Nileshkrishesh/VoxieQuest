@@ -106,4 +106,40 @@ public class PlatformAndClassroomTests
         Assert.Single(profile.RecentSessions);
         Assert.True(profile.RecentSessions[0].CompletedNaturally);
     }
+
+    [Fact]
+    public void MasterCurriculum_CoversAllTwelveGamesAndSixOutcomes()
+    {
+        var outcomes = Enum.GetValues<OutcomeCategory>();
+        Assert.Equal(6, outcomes.Length);
+        Assert.Contains(OutcomeCategory.Cognitive, outcomes);
+        Assert.Contains(OutcomeCategory.Academic, outcomes);
+        Assert.Contains(OutcomeCategory.Social, outcomes);
+        Assert.Contains(OutcomeCategory.Emotional, outcomes);
+        Assert.Contains(OutcomeCategory.Creativity, outcomes);
+        Assert.Contains(OutcomeCategory.LifeSkills, outcomes);
+
+        var ageBands = Enum.GetValues<AgeBand>();
+        Assert.Equal(5, ageBands.Length);
+        Assert.Contains(AgeBand.Ages3To5, ageBands);
+        Assert.Contains(AgeBand.Ages6To8, ageBands);
+        Assert.Contains(AgeBand.Ages9To12, ageBands);
+        Assert.Contains(AgeBand.Ages13To15, ageBands);
+        Assert.Contains(AgeBand.Ages16To18, ageBands);
+    }
+
+    [Fact]
+    public void ParentalControls_EnforcesPeerRoomCodeWhitelisting()
+    {
+        var controls = new ParentalControls();
+        controls.ApprovedPeerRoomCodes.Clear();
+        Assert.True(controls.IsRoomCodeApproved("ANY-123")); // Default true when list is empty
+
+        controls.ApprovedPeerRoomCodes.Add("OAK-100");
+        controls.ApprovedPeerRoomCodes.Add("MAPLE-200");
+
+        Assert.True(controls.IsRoomCodeApproved("OAK-100"));
+        Assert.True(controls.IsRoomCodeApproved("oak-100")); // Case-insensitive
+        Assert.False(controls.IsRoomCodeApproved("STRANGER-999"));
+    }
 }

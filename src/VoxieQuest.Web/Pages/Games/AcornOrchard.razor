@@ -1,0 +1,567 @@
+@page "/game/acorn-orchard"
+@page "/games/acorn-orchard"
+@inherits BaseGameComponent
+
+<div class="game-viewport">
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+
+    <!-- Top HUD -->
+    <div class="storybook-card game-hud-card">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
+                <span>◀ Map</span>
+            </button>
+            <h3 class="hud-game-title">
+                🌰 @GameTitle
+            </h3>
+            <div class="star-badge hud-star-badge">
+                <span>⭐</span>
+                <span>@SessionStars</span>
+            </div>
+        </div>
+
+        <div class="season-stepper">
+            @for (int s = 1; s <= 4; s++)
+            {
+                var isCompleted = s < currentSeason;
+                var isCurrent = s == currentSeason;
+                <div class="season-pill @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")">
+                    <span>@GetSeasonIcon(s) @GetSeasonName(s)</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Orchard Simulation Stage -->
+    <div class="storybook-card orchard-card">
+        <div class="orchard-banner">
+            <span class="season-heading">@GetSeasonIcon(currentSeason) Season @currentSeason: @GetSeasonName(currentSeason)</span>
+            <span class="harvest-badge">Harvested: +@seasonalHarvest 🌰</span>
+        </div>
+
+        <!-- SVG Orchard Illustration -->
+        <div class="orchard-svg-wrapper">
+            <svg width="100%" height="220" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet">
+                <!-- Sky & Rolling Meadow -->
+                <rect x="0" y="0" width="360" height="220" rx="16" fill="#F0FDF4" />
+                <path d="M 0,160 Q 90,130 180,150 T 360,140 L 360,220 L 0,220 Z" fill="#DCFCE7" />
+
+                <!-- Grand Oak Tree -->
+                <rect x="160" y="70" width="30" height="90" rx="6" fill="#78350F" />
+                <ellipse cx="175" cy="70" rx="65" ry="50" fill="#22C55E" stroke="#15803D" stroke-width="3" />
+                <ellipse cx="150" cy="55" rx="35" ry="30" fill="#4ADE80" opacity="0.6" />
+
+                <!-- Acorns on tree -->
+                <circle cx="145" cy="60" r="5" fill="#92400E" />
+                <circle cx="185" cy="50" r="5" fill="#92400E" />
+                <circle cx="165" cy="80" r="5" fill="#92400E" />
+                <circle cx="205" cy="75" r="5" fill="#92400E" />
+
+                <!-- Pip the Squirrel Mascot -->
+                <g transform="translate(70, 130)">
+                    <text x="0" y="24" font-size="34">🐿️</text>
+                    <text x="40" y="16" font-size="16">🧺</text>
+                </g>
+
+                <!-- Planted Saplings -->
+                @for (int sp = 0; sp < plantedSaplings; sp++)
+                {
+                    var sapX = 230 + (sp * 32);
+                    <g transform="translate(@sapX, 142)">
+                        <text x="0" y="18" font-size="20">🌱</text>
+                    </g>
+                }
+            </svg>
+        </div>
+
+        <!-- Event Banner / Plain Language Narrative -->
+        <div class="orchard-story-box @(isSeasonResolved ? "story-resolved" : "")">
+            <p class="story-text">@seasonEventMessage</p>
+        </div>
+    </div>
+
+    <!-- Acorn Allocation Baskets (Budgeting / Resource Management) -->
+    <div class="storybook-card allocation-card">
+        <div class="allocation-header">
+            <span class="unallocated-title">Acorns to Allocate: <strong>@unallocatedAcorns</strong> 🌰</span>
+            <span class="target-hint">Winter Goal: 15+ 🌰 in Pantry!</span>
+        </div>
+
+        <div class="baskets-grid">
+            <!-- Basket 1: Winter Pantry -->
+            <div class="basket-item">
+                <div class="basket-icon-title">
+                    <span class="b-icon">🥫</span>
+                    <div>
+                        <h4 class="b-name">Winter Pantry</h4>
+                        <span class="b-desc">Emergency reserve</span>
+                    </div>
+                </div>
+                <div class="basket-count-row">
+                    <span class="b-total">Total: @pantryAcorns</span>
+                    <div class="b-controls">
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("pantry", -1)' disabled="@(sessionPantryAdd <= 0 || isSeasonResolved)">-</button>
+                        <span class="b-add">+@sessionPantryAdd</span>
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("pantry", 1)' disabled="@(unallocatedAcorns <= 0 || isSeasonResolved)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basket 2: Tool Workshop -->
+            <div class="basket-item">
+                <div class="basket-icon-title">
+                    <span class="b-icon">🛠️</span>
+                    <div>
+                        <h4 class="b-name">Tool Workshop</h4>
+                        <span class="b-desc">+2 future yield</span>
+                    </div>
+                </div>
+                <div class="basket-count-row">
+                    <span class="b-total">Level: @toolLevel</span>
+                    <div class="b-controls">
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("tool", -2)' disabled="@(sessionToolAdd <= 0 || isSeasonResolved)">-</button>
+                        <span class="b-add">+@sessionToolAdd</span>
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("tool", 2)' disabled="@(unallocatedAcorns < 2 || isSeasonResolved)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basket 3: Communal Sapling -->
+            <div class="basket-item">
+                <div class="basket-icon-title">
+                    <span class="b-icon">🌱</span>
+                    <div>
+                        <h4 class="b-name">Forest Saplings</h4>
+                        <span class="b-desc">Shared forest trust</span>
+                    </div>
+                </div>
+                <div class="basket-count-row">
+                    <span class="b-total">Saplings: @plantedSaplings</span>
+                    <div class="b-controls">
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("sapling", -3)' disabled="@(sessionSaplingAdd <= 0 || isSeasonResolved)">-</button>
+                        <span class="b-add">+@sessionSaplingAdd</span>
+                        <button class="b-btn" type="button" @onclick='() => AdjustBasket("sapling", 3)' disabled="@(unallocatedAcorns < 3 || isSeasonResolved)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm or Advance Action -->
+        <div class="season-actions-row">
+            @if (!isSeasonResolved)
+            {
+                <button class="btn-story btn-story-green confirm-season-btn" type="button" @onclick="ConfirmSeasonAllocationAsync" disabled="@(unallocatedAcorns > 0)">
+                    <span>✓ Confirm Season Budget</span>
+                </button>
+            }
+            else
+            {
+                <button class="btn-story btn-story-yellow next-season-btn" type="button" @onclick="AdvanceSeasonAsync">
+                    <span>@(currentSeason < 4 ? "Next Season ➔" : "Harvest Celebration! ➔")</span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .game-viewport {
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        padding-bottom: 3rem;
+    }
+
+    .game-hud-card {
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+    }
+
+    .hud-game-title {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 3vw, 1.5rem);
+        margin: 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .hud-star-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        background: #FEF08A;
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+        border: 2px solid var(--color-storybook-ink);
+    }
+
+    .season-stepper {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .season-pill {
+        padding: 6px;
+        background: #F1F5F9;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 12px;
+        text-align: center;
+        font-family: var(--font-heading);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    .season-pill.completed {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .season-pill.current {
+        background: #FEF08A;
+        color: #92400E;
+        transform: scale(1.05);
+    }
+
+    .orchard-card {
+        padding: var(--space-3);
+        background: #FFFDF7;
+    }
+
+    .orchard-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+    }
+
+    .season-heading {
+        font-family: var(--font-heading);
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1E293B;
+    }
+
+    .harvest-badge {
+        background: #FEF08A;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        border: 2px solid var(--color-storybook-ink);
+        font-weight: 800;
+        font-size: 0.88rem;
+    }
+
+    .orchard-svg-wrapper {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2.5px solid var(--color-storybook-ink);
+    }
+
+    .orchard-story-box {
+        margin-top: var(--space-2);
+        padding: 10px 14px;
+        background: #F8FAFC;
+        border-radius: 12px;
+        border: 1.5px solid #CBD5E1;
+    }
+
+    .orchard-story-box.story-resolved {
+        background: #ECFDF5;
+        border-color: #86EFAC;
+    }
+
+    .story-text {
+        margin: 0;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #334155;
+        line-height: 1.4;
+    }
+
+    .allocation-card {
+        padding: var(--space-3);
+        background: #FFFDF7;
+    }
+
+    .allocation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-3);
+        font-family: var(--font-heading);
+    }
+
+    .unallocated-title {
+        font-size: 1.05rem;
+        color: #1E293B;
+    }
+
+    .target-hint {
+        font-size: 0.85rem;
+        color: #B45309;
+        font-weight: 700;
+    }
+
+    .baskets-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: var(--space-3);
+    }
+
+    .basket-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: #F8FAFC;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 14px;
+    }
+
+    .basket-icon-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .b-icon {
+        font-size: 26px;
+    }
+
+    .b-name {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #1E293B;
+    }
+
+    .b-desc {
+        font-size: 0.78rem;
+        color: #64748B;
+        font-weight: 600;
+    }
+
+    .basket-count-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .b-total {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .b-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .b-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid var(--color-storybook-ink);
+        font-size: 1.1rem;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .b-add {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 1rem;
+        min-width: 28px;
+        text-align: center;
+    }
+
+    .confirm-season-btn, .next-season-btn {
+        width: 100%;
+        min-height: 52px;
+        font-size: 1.15rem;
+        font-family: var(--font-heading);
+    }
+</style>
+
+@code {
+    protected override string GameTitle => "Pip's Acorn Orchard";
+    protected override SkillCategory GameCategory => SkillCategory.Numbers;
+
+    private int currentSeason = 1; // 1 = Spring, 2 = Summer, 3 = Autumn, 4 = Winter
+    private int seasonalHarvest = 10;
+    private int unallocatedAcorns = 10;
+
+    private int pantryAcorns = 0;
+    private int toolLevel = 0;
+    private int plantedSaplings = 0;
+
+    private int sessionPantryAdd = 0;
+    private int sessionToolAdd = 0;
+    private int sessionSaplingAdd = 0;
+
+    private bool isSeasonResolved = false;
+    private string seasonEventMessage = "Spring is here! Allocate Pip's 10 acorns between your Winter Pantry, Tool Workshop, and Forest Saplings.";
+
+    private string GetSeasonIcon(int season) => season switch
+    {
+        1 => "🌸",
+        2 => "☀️",
+        3 => "🍂",
+        _ => "❄️"
+    };
+
+    private string GetSeasonName(int season) => season switch
+    {
+        1 => "Spring",
+        2 => "Summer",
+        3 => "Autumn",
+        _ => "Winter"
+    };
+
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    {
+        currentSeason = 1;
+        toolLevel = 0;
+        pantryAcorns = 0;
+        plantedSaplings = 0;
+        ResetSeasonAllocation();
+
+        var challenge = new GameChallenge
+        {
+            Category = GameCategory,
+            Difficulty = difficulty,
+            Prompt = "Manage Pip's acorn budget through 4 seasons to save 15+ acorns for winter while investing in tools and saplings!",
+            TargetAnswer = "save",
+            AcceptedAnswers = new() { "save", "pantry", "tools", "sapling", "confirm" },
+            DisplayItem = "🌰",
+            RewardStars = 3
+        };
+
+        return Task.FromResult(challenge);
+    }
+
+    private void ResetSeasonAllocation()
+    {
+        seasonalHarvest = 10 + (toolLevel * 2);
+        unallocatedAcorns = seasonalHarvest;
+        sessionPantryAdd = 0;
+        sessionToolAdd = 0;
+        sessionSaplingAdd = 0;
+        isSeasonResolved = false;
+        seasonEventMessage = $"{GetSeasonName(currentSeason)} brings a harvest of {seasonalHarvest} acorns! Decide how much to save and invest.";
+    }
+
+    private async Task AdjustBasket(string basket, int delta)
+    {
+        if (delta > 0 && unallocatedAcorns < delta) return;
+
+        if (basket == "pantry")
+        {
+            if (delta < 0 && sessionPantryAdd < Math.Abs(delta)) return;
+            sessionPantryAdd += delta;
+            unallocatedAcorns -= delta;
+        }
+        else if (basket == "tool")
+        {
+            if (delta < 0 && sessionToolAdd < Math.Abs(delta)) return;
+            sessionToolAdd += delta;
+            unallocatedAcorns -= delta;
+        }
+        else if (basket == "sapling")
+        {
+            if (delta < 0 && sessionSaplingAdd < Math.Abs(delta)) return;
+            sessionSaplingAdd += delta;
+            unallocatedAcorns -= delta;
+        }
+
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        StateHasChanged();
+    }
+
+    private async Task ConfirmSeasonAllocationAsync()
+    {
+        if (unallocatedAcorns > 0) return;
+
+        pantryAcorns += sessionPantryAdd;
+        toolLevel += (sessionToolAdd / 2);
+        plantedSaplings += (sessionSaplingAdd / 3);
+
+        isSeasonResolved = true;
+
+        if (currentSeason == 1)
+        {
+            seasonEventMessage = "🌸 Spring Bloom! Your new seedlings were watered by gentle spring rain. Tools oiled for summer!";
+        }
+        else if (currentSeason == 2)
+        {
+            seasonEventMessage = "☀️ Summer Sunshine! Travelers stopped by to admire your growing saplings and left fresh elderberries.";
+        }
+        else if (currentSeason == 3)
+        {
+            seasonEventMessage = "🍂 Autumn Breeze! Crisp leaves fall. Winter is approaching fast — let's check your pantry!";
+        }
+        else
+        {
+            // Winter finale
+            if (pantryAcorns >= 15)
+            {
+                seasonEventMessage = $"❄️ Winter Frost! Success! Your pantry had {pantryAcorns} acorns (target: 15). Pip and his friends stayed warm and well-fed all winter!";
+                await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+
+                if (ProgressService.ActiveProfile != null)
+                {
+                    ProgressService.ActiveProfile.NourishGardenSkill(
+                        "life_financial_budget",
+                        "Resource Stewardship & Pantry Saving",
+                        OutcomeCategory.LifeSkills,
+                        35,
+                        $"Managed 4 seasons of orchard harvesting with {pantryAcorns} saved acorns and {plantedSaplings} saplings."
+                    );
+                    await ProgressService.RecordChallengeAttemptAsync(SkillCategory.Numbers, true, 3);
+                }
+            }
+            else
+            {
+                seasonEventMessage = $"❄️ Winter Frost! You saved {pantryAcorns} acorns (needed 15). Neighborly deer shared their stash to keep Pip warm! Next year, let's keep a bigger emergency reserve.";
+                await AudioService.PlaySoundAsync(SoundEffect.Pop);
+            }
+        }
+
+        await AudioService.PlaySoundAsync(SoundEffect.StarBurst);
+        StateHasChanged();
+    }
+
+    private async Task AdvanceSeasonAsync()
+    {
+        if (currentSeason < 4)
+        {
+            currentSeason++;
+            ResetSeasonAllocation();
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+            await ReturnToMapAsync();
+        }
+    }
+}

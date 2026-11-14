@@ -1,0 +1,393 @@
+@page "/game/beacon-bridge"
+@page "/games/beacon-bridge"
+@inherits BaseGameComponent
+
+<div class="game-viewport">
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Clouds" />
+
+    <!-- Top HUD -->
+    <div class="storybook-card game-hud-card">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
+                <span>◀ Map</span>
+            </button>
+            <h3 class="hud-game-title">
+                🔦 @GameTitle
+            </h3>
+            <div class="star-badge hud-star-badge">
+                <span>⭐</span>
+                <span>@SessionStars</span>
+            </div>
+        </div>
+
+        <div class="round-stepper">
+            @for (int r = 1; r <= 5; r++)
+            {
+                var isCompleted = r < CurrentRound;
+                var isCurrent = r == CurrentRound;
+                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Beacon @r">
+                    @(isCompleted ? "★" : r.ToString())
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Optics Grid Arena -->
+    <div class="storybook-card beacon-arena">
+        <div class="team-banner">
+            <span>🤝 Co-op Mission: Rotate mirrors to guide the light beam to Lighthouse!</span>
+        </div>
+
+        <!-- 4x4 Optical Grid SVG -->
+        <div class="optics-grid-wrapper">
+            <svg width="100%" height="280" viewBox="0 0 360 280" preserveAspectRatio="xMidYMid meet">
+                <!-- Dark Foggy Sea Background -->
+                <rect x="0" y="0" width="360" height="280" rx="16" fill="#1E293B" />
+
+                <!-- Grid Cells -->
+                @for (int row = 0; row < 4; row++)
+                {
+                    for (int col = 0; col < 4; col++)
+                    {
+                        var cellX = 30 + col * 75;
+                        var cellY = 20 + row * 60;
+                        <rect x="@cellX" y="@cellY" width="70" height="55" rx="8" fill="#334155" stroke="#475569" stroke-width="1.5" />
+                    }
+                }
+
+                <!-- Light Beam Path -->
+                @if (isBeamLit)
+                {
+                    <polyline points="45,47 180,47 180,167 310,167" 
+                              stroke="#FFD166" 
+                              stroke-width="6" 
+                              stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              class="glowing-beam" />
+                }
+
+                <!-- Light Emitter Beacon at (0, 0) -->
+                <circle cx="45" cy="47" r="14" fill="#F59E0B" stroke="#FFF" stroke-width="2" />
+                <text x="37" y="52" font-size="14">🔦</text>
+
+                <!-- Rotatable Mirrors at (2, 0) and (2, 2) -->
+                <!-- Mirror 1 -->
+                <g transform="translate(180, 47) rotate(@mirror1Angle)" @onclick="RotateMirror1" style="cursor:pointer;">
+                    <circle cx="0" cy="0" r="20" fill="rgba(255,255,255,0.15)" />
+                    <line x1="-15" y1="15" x2="15" y2="-15" stroke="#38BDF8" stroke-width="5" stroke-linecap="round" />
+                    <circle cx="0" cy="0" r="4" fill="#FFF" />
+                </g>
+
+                <!-- Mirror 2 -->
+                <g transform="translate(180, 167) rotate(@mirror2Angle)" @onclick="RotateMirror2" style="cursor:pointer;">
+                    <circle cx="0" cy="0" r="20" fill="rgba(255,255,255,0.15)" />
+                    <line x1="-15" y1="-15" x2="15" y2="15" stroke="#38BDF8" stroke-width="5" stroke-linecap="round" />
+                    <circle cx="0" cy="0" r="4" fill="#FFF" />
+                </g>
+
+                <!-- Destination Lighthouse at (3, 2) -->
+                <g transform="translate(310, 167)">
+                    <circle cx="0" cy="0" r="18" fill="@(isBeamLit ? "#22C55E" : "#64748B")" stroke="#FFF" stroke-width="2" />
+                    <text x="-10" y="7" font-size="20">🏮</text>
+                </g>
+
+                <!-- Saved Ship at bottom -->
+                @if (isBeamLit)
+                {
+                    <g><text x="140" y="250" font-size="28" class="ship-sail">⛵✨</text></g>
+                }
+            </svg>
+        </div>
+
+        <div class="readout-bar">
+            @if (isBeamLit)
+            {
+                <span class="beacon-lit-badge">✨ Lighthouse Illuminated! Reef Cleared!</span>
+            }
+            else
+            {
+                <span class="beacon-aim-badge">Tap mirrors to reflect beam toward the lighthouse!</span>
+            }
+        </div>
+    </div>
+
+    <!-- Tactical Team Interaction Controls -->
+    @if (!isBeamLit)
+    {
+        <div class="storybook-card tactical-card">
+            <h4 class="tactical-title">Tap Mirror to Rotate (45° steps):</h4>
+            <div class="mirror-buttons-row">
+                <button class="storybook-btn rotate-btn" type="button" @onclick="RotateMirror1">
+                    <span>🔄 Rotate Mirror 1 (@(mirror1Angle)°)</span>
+                </button>
+                <button class="storybook-btn rotate-btn" type="button" @onclick="RotateMirror2">
+                    <span>🔄 Rotate Mirror 2 (@(mirror2Angle)°)</span>
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="next-beacon-row">
+            <button class="storybook-btn next-beacon-btn" type="button" @onclick="AdvanceBeacon">
+                <span>⛵ Guide Next Ship Safe Home ➔</span>
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .game-viewport {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+        max-width: 640px;
+        margin: 0 auto;
+        padding-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .game-hud-card {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .hud-game-title {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 3.2vw, 1.6rem);
+        margin: 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .round-stepper {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .round-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--color-storybook-ink);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+
+    .round-dot.completed {
+        background: var(--color-sunny-yellow);
+        color: var(--color-storybook-ink);
+    }
+
+    .round-dot.current {
+        background: var(--color-mint);
+        color: white;
+        transform: scale(1.15);
+    }
+
+    /* Beacon Arena */
+    .beacon-arena {
+        width: 100%;
+        background: #0F172A;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+    }
+
+    .team-banner {
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-pill);
+        padding: 0.35rem 1rem;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .optics-grid-wrapper {
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .glowing-beam {
+        filter: drop-shadow(0 0 8px #FFD166);
+        animation: beam-pulse 1.5s infinite alternate;
+    }
+
+    .ship-sail {
+        animation: ship-bob 2s infinite ease-in-out;
+    }
+
+    .readout-bar {
+        margin-top: 0.75rem;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .beacon-lit-badge {
+        background: #DCFCE7;
+        color: #15803D;
+        border: 2px solid #16A34A;
+        border-radius: var(--border-radius-pill);
+        padding: 0.3rem 0.85rem;
+        display: inline-block;
+    }
+
+    .beacon-aim-badge {
+        color: #94A3B8;
+    }
+
+    .tactical-card {
+        width: 100%;
+        padding: 1rem;
+        background: white;
+        text-align: center;
+    }
+
+    .tactical-title {
+        font-family: var(--font-heading);
+        font-size: 0.98rem;
+        margin: 0 0 0.65rem 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .mirror-buttons-row {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .rotate-btn {
+        background: #E0F2FE;
+        font-size: 0.92rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+
+    .next-beacon-row {
+        width: 100%;
+    }
+
+    .next-beacon-btn {
+        width: 100%;
+        background: var(--color-mint);
+        color: white;
+        font-size: 1.15rem !important;
+    }
+
+    @@keyframes beam-pulse {
+        0% { opacity: 0.8; stroke-width: 5; }
+        100% { opacity: 1; stroke-width: 7; }
+    }
+
+    @@keyframes ship-bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+    }
+</style>
+
+@code {
+    protected override SkillCategory GameCategory => SkillCategory.Numbers;
+    protected override string GameTitle => "Beacon Bridge Co-op";
+
+    private int mirror1Angle = 0;
+    private int mirror2Angle = 90;
+    private bool isBeamLit = false;
+
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    {
+        isBeamLit = false;
+        mirror1Angle = (round * 45) % 180;
+        mirror2Angle = ((round + 1) * 90) % 180;
+
+        var challenge = new GameChallenge
+        {
+            Category = GameCategory,
+            Difficulty = difficulty,
+            Prompt = "Rotate the optical mirrors to guide the light beam to the lighthouse!",
+            TargetAnswer = "light",
+            AcceptedAnswers = new() { "light", "beam", "mirror" },
+            DisplayItem = "🏮",
+            RewardStars = 2
+        };
+
+        CheckBeamAlignment();
+        return Task.FromResult(challenge);
+    }
+
+    private async Task RotateMirror1()
+    {
+        if (isBeamLit) return;
+        mirror1Angle = (mirror1Angle + 45) % 360;
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        CheckBeamAlignment();
+    }
+
+    private async Task RotateMirror2()
+    {
+        if (isBeamLit) return;
+        mirror2Angle = (mirror2Angle + 45) % 360;
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        CheckBeamAlignment();
+    }
+
+    private async void CheckBeamAlignment()
+    {
+        // Aligned when mirror 1 is at 0° or 180° and mirror 2 is at 0° or 180°
+        if ((mirror1Angle % 180 == 0) && (mirror2Angle % 180 == 0))
+        {
+            isBeamLit = true;
+            await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+
+            if (ProgressService.ActiveProfile != null)
+            {
+                ProgressService.ActiveProfile.NourishGardenSkill(
+                    "soc_coop_optics", 
+                    "Teamwork & Shared Light", 
+                    OutcomeCategory.Social, 
+                    30, 
+                    $"Aligned optics grid to illuminate Lighthouse {CurrentRound}."
+                );
+                await ProgressService.RecordChallengeAttemptAsync(SkillCategory.Numbers, true, 2);
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task AdvanceBeacon()
+    {
+        if (CurrentRound < 5)
+        {
+            await SkipRoundAsync();
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+            await ReturnToMapAsync();
+        }
+    }
+}

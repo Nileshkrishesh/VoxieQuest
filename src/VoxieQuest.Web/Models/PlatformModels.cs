@@ -223,6 +223,13 @@ public class ParentalControls
             return false;
         }
     }
+
+    public bool IsRoomCodeApproved(string code)
+    {
+        if (AllowedCoPlay == CoPlayMode.Disabled) return false;
+        if (!ApprovedPeerRoomCodes.Any()) return true;
+        return ApprovedPeerRoomCodes.Any(c => string.Equals(c, code, StringComparison.OrdinalIgnoreCase));
+    }
 }
 
 /// <summary>

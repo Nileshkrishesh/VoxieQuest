@@ -1,0 +1,521 @@
+@page "/game/fable-weaver"
+@page "/games/fable-weaver"
+@inherits BaseGameComponent
+
+<div class="game-viewport">
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+
+    <!-- Top HUD -->
+    <div class="storybook-card game-hud-card">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
+                <span>◀ Map</span>
+            </button>
+            <h3 class="hud-game-title">
+                🧵 @GameTitle
+            </h3>
+            <div class="star-badge hud-star-badge">
+                <span>⭐</span>
+                <span>@SessionStars</span>
+            </div>
+        </div>
+
+        <div class="round-stepper">
+            @for (int r = 1; r <= 5; r++)
+            {
+                var isCompleted = r < CurrentRound;
+                var isCurrent = r == CurrentRound;
+                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Fable @r">
+                    @(isCompleted ? "★" : r.ToString())
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- The Loom Stage: Story Card Slots -->
+    <div class="storybook-card loom-stage-card">
+        <div class="loom-header">
+            <span>✨ Weave Chapter @CurrentRound: Place 3 Story Threads into the Loom!</span>
+        </div>
+
+        <!-- 3 Slots: Character, Obstacle, Resolution -->
+        <div class="loom-slots-grid">
+            <!-- Slot 1: Hero Motive -->
+            <div class="loom-slot @(selectedHero != null ? "slot-filled" : "")" @onclick="() => activeCardPicker = 1">
+                <span class="slot-tag">1. HERO &amp; MOTIVE</span>
+                @if (selectedHero != null)
+                {
+                    <span class="card-emoji">@selectedHero.Emoji</span>
+                    <strong class="card-name">@selectedHero.Title</strong>
+                    <span class="card-desc">@selectedHero.Detail</span>
+                }
+                else
+                {
+                    <span class="slot-empty-hint">➕ Tap to pick Hero</span>
+                }
+            </div>
+
+            <!-- Slot 2: Obstacle Catalyst -->
+            <div class="loom-slot @(selectedObstacle != null ? "slot-filled" : "")" @onclick="() => activeCardPicker = 2">
+                <span class="slot-tag">2. THE OBSTACLE</span>
+                @if (selectedObstacle != null)
+                {
+                    <span class="card-emoji">@selectedObstacle.Emoji</span>
+                    <strong class="card-name">@selectedObstacle.Title</strong>
+                    <span class="card-desc">@selectedObstacle.Detail</span>
+                }
+                else
+                {
+                    <span class="slot-empty-hint">➕ Tap to pick Obstacle</span>
+                }
+            </div>
+
+            <!-- Slot 3: Resolution Heart -->
+            <div class="loom-slot @(selectedResolution != null ? "slot-filled" : "")" @onclick="() => activeCardPicker = 3">
+                <span class="slot-tag">3. RESOLUTION</span>
+                @if (selectedResolution != null)
+                {
+                    <span class="card-emoji">@selectedResolution.Emoji</span>
+                    <strong class="card-name">@selectedResolution.Title</strong>
+                    <span class="card-desc">@selectedResolution.Detail</span>
+                }
+                else
+                {
+                    <span class="slot-empty-hint">➕ Tap to pick Resolution</span>
+                }
+            </div>
+        </div>
+
+        <!-- Animated Story Theater Playback -->
+        @if (isStoryWeaved)
+        {
+            <div class="story-theater-stage">
+                <div class="theater-tableau">
+                    <span class="char-actor">@selectedHero?.Emoji</span>
+                    <span class="scene-effect">@selectedObstacle?.Emoji</span>
+                    <span class="char-actor">@selectedResolution?.Emoji</span>
+                </div>
+                <p class="theater-narration-text">
+                    “Once upon a time in the whispering forest, @(selectedHero?.Title) faced a great challenge when @(selectedObstacle?.Title.ToLowerInvariant()). But with courage and a kind heart, they @(selectedResolution?.Title.ToLowerInvariant())—and the whole village celebrated!”
+                </p>
+            </div>
+        }
+    </div>
+
+    <!-- Card Selection Tray -->
+    @if (!isStoryWeaved)
+    {
+        <div class="storybook-card card-picker-card">
+            <h4 class="picker-title">
+                @(activeCardPicker switch { 1 => "Choose a Hero & Motive Thread:", 2 => "Choose an Obstacle Thread:", _ => "Choose a Resolution Thread:" })
+            </h4>
+
+            <div class="threads-carousel">
+                @if (activeCardPicker == 1)
+                {
+                    @foreach (var h in HeroCards)
+                    {
+                        <button class="thread-choice-btn @(selectedHero == h ? "choice-selected" : "")" type="button" @onclick="() => SelectHero(h)">
+                            <span class="thread-emoji">@h.Emoji</span>
+                            <span class="thread-name">@h.Title</span>
+                        </button>
+                    }
+                }
+                else if (activeCardPicker == 2)
+                {
+                    @foreach (var o in ObstacleCards)
+                    {
+                        <button class="thread-choice-btn @(selectedObstacle == o ? "choice-selected" : "")" type="button" @onclick="() => SelectObstacle(o)">
+                            <span class="thread-emoji">@o.Emoji</span>
+                            <span class="thread-name">@o.Title</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    @foreach (var r in ResolutionCards)
+                    {
+                        <button class="thread-choice-btn @(selectedResolution == r ? "choice-selected" : "")" type="button" @onclick="() => SelectResolution(r)">
+                            <span class="thread-emoji">@r.Emoji</span>
+                            <span class="thread-name">@r.Title</span>
+                        </button>
+                    }
+                }
+            </div>
+
+            <!-- Weave Action Button -->
+            <button class="storybook-btn weave-btn" 
+                    type="button" 
+                    disabled="@(selectedHero == null || selectedObstacle == null || selectedResolution == null)"
+                    @onclick="WeaveStoryTapestry">
+                <span>🪡 Weave &amp; Tell Story!</span>
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="next-fable-row">
+            <button class="storybook-btn next-fable-btn" type="button" @onclick="AdvanceFable">
+                <span>📖 Weave Next Chapter ➔</span>
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .game-viewport {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+        max-width: 680px;
+        margin: 0 auto;
+        padding-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .game-hud-card {
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .hud-game-title {
+        font-family: var(--font-heading);
+        font-size: clamp(1.2rem, 3.2vw, 1.6rem);
+        margin: 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .round-stepper {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .round-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--color-storybook-ink);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+
+    .round-dot.completed {
+        background: var(--color-sunny-yellow);
+        color: var(--color-storybook-ink);
+    }
+
+    .round-dot.current {
+        background: var(--color-mint);
+        color: white;
+        transform: scale(1.15);
+    }
+
+    /* Loom Stage */
+    .loom-stage-card {
+        width: 100%;
+        background: #FFFDF7;
+        border: var(--border-ink-thick);
+        padding: 1.25rem;
+        box-sizing: border-box;
+    }
+
+    .loom-header {
+        background: #FEF3C7;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-pill);
+        padding: 0.35rem 1rem;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .loom-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .loom-slot {
+        background: #F8FAFC;
+        border: 2.5px dashed #94A3B8;
+        border-radius: var(--border-radius-md);
+        padding: 0.75rem 0.5rem;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .loom-slot.slot-filled {
+        background: #FFFFFF;
+        border: 2.5px solid var(--color-storybook-ink);
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+    }
+
+    .slot-tag {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: #64748B;
+        margin-bottom: 0.35rem;
+    }
+
+    .card-emoji {
+        font-size: 2.2rem;
+    }
+
+    .card-name {
+        font-family: var(--font-heading);
+        font-size: 0.88rem;
+        margin-top: 0.2rem;
+        color: var(--color-storybook-ink);
+    }
+
+    .card-desc {
+        font-size: 0.72rem;
+        color: #64748B;
+        line-height: 1.2;
+    }
+
+    .slot-empty-hint {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #94A3B8;
+    }
+
+    /* Theater Stage */
+    .story-theater-stage {
+        margin-top: 1.25rem;
+        background: #F0FDF4;
+        border: 2px solid #16A34A;
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+        animation: theater-fade 0.6s var(--spring-bounce);
+    }
+
+    .theater-tableau {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .theater-narration-text {
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        line-height: 1.55;
+        color: #166534;
+        margin: 0;
+        text-align: center;
+    }
+
+    /* Card Picker Card */
+    .card-picker-card {
+        width: 100%;
+        padding: 1rem;
+        background: white;
+    }
+
+    .picker-title {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        margin: 0 0 0.75rem 0;
+        text-align: center;
+        color: var(--color-storybook-ink);
+    }
+
+    .threads-carousel {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+    }
+
+    .thread-choice-btn {
+        background: #F8FAFC;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 0.35rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        transition: transform 0.12s ease;
+        touch-action: manipulation;
+    }
+
+    .thread-choice-btn.choice-selected {
+        background: var(--color-sunny-yellow);
+        border-color: var(--color-warm-gold);
+    }
+
+    .thread-emoji {
+        font-size: 1.8rem;
+    }
+
+    .thread-name {
+        font-family: var(--font-heading);
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-align: center;
+        color: var(--color-storybook-ink);
+    }
+
+    .weave-btn {
+        width: 100%;
+        background: var(--color-sunny-yellow);
+        font-size: 1.05rem !important;
+    }
+
+    .next-fable-row {
+        width: 100%;
+    }
+
+    .next-fable-btn {
+        width: 100%;
+        background: var(--color-mint);
+        color: white;
+        font-size: 1.15rem !important;
+    }
+
+    @@keyframes theater-fade {
+        0% { opacity: 0; transform: scale(0.95); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    @@media (max-width: 540px) {
+        .loom-slots-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    protected override SkillCategory GameCategory => SkillCategory.Storytelling;
+    protected override string GameTitle => "Fable Weaver's Loom";
+
+    private record FableCard(string Title, string Emoji, string Detail);
+
+    private static readonly FableCard[] HeroCards = new[]
+    {
+        new FableCard("Curious Fox", "🦊", "Wants to explore beyond the mountains"),
+        new FableCard("Brave Badger", "🦡", "Protects the village with a golden shield"),
+        new FableCard("Kind Bear", "🐻", "Shares sweet berries with woodland friends")
+    };
+
+    private static readonly FableCard[] ObstacleCards = new[]
+    {
+        new FableCard("The Canyon Bridge Snapped", "🌉", "A deep rushing river blocks the path"),
+        new FableCard("A Dense Fog Rolled In", "🌫️", "The trail disappears into misty clouds"),
+        new FableCard("A Lost Baby Bird Cried", "🐣", "Stuck in high branches without a nest")
+    };
+
+    private static readonly FableCard[] ResolutionCards = new[]
+    {
+        new FableCard("Built a Sturdy Raft", "🛶", "Floated safely across the waters"),
+        new FableCard("Lit a Glowing Lantern", "🏮", "Guided everyone through the mist"),
+        new FableCard("Worked Together as a Team", "🤝", "Helped the little one fly home")
+    };
+
+    private FableCard? selectedHero;
+    private FableCard? selectedObstacle;
+    private FableCard? selectedResolution;
+    private int activeCardPicker = 1;
+    private bool isStoryWeaved = false;
+
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    {
+        isStoryWeaved = false;
+        selectedHero = null;
+        selectedObstacle = null;
+        selectedResolution = null;
+        activeCardPicker = 1;
+
+        var challenge = new GameChallenge
+        {
+            Category = GameCategory,
+            Difficulty = difficulty,
+            Prompt = $"Weave Chapter {round} on the loom by placing your hero, obstacle, and resolution cards!",
+            TargetAnswer = "story",
+            AcceptedAnswers = new() { "story", "weave", "fable", "friend" },
+            DisplayItem = "🧵",
+            RewardStars = 2
+        };
+
+        return Task.FromResult(challenge);
+    }
+
+    private void SelectHero(FableCard hero)
+    {
+        selectedHero = hero;
+        activeCardPicker = 2;
+    }
+
+    private void SelectObstacle(FableCard obstacle)
+    {
+        selectedObstacle = obstacle;
+        activeCardPicker = 3;
+    }
+
+    private void SelectResolution(FableCard resolution)
+    {
+        selectedResolution = resolution;
+    }
+
+    private async Task WeaveStoryTapestry()
+    {
+        if (selectedHero == null || selectedObstacle == null || selectedResolution == null) return;
+
+        isStoryWeaved = true;
+        await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+
+        if (ProgressService.ActiveProfile != null)
+        {
+            ProgressService.ActiveProfile.NourishGardenSkill(
+                "creat_fable_loom", 
+                "Storytelling & Motives", 
+                OutcomeCategory.Creativity, 
+                30, 
+                $"Weaved Chapter {CurrentRound} with {selectedHero.Title}."
+            );
+            await ProgressService.RecordChallengeAttemptAsync(SkillCategory.Storytelling, true, 2);
+        }
+    }
+
+    private async Task AdvanceFable()
+    {
+        if (CurrentRound < 5)
+        {
+            await SkipRoundAsync();
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+            await ReturnToMapAsync();
+        }
+    }
+}
