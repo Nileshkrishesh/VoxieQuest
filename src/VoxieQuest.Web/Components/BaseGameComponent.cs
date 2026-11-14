@@ -20,6 +20,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     [Inject] protected IProgressService ProgressService { get; set; } = default!;
     [Inject] protected IAdaptiveDifficultyService DifficultyService { get; set; } = default!;
     [Inject] protected IQuestionService QuestionService { get; set; } = default!;
+    [Inject] protected IStreakService StreakService { get; set; } = default!;
     [Inject] protected NavigationManager Navigation { get; set; } = default!;
 
     /// <summary>Gets the current round number (1 to 10).</summary>
@@ -170,6 +171,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
             await ProgressService.RecordChallengeAttemptAsync(GameCategory, true, starsEarned);
             DifficultyService.RecordAttempt(true);
+            await StreakService.RecordRoundPlayedAsync(starsEarned);
 
             // Trigger game-specific visual animation (e.g. Rocket blasts off, Frog hops, Paint splashes)
             await OnChallengeSolvedAsync(ActiveChallenge);
@@ -205,6 +207,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             if (AttemptState.IsExhausted)
             {
                 // All 3 attempts exhausted: gentle supportive completion
+                await StreakService.RecordRoundPlayedAsync(0);
                 IsBusyAnimating = true;
                 MascotState = Mascot.MascotState.Happy;
                 await VoiceManager.SpeakAsync($"Great try! The answer is '{ActiveChallenge.TargetAnswer}'. Let's try the next one!");

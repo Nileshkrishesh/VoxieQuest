@@ -1,0 +1,291 @@
+@inject IStreakService StreakService
+@implements IDisposable
+
+<div class="storybook-card streak-card-home">
+    <div class="streak-card-header">
+        <div class="streak-flame-combo">
+            <StreakBadge Size="28" />
+            <div class="streak-header-titles">
+                <h3 class="streak-title">Daily Adventure Streak</h3>
+                <p class="streak-subtitle">@StreakService.GentleEncouragementMessage</p>
+            </div>
+        </div>
+
+        @if (StreakService.IsFreezeAvailable)
+        {
+            <div class="streak-freeze-pill" title="1 free rest day per week protects your streak!">
+                <span class="freeze-emoji">🛡️</span>
+                <span class="freeze-text">Streak Freeze Ready</span>
+            </div>
+        }
+        else if (StreakService.WasFreezeUsedToday)
+        {
+            <div class="streak-freeze-pill freeze-active" title="Voxie saved your streak today!">
+                <span class="freeze-emoji">✨</span>
+                <span class="freeze-text">Voxie Saved Your Streak!</span>
+            </div>
+        }
+    </div>
+
+    <!-- 7 Weekday Circle Nodes for This Week -->
+    <div class="streak-week-strip">
+        @foreach (var day in currentWeek)
+        {
+            var isPlayed = day.IsPlayed;
+            var isToday = day.IsToday;
+            var isFreeze = day.IsFreezeDay;
+
+            <div class="streak-day-node @(isToday ? "node-today" : "") @(isPlayed ? "node-played" : "") @(isFreeze ? "node-freeze" : "")"
+                 title="@($"{day.Date:dddd, MMM d}: {(isPlayed ? $"{day.RoundsPlayed} rounds played" : isFreeze ? "Streak Freeze Rest Day" : "Rest day")}")">
+                
+                <div class="node-circle">
+                    @if (isPlayed)
+                    {
+                        <span class="node-icon">⭐</span>
+                    }
+                    else if (isFreeze)
+                    {
+                        <span class="node-icon">🛡️</span>
+                    }
+                    else if (isToday)
+                    {
+                        <span class="node-dot"></span>
+                    }
+                </div>
+                <span class="node-day-label">@day.Date.ToString("ddd")[0..2]</span>
+            </div>
+        }
+    </div>
+
+    <!-- Quick Stats Summary Row -->
+    <div class="streak-metrics-row">
+        <div class="streak-stat-item">
+            <span class="stat-number color-coral">@StreakService.CurrentStreak</span>
+            <span class="stat-name">Day Streak</span>
+        </div>
+        <div class="streak-stat-divider"></div>
+        <div class="streak-stat-item">
+            <span class="stat-number color-amber">@StreakService.LongestStreak</span>
+            <span class="stat-name">Best Streak</span>
+        </div>
+        <div class="streak-stat-divider"></div>
+        <div class="streak-stat-item">
+            <span class="stat-number color-mint">@StreakService.TotalDaysPlayed</span>
+            <span class="stat-name">Total Days</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .streak-card-home {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        padding: 1.15rem 1.4rem;
+        background: #FFFDF7;
+        border: 3px solid #2B2D42;
+        border-radius: 24px;
+        box-shadow: 0 6px 0 #2B2D42;
+        margin-bottom: 1.25rem;
+    }
+
+    .streak-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .streak-flame-combo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .streak-header-titles {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .streak-title {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #2B2D42;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .streak-subtitle {
+        font-family: 'Nunito', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #4EA8DE;
+        margin: 0.15rem 0 0;
+    }
+
+    .streak-freeze-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #EBF4F6;
+        border: 2px solid #2B2D42;
+        border-radius: 999px;
+        padding: 0.25rem 0.65rem;
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #2B2D42;
+    }
+
+    .streak-freeze-pill.freeze-active {
+        background: #FFF9DB;
+        border-color: #F78C6B;
+    }
+
+    .streak-week-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #F8F5E9;
+        border: 2px dashed #D5CCA8;
+        border-radius: 16px;
+        padding: 0.65rem 0.85rem;
+    }
+
+    .streak-day-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        flex: 1;
+    }
+
+    .node-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #CBD5E1;
+        background: #FFFDF7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .streak-day-node.node-played .node-circle {
+        background: #FFD166;
+        border-color: #2B2D42;
+        box-shadow: 0 2px 0 #2B2D42;
+        transform: scale(1.05);
+    }
+
+    .streak-day-node.node-freeze .node-circle {
+        background: #4EA8DE;
+        border-color: #2B2D42;
+    }
+
+    .streak-day-node.node-today .node-circle {
+        border-color: #EF476F;
+        border-width: 2.5px;
+    }
+
+    .node-icon {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+
+    .node-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #EF476F;
+    }
+
+    .node-day-label {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #7D8597;
+    }
+
+    .streak-day-node.node-today .node-day-label {
+        color: #EF476F;
+        font-weight: 800;
+    }
+
+    .streak-metrics-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding-top: 0.25rem;
+    }
+
+    .streak-stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.1rem;
+    }
+
+    .stat-number {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .color-coral { color: #EF476F; }
+    .color-amber { color: #FFB703; }
+    .color-mint { color: #06D6A0; }
+
+    .stat-name {
+        font-family: 'Nunito', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #7D8597;
+    }
+
+    .streak-stat-divider {
+        width: 2px;
+        height: 28px;
+        background: #E2DAC5;
+    }
+
+    @@media (max-width: 600px) {
+        .node-circle {
+            width: 28px;
+            height: 28px;
+        }
+        .node-icon {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+@code {
+    private List<StreakDayInfo> currentWeek = new();
+
+    protected override void OnInitialized()
+    {
+        StreakService.OnStreakUpdated += HandleUpdated;
+        ReloadWeek();
+    }
+
+    private void ReloadWeek()
+    {
+        currentWeek = StreakService.GetCurrentWeekDays();
+    }
+
+    private void HandleUpdated()
+    {
+        ReloadWeek();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        StreakService.OnStreakUpdated -= HandleUpdated;
+    }
+}

@@ -1,0 +1,365 @@
+@inject IStreakService StreakService
+@inject IAccessibilityService Accessibility
+@implements IDisposable
+
+<div class="streak-calendar-wrapper">
+    <!-- Friendly Pop-up Bubble when a Day is Tapped -->
+    @if (selectedDay != null)
+    {
+        <div class="selected-day-bubble animate-pop" @onclick="() => selectedDay = null">
+            <span class="bubble-icon">✨</span>
+            <span class="bubble-content">
+                <strong>@selectedDay.Date.ToString("ddd, MMM d"):</strong> 
+                @if (selectedDay.IsPlayed)
+                {
+                    <span>@selectedDay.RoundsPlayed rounds played, @selectedDay.StarsEarned stars earned! ⭐</span>
+                }
+                else if (selectedDay.IsFreezeDay)
+                {
+                    <span>Streak Freeze! Voxie protected your streak! 🛡️</span>
+                }
+                else if (selectedDay.IsToday)
+                {
+                    <span>Today! Play 1 round to keep your streak glowing! 🌟</span>
+                }
+                else
+                {
+                    <span>Rest day! 💤</span>
+                }
+            </span>
+            <button class="bubble-close-btn" aria-label="Close">✕</button>
+        </div>
+    }
+
+    <!-- 12-Week Horizontal Scrollable SVG Calendar -->
+    <div class="calendar-scroll-pane">
+        <svg class="streak-calendar-svg" 
+             viewBox="0 0 @SvgWidth @SvgHeight" 
+             width="@SvgWidth" 
+             height="@SvgHeight"
+             xmlns="http://www.w3.org/2000/svg">
+            
+            <defs>
+                <!-- Colorblind Accessible Patterns -->
+                <pattern id="patDots" width="6" height="6" patternUnits="userSpaceOnUse">
+                    <circle cx="3" cy="3" r="1.2" fill="#2B2D42" opacity="0.35" />
+                </pattern>
+                <pattern id="patStripes" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="#2B2D42" stroke-width="1.5" opacity="0.35" />
+                </pattern>
+                <pattern id="patCross" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <path d="M0 4h8 M4 0v8" stroke="#2B2D42" stroke-width="1.2" opacity="0.35" />
+                </pattern>
+                <pattern id="patDiagonal" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="#2B2D42" stroke-width="1.8" opacity="0.4" />
+                </pattern>
+            </defs>
+
+            <!-- Weekday Initials Down the Left -->
+            @for (int row = 0; row < 7; row++)
+            {
+                var yPos = HeaderHeight + row * (CellSize + CellGap) + CellSize * 0.72;
+                @((MarkupString)$"<text x=\"12\" y=\"{yPos}\" class=\"cal-weekday-label\">{WeekdayInitials[row]}</text>")
+            }
+
+            <!-- 12 Week Columns -->
+            @for (int w = 0; w < weeks.Count; w++)
+            {
+                var col = weeks[w];
+                var xPos = LeftMargin + w * (CellSize + CellGap);
+
+                <!-- Month Label above the Column if present -->
+                @if (!string.IsNullOrEmpty(col.MonthLabel))
+                {
+                    @((MarkupString)$"<text x=\"{xPos}\" y=\"16\" class=\"cal-month-label\">{col.MonthLabel}</text>")
+                }
+
+                <!-- 7 Day Stickers in this Column -->
+                @for (int d = 0; d < col.Days.Count && d < 7; d++)
+                {
+                    var day = col.Days[d];
+                    var yPos = HeaderHeight + d * (CellSize + CellGap);
+                    var fillColor = GetCellFillColor(day);
+                    var patternId = GetPatternId(day);
+                    var isSelected = selectedDay?.DateKey == day.DateKey;
+
+                    <g class="cal-day-group @(day.IsToday ? "cal-today-group" : "")" 
+                       @onclick="() => SelectDay(day)" 
+                       style="cursor: pointer;">
+                        
+                        <!-- Rounded Hand-Drawn Day Sticker -->
+                        <rect x="@xPos" 
+                              y="@yPos" 
+                              width="@CellSize" 
+                              height="@CellSize" 
+                              rx="5" 
+                              ry="5" 
+                              fill="@fillColor" 
+                              stroke="@(day.IsToday ? "#2B2D42" : (isSelected ? "#EF476F" : (day.IsPlayed ? "#2B2D42" : "#E2DAC5")))" 
+                              stroke-width="@(day.IsToday ? "2.5" : (isSelected ? "2.5" : (day.IsPlayed ? "1.8" : "1.2")))" 
+                              class="cal-day-rect @(day.IsToday && day.IsPlayed ? "cal-pop-today" : "")" />
+
+                        <!-- Pattern Overlay for Colorblind Mode -->
+                        @if (Accessibility.IsColorblindMode && patternId != null && day.IsPlayed)
+                        {
+                            <rect x="@xPos" 
+                                  y="@yPos" 
+                                  width="@CellSize" 
+                                  height="@CellSize" 
+                                  rx="5" 
+                                  ry="5" 
+                                  fill="@($"url(#{patternId})")" 
+                                  pointer-events="none" />
+                        }
+
+                        <!-- Freeze Shield Icon Indicator -->
+                        @if (day.IsFreezeDay)
+                        {
+                            <circle cx="@(xPos + CellSize / 2)" cy="@(yPos + CellSize / 2)" r="4" fill="#4EA8DE" stroke="#2B2D42" stroke-width="1" />
+                        }
+
+                        <!-- Bouncing Star on Today -->
+                        @if (day.IsToday)
+                        {
+                            <g transform="translate(@(xPos + CellSize - 7), @(yPos - 5))" class="cal-bouncing-star">
+                                <path d="M0 -4 L1 -1 L4 -1 L1.5 1 L2.5 4 L0 2 L-2.5 4 L-1.5 1 L-4 -1 L-1 -1 Z" 
+                                      fill="#FFD166" 
+                                      stroke="#2B2D42" 
+                                      stroke-width="1" />
+                            </g>
+                        }
+                    </g>
+                }
+            }
+        </svg>
+    </div>
+
+    <!-- Calendar Legend with Intensity Levels -->
+    <div class="calendar-legend-bar">
+        <span class="legend-text-label">Less</span>
+        <span class="legend-box level-0" title="0 rounds (Rest day)"></span>
+        <span class="legend-box level-1" title="1-2 rounds"></span>
+        <span class="legend-box level-2" title="3-5 rounds"></span>
+        <span class="legend-box level-3" title="6-9 rounds"></span>
+        <span class="legend-box level-4" title="10+ rounds"></span>
+        <span class="legend-text-label">More</span>
+        <span class="legend-divider">|</span>
+        <span class="legend-today-indicator">⭐ Today</span>
+        @if (StreakService.WasFreezeUsedToday)
+        {
+            <span class="legend-freeze-indicator">🛡️ Freeze Used</span>
+        }
+    </div>
+</div>
+
+<style>
+    .streak-calendar-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        position: relative;
+    }
+
+    .selected-day-bubble {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #FFFDF7;
+        border: 2.5px solid #2B2D42;
+        border-radius: 14px;
+        padding: 0.5rem 0.9rem;
+        box-shadow: 0 4px 0 #2B2D42;
+        cursor: pointer;
+        font-family: 'Fredoka', cursive, sans-serif;
+        color: #2B2D42;
+        font-size: 0.95rem;
+        animation: bubble-pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bubble-close-btn {
+        background: none;
+        border: none;
+        font-weight: 800;
+        cursor: pointer;
+        color: #EF476F;
+        margin-left: auto;
+    }
+
+    .calendar-scroll-pane {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.5rem 0.25rem 0.75rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .calendar-scroll-pane::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .calendar-scroll-pane::-webkit-scrollbar-thumb {
+        background: #E2DAC5;
+        border-radius: 999px;
+    }
+
+    .streak-calendar-svg {
+        display: block;
+        max-width: 100%;
+        min-width: 380px;
+    }
+
+    .cal-weekday-label {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        fill: #7D8597;
+    }
+
+    .cal-month-label {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 12px;
+        font-weight: 800;
+        fill: #2B2D42;
+    }
+
+    .cal-day-rect {
+        transition: transform 0.15s ease, stroke-width 0.15s ease;
+    }
+
+    .cal-day-group:hover .cal-day-rect {
+        transform: scale(1.15);
+        transform-origin: center;
+    }
+
+    .cal-pop-today {
+        animation: pop-bounce 1.5s infinite ease-in-out;
+    }
+
+    @@keyframes pop-bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+    }
+
+    .cal-bouncing-star {
+        animation: star-bounce 1.8s infinite ease-in-out;
+        transform-origin: center;
+    }
+
+    @@keyframes star-bounce {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-3px) rotate(15deg); }
+    }
+
+    .calendar-legend-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 0.85rem;
+        color: #7D8597;
+        padding-left: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-box {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        border: 1.5px solid #2B2D42;
+    }
+
+    .legend-box.level-0 { background: #FFFDF7; border-color: #E2DAC5; }
+    .legend-box.level-1 { background: #FFE58F; }
+    .legend-box.level-2 { background: #FFB703; }
+    .legend-box.level-3 { background: #EF476F; }
+    .legend-box.level-4 { background: #06D6A0; }
+
+    .legend-divider {
+        margin: 0 0.3rem;
+        color: #CBD5E1;
+    }
+
+    .legend-today-indicator, .legend-freeze-indicator {
+        font-weight: 700;
+        color: #2B2D42;
+    }
+
+    @@keyframes bubble-pop {
+        from { transform: scale(0.92); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    private const int CellSize = 19;
+    private const int CellGap = 5;
+    private const int HeaderHeight = 24;
+    private const int LeftMargin = 28;
+
+    private int SvgWidth => LeftMargin + 12 * (CellSize + CellGap) + 10;
+    private int SvgHeight => HeaderHeight + 7 * (CellSize + CellGap) + 6;
+
+    private static readonly string[] WeekdayInitials = { "M", "T", "W", "T", "F", "S", "S" };
+    private List<StreakWeekColumn> weeks = new();
+    private StreakDayInfo? selectedDay;
+
+    protected override void OnInitialized()
+    {
+        StreakService.OnStreakUpdated += HandleUpdated;
+        Accessibility.OnSettingsChanged += HandleUpdated;
+        ReloadWeeks();
+    }
+
+    private void ReloadWeeks()
+    {
+        weeks = StreakService.GetTwelveWeeksMatrix();
+    }
+
+    private void HandleUpdated()
+    {
+        ReloadWeeks();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SelectDay(StreakDayInfo day)
+    {
+        selectedDay = day;
+    }
+
+    private string GetCellFillColor(StreakDayInfo day)
+    {
+        if (!day.IsPlayed)
+        {
+            return day.IsFreezeDay ? "#E8F4F8" : "#FFFDF7";
+        }
+
+        return day.IntensityLevel switch
+        {
+            1 => "#FFE58F", // sunny yellow (1-2 rounds)
+            2 => "#FFB703", // warm amber (3-5 rounds)
+            3 => "#EF476F", // coral pink (6-9 rounds)
+            4 => "#06D6A0", // mint green (10+ rounds)
+            _ => "#FFFDF7"
+        };
+    }
+
+    private string? GetPatternId(StreakDayInfo day)
+    {
+        return day.IntensityLevel switch
+        {
+            1 => "patDots",
+            2 => "patStripes",
+            3 => "patDiagonal",
+            4 => "patCross",
+            _ => null
+        };
+    }
+
+    public void Dispose()
+    {
+        StreakService.OnStreakUpdated -= HandleUpdated;
+        Accessibility.OnSettingsChanged -= HandleUpdated;
+    }
+}

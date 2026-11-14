@@ -1,0 +1,130 @@
+@inject IStreakService StreakService
+@implements IDisposable
+
+<div class="streak-badge-pill @(StreakService.CurrentStreak > 0 ? "streak-active" : "streak-inactive")" 
+     title="@(StreakService.CurrentStreak > 0 ? $"{StreakService.CurrentStreak} Day Streak! {StreakService.GentleEncouragementMessage}" : "Play a game today to start your streak!")">
+    
+    <!-- Hand-drawn Voxie Fire Flame SVG -->
+    <svg class="streak-flame-svg @(StreakService.CurrentStreak > 0 ? "flame-flicker" : "")" 
+         width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="streakFlameGrad" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFD166" />
+                <stop offset="55%" stop-color="#F78C6B" />
+                <stop offset="100%" stop-color="#EF476F" />
+            </linearGradient>
+            <linearGradient id="streakInnerGlow" x1="16" y1="12" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFFDF7" />
+                <stop offset="100%" stop-color="#FFD166" />
+            </linearGradient>
+        </defs>
+
+        <!-- Outer Flame Shape -->
+        <path d="M16 2.5C18.5 7 24 10.5 25.5 16.5C27 22.5 22.5 29.5 16 29.5C9.5 29.5 5 22.5 6.5 16.5C8 10.5 13.5 7 16 2.5Z" 
+              fill="url(#streakFlameGrad)" 
+              stroke="#2B2D42" 
+              stroke-width="2.5" 
+              stroke-linejoin="round" />
+
+        <!-- Inner Heart/Core Flame -->
+        <path d="M16 13C17.5 16 20.5 18 20 22C19.5 25.5 17.5 27 16 27C14.5 27 12.5 25.5 12 22C11.5 18 14.5 16 16 13Z" 
+              fill="url(#streakInnerGlow)" 
+              stroke="#2B2D42" 
+              stroke-width="1.8" />
+
+        <!-- Cheerful Voxie Flame Face -->
+        <ellipse cx="14" cy="20.5" rx="1.2" ry="1.5" fill="#2B2D42" />
+        <ellipse cx="18" cy="20.5" rx="1.2" ry="1.5" fill="#2B2D42" />
+        <path d="M14.5 23C15 24 17 24 17.5 23" stroke="#2B2D42" stroke-width="1.4" stroke-linecap="round" />
+
+        <!-- Sparkles -->
+        <circle cx="24.5" cy="8.5" r="1.5" fill="#FFD166" stroke="#2B2D42" stroke-width="1" />
+        <circle cx="7.5" cy="11.5" r="1.2" fill="#FFD166" stroke="#2B2D42" stroke-width="1" />
+    </svg>
+
+    <span class="streak-count-text">@StreakService.CurrentStreak</span>
+    <span class="streak-label-d">d</span>
+</div>
+
+<style>
+    .streak-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #FFFDF7;
+        border: 2.5px solid #2B2D42;
+        padding: 0.22rem 0.65rem 0.22rem 0.45rem;
+        border-radius: 999px;
+        box-shadow: 0 3px 0 #2B2D42;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .streak-badge-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 0 #2B2D42;
+    }
+
+    .streak-badge-pill.streak-active {
+        background: #FFF9DB;
+        border-color: #2B2D42;
+    }
+
+    .streak-badge-pill.streak-inactive {
+        opacity: 0.85;
+    }
+
+    .streak-flame-svg {
+        flex-shrink: 0;
+        display: block;
+    }
+
+    .flame-flicker {
+        animation: flame-dance 2.2s infinite ease-in-out;
+        transform-origin: center bottom;
+    }
+
+    @@keyframes flame-dance {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.08, 0.95) rotate(-3deg); }
+        50% { transform: scale(0.96, 1.05) rotate(2deg); }
+        75% { transform: scale(1.04, 0.98) rotate(-1deg); }
+    }
+
+    .streak-count-text {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #2B2D42;
+        line-height: 1;
+    }
+
+    .streak-label-d {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #F78C6B;
+        margin-left: -0.15rem;
+        line-height: 1;
+    }
+</style>
+
+@code {
+    [Parameter] public int Size { get; set; } = 24;
+
+    protected override void OnInitialized()
+    {
+        StreakService.OnStreakUpdated += HandleUpdated;
+    }
+
+    private void HandleUpdated()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        StreakService.OnStreakUpdated -= HandleUpdated;
+    }
+}

@@ -3,6 +3,7 @@
 @inject IProgressService ProgressService
 @inject IVoiceService VoiceService
 @inject IAudioService AudioService
+@inject IStreakService StreakService
 @inject NavigationManager Navigation
 @implements IDisposable
 
@@ -68,6 +69,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Milestone Celebration Overlay & Confetti -->
+    <Confetti IsActive="@showMilestoneConfetti" />
+    @if (activeMilestone != null)
+    {
+        <div class="milestone-modal-backdrop" @onclick="DismissMilestone">
+            <div class="storybook-card milestone-celebration-card animate-pop" @onclick:stopPropagation>
+                <div class="milestone-flame-burst">
+                    <StreakBadge Size="56" />
+                </div>
+                <h2 class="milestone-title">🎉 @activeMilestone.Title</h2>
+                <p class="milestone-msg">@activeMilestone.Message</p>
+                <div class="milestone-reward-pill">
+                    <span>⭐ +5 Bonus Stars &amp; Sticker Unlocked!</span>
+                </div>
+                <button class="btn-story btn-story-green milestone-btn" @onclick="DismissMilestone">
+                    <span>Awesome! ➔</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- Daily Streak & Consistency Tracker Card -->
+    <StreakCard />
 
     <!-- Section Heading: Pick a Game -->
     <div class="section-title-bar">
@@ -737,16 +762,102 @@
             border-top: none;
         }
     }
+
+    /* Milestone Pop-up Modal */
+    .milestone-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(43, 45, 66, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 1.5rem;
+    }
+
+    .milestone-celebration-card {
+        background: #FFFDF7;
+        border: 4px solid #2B2D42;
+        border-radius: 28px;
+        box-shadow: 0 10px 0 #2B2D42;
+        padding: 2rem;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .milestone-flame-burst {
+        transform: scale(1.3);
+        margin-bottom: 0.5rem;
+    }
+
+    .milestone-title {
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #2B2D42;
+        margin: 0;
+    }
+
+    .milestone-msg {
+        font-family: 'Nunito', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #4EA8DE;
+        margin: 0;
+    }
+
+    .milestone-reward-pill {
+        background: #FFF9DB;
+        border: 2px solid #2B2D42;
+        border-radius: 999px;
+        padding: 0.4rem 1rem;
+        font-family: 'Fredoka', cursive, sans-serif;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: #2B2D42;
+    }
+
+    .milestone-btn {
+        margin-top: 0.5rem;
+        font-size: 1.15rem;
+        padding: 0.7rem 2rem;
+    }
 </style>
 
 @code {
     private Mascot.MascotState mascotState = Mascot.MascotState.Idle;
     private float currentVolume = 0.0f;
     private bool isTestingMic = false;
+    private StreakMilestoneEventArgs? activeMilestone;
+    private bool showMilestoneConfetti;
 
     protected override void OnInitialized()
     {
         VoiceService.OnVolumeChanged += HandleVolumeChanged;
+        StreakService.OnMilestoneReached += HandleMilestoneReached;
+    }
+
+    private async void HandleMilestoneReached(StreakMilestoneEventArgs args)
+    {
+        activeMilestone = args;
+        showMilestoneConfetti = true;
+        await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void DismissMilestone()
+    {
+        activeMilestone = null;
+        showMilestoneConfetti = false;
     }
 
     private void HandleVolumeChanged(float vol)
@@ -818,6 +929,7 @@
     public void Dispose()
     {
         VoiceService.OnVolumeChanged -= HandleVolumeChanged;
+        StreakService.OnMilestoneReached -= HandleMilestoneReached;
         if (isTestingMic)
         {
             _ = VoiceService.StopListeningAsync();

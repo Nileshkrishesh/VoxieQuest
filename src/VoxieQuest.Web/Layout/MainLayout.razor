@@ -3,6 +3,7 @@
 @inject IAudioService AudioService
 @inject IAccessibilityService Accessibility
 @inject ISessionTimerService SessionTimer
+@inject IStreakService StreakService
 @inject NavigationManager Navigation
 @implements IDisposable
 
@@ -29,6 +30,9 @@
                 <StarIcon Size="22" FillColor="#FFD166" Class="star-spin-hover" />
                 <span class="star-count-num">@(ProgressService.ActiveProfile?.TotalStars ?? 0)</span>
             </div>
+
+            <!-- Streak Fire Flame Counter -->
+            <StreakBadge Size="22" />
 
             <!-- Active Profile Pill -->
             <a href="profile" class="pill kid-profile-pill" title="Change explorer profile">
@@ -316,6 +320,7 @@
             await ProgressService.InitializeAsync();
             await Accessibility.InitializeAsync();
             await SessionTimer.InitializeAsync();
+            await StreakService.InitializeAsync();
         }
         catch
         {

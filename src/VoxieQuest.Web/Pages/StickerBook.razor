@@ -55,7 +55,7 @@
         <div class="stickers-grid">
             @foreach (var sticker in CurrentThemeStickers)
             {
-                var isUnlocked = UserStars >= sticker.RequiredStars;
+                var isUnlocked = UserStars >= sticker.RequiredStars || (ProgressService.ActiveProfile?.Badges.Contains(sticker.Id) == true);
 
                 <div class="sticker-slot @(isUnlocked ? "slot-unlocked" : "slot-locked") @(peeledStickerId == sticker.Id ? "sticker-peeling" : "")"
                      @onclick="() => InspectOrPeelSticker(sticker, isUnlocked)">
@@ -310,7 +310,7 @@
     private StickerItem? selectedSticker;
 
     private int UserStars => ProgressService.ActiveProfile?.TotalStars ?? 0;
-    private int TotalUnlockedCount => AllStickers.Count(s => UserStars >= s.RequiredStars);
+    private int TotalUnlockedCount => AllStickers.Count(s => UserStars >= s.RequiredStars || (ProgressService.ActiveProfile?.Badges.Contains(s.Id) == true));
     private IEnumerable<StickerItem> CurrentThemeStickers => AllStickers.Where(s => s.Theme == activeTheme);
 
     private record StickerItem(
@@ -350,8 +350,12 @@
 
         // Champions Theme
         new("ch_star", "Super Star", "🌟", StickerTheme.Champions, 2, "Awarded to courageous young learners!"),
+        new("streak_3", "3-Day Flame", "🔥", StickerTheme.Champions, 3, "Awarded for keeping a 3-day adventure streak glowing!"),
+        new("streak_7", "Week Champion", "⚡", StickerTheme.Champions, 7, "Awarded for 7 consecutive days of vocal play!"),
+        new("streak_14", "Fortnight Master", "🔮", StickerTheme.Champions, 14, "Awarded for a magnificent 14-day streak!"),
         new("ch_crown", "Explorer Crown", "👑", StickerTheme.Champions, 20, "Worn by champions of speech realms!"),
         new("ch_block", "Word Block", "🧱", StickerTheme.Champions, 25, "Snaps together to build magic words!"),
+        new("streak_30", "Monthly Legend", "🛡️", StickerTheme.Champions, 30, "Awarded for 30 days of learning courage!"),
         new("ch_wand", "Star Wand", "🪄", StickerTheme.Champions, 32, "Sparks with learning wonder!"),
         new("ch_chest", "Treasure Chest", "🪙", StickerTheme.Champions, 45, "Packed with shiny golden learning stars!"),
         new("ch_trophy", "Grand Champion Cup", "🏆", StickerTheme.Champions, 60, "The highest honor in Voxie Quest!")
