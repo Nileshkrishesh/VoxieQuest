@@ -1,215 +1,197 @@
 @namespace VoxieQuest.Web.Components
 @inject IAudioService AudioService
 
-<div class="game-header-bar">
-    <div class="header-main-row">
-        <!-- Big Back Arrow Button -->
-        <button class="pill header-back-pill" @onclick="HandleBackClick" type="button" aria-label="Return to map">
-            <ArrowBackIcon Size="24" />
-            <span class="back-text">Map</span>
-        </button>
+<div class="game-header-single-row">
+    <!-- Big Back Arrow Button -->
+    <button class="pill header-back-btn" @onclick="HandleBackClick" type="button" aria-label="Return to map">
+        <ArrowBackIcon Size="20" />
+        <span class="back-label">Map</span>
+    </button>
 
-        <!-- Game Title Sticker -->
-        <div class="game-title-sticker">
-            <span class="sticker-text">@Title</span>
-        </div>
-
-        <div class="header-right-actions">
-            <!-- Star Counter -->
-            <div class="star-pill-badge" title="Stars collected this quest!">
-                <StarIcon Size="22" FillColor="#FFC93C" />
-                <span class="star-count-num">@Stars</span>
-            </div>
-
-            <!-- Sound Mute Toggle -->
-            <button class="pill header-sound-btn" @onclick="ToggleMute" type="button" aria-label="Toggle Sound">
-                <SpeakerIcon Size="20" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
-            </button>
-
-            @if (OnPause.HasDelegate)
-            {
-                <!-- Pause Button -->
-                <button class="pill header-pause-btn" @onclick="HandlePauseClick" type="button" aria-label="Pause Game">
-                    <PauseIcon Size="20" FillColor="#FFC93C" />
-                </button>
-            }
-        </div>
+    <!-- Game Title Sticker -->
+    <div class="game-title-pill">
+        <span class="title-text">@Title</span>
     </div>
 
-    <!-- 10 Little Seeds Growing into Flowers Stepper -->
-    <div class="stepper-garden-row" role="progressbar" aria-valuenow="@CurrentRound" aria-valuemin="1" aria-valuemax="@TotalRounds">
+    <!-- 10-Seed (or 5-Seed) Sprouting Flowers Stepper: Inline on same row! -->
+    <div class="seeds-garden-track" role="progressbar" aria-valuenow="@CurrentRound" aria-valuemin="1" aria-valuemax="@TotalRounds">
         @for (int r = 1; r <= TotalRounds; r++)
         {
             var isCompleted = r < CurrentRound;
             var isCurrent = r == CurrentRound;
-            <div class="garden-step @(isCompleted ? "bloomed" : (isCurrent ? "sprouting" : "dormant"))" 
-                 title="@(isCompleted ? $"Round {r}: Bloomed Flower!" : (isCurrent ? $"Round {r}: Growing Now" : $"Round {r}: Little Seed"))">
+            <div class="seed-node @(isCompleted ? "bloomed" : (isCurrent ? "sprouting" : "dormant"))" 
+                 title="Round @r">
                 @if (isCompleted)
                 {
-                    <FlowerIcon Size="24" PetalColor="@GetFlowerPetalColor(r)" CenterColor="#FFC93C" Class="bloom-pop-anim" />
+                    <FlowerIcon Size="16" PetalColor="@GetFlowerPetalColor(r)" CenterColor="#FFC93C" />
                 }
                 else if (isCurrent)
                 {
-                    <div class="sprout-pulse-box">
-                        <SleepingSeedIcon Size="24" FillColor="#FFC93C" Class="sprout-glow" />
-                        <span class="step-num-bubble">@r</span>
+                    <div class="sprout-dot">
+                        <span class="sprout-num">@r</span>
                     </div>
                 }
                 else
                 {
-                    <SleepingSeedIcon Size="20" FillColor="#E2E8F0" Class="seed-dim" />
+                    <span class="dormant-dot">•</span>
                 }
             </div>
         }
     </div>
+
+    <!-- Star Counter -->
+    <div class="star-pill-compact" title="Stars collected!">
+        <StarIcon Size="18" FillColor="#FFC93C" />
+        <span class="star-num">@Stars</span>
+    </div>
+
+    <!-- Sound Mute Toggle Button -->
+    <button class="pill header-mute-btn" @onclick="ToggleMute" type="button" aria-label="Toggle Sound">
+        <SpeakerIcon Size="18" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
+    </button>
 </div>
 
 <style>
-    .game-header-bar {
+    .game-header-single-row {
         width: 100%;
         max-width: 960px;
-        margin: 0 auto 0.75rem auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        z-index: 20;
-    }
-
-    .header-main-row {
+        margin: 0 auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.5rem;
-    }
-
-    .header-back-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: var(--color-sunny-yellow);
-        color: var(--color-storybook-ink);
-        border: var(--border-storybook);
-        border-radius: var(--radius-pill);
-        padding: 0.45rem 1.1rem;
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 1.05rem;
-        box-shadow: var(--shadow-hard-sm);
-        cursor: pointer;
-        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease;
-    }
-
-    .header-back-pill:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-hard-md);
-    }
-    .header-back-pill:active {
-        transform: translateY(2px);
-        box-shadow: var(--shadow-hard-pressed);
-    }
-
-    .game-title-sticker {
-        background: var(--color-cloud-white);
-        border: var(--border-storybook);
-        border-radius: var(--radius-sm);
-        padding: 0.4rem 1.25rem;
-        box-shadow: var(--shadow-hard-sm);
-        transform: rotate(-1deg);
-        text-align: center;
-    }
-
-    .sticker-text {
-        font-family: var(--font-heading);
-        font-size: clamp(1.1rem, 1rem + 0.4vw, 1.4rem);
-        font-weight: 700;
-        color: var(--color-storybook-ink);
-    }
-
-    .header-right-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .header-sound-btn, .header-pause-btn {
-        background: var(--color-cloud-white);
-        border: var(--border-storybook);
-        border-radius: var(--radius-pill);
-        padding: 0.45rem 0.65rem;
-        box-shadow: var(--shadow-hard-sm);
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.1s var(--spring-squish);
-    }
-    .header-sound-btn:active, .header-pause-btn:active {
-        transform: translateY(2px);
-        box-shadow: var(--shadow-hard-pressed);
-    }
-
-    /* Stepper garden row: row of 10 seeds to flowers */
-    .stepper-garden-row {
+        gap: clamp(4px, 1vw, 8px);
+        padding: 4px 6px;
         background: var(--color-paper-light);
         border: var(--border-storybook);
         border-radius: var(--radius-pill);
         box-shadow: var(--shadow-hard-sm);
-        padding: 0.4rem 0.8rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        gap: 0.25rem;
+        z-index: 50;
+        box-sizing: border-box;
+        overflow: hidden;
+        min-height: 48px;
     }
 
-    .garden-step {
+    .header-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: var(--color-sunny-yellow);
+        color: var(--color-storybook-ink);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 4px 8px;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        touch-action: manipulation;
+    }
+
+    .game-title-pill {
+        background: var(--color-cloud-white);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 3px 8px;
+        text-align: center;
+        flex-shrink: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .title-text {
+        font-family: var(--font-heading);
+        font-size: clamp(0.78rem, 0.72rem + 0.3vw, 1.05rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    /* Compact 10-Seed / Sprouting Stepper */
+    .seeds-garden-track {
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
+        gap: 2px;
+        flex-shrink: 0;
+        padding: 0 4px;
     }
 
-    .sprout-pulse-box {
-        position: relative;
+    .seed-node {
         display: flex;
         align-items: center;
         justify-content: center;
-        animation: gentle-wobble 2s infinite ease-in-out;
+        width: 18px;
+        height: 18px;
     }
 
-    .step-num-bubble {
-        position: absolute;
-        bottom: -2px;
-        right: -4px;
-        background: var(--color-storybook-ink);
-        color: #FFFFFF;
+    .sprout-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--color-sunny-yellow);
+        border: 1.5px solid var(--color-storybook-ink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: sprout-pulse 1.4s infinite alternate;
+    }
+
+    .sprout-num {
         font-family: var(--font-heading);
         font-size: 0.65rem;
         font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .dormant-dot {
+        font-size: 0.85rem;
+        color: #94A3B8;
+        line-height: 1;
+    }
+
+    .star-pill-compact {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: var(--color-bg-warmth);
+        border: 2px solid var(--color-storybook-ink);
         border-radius: var(--radius-pill);
-        width: 15px;
-        height: 15px;
+        padding: 3px 7px;
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .header-mute-btn {
+        background: var(--color-cloud-white);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
     }
 
-    .bloom-pop-anim {
-        animation: flower-bloom 0.4s var(--spring-squish) forwards;
+    @@keyframes sprout-pulse {
+        0% { transform: scale(0.9); }
+        100% { transform: scale(1.15); }
     }
 
-    .seed-dim {
-        opacity: 0.5;
-    }
-
-    @@keyframes flower-bloom {
-        0% { transform: scale(0.4) rotate(-20deg); }
-        80% { transform: scale(1.25) rotate(10deg); }
-        100% { transform: scale(1) rotate(0deg); }
-    }
-
-    @@keyframes gentle-wobble {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.12); }
+    @@media (max-width: 360px) {
+        .back-label {
+            display: none;
+        }
+        .game-header-single-row {
+            padding: 3px 4px;
+            gap: 3px;
+        }
+        .seeds-garden-track {
+            gap: 1px;
+        }
     }
 </style>
 
@@ -219,7 +201,6 @@
     [Parameter] public int TotalRounds { get; set; } = 10;
     [Parameter] public int Stars { get; set; } = 0;
     [Parameter] public EventCallback OnBack { get; set; }
-    [Parameter] public EventCallback OnPause { get; set; }
 
     private string GetFlowerPetalColor(int round) => (round % 4) switch
     {
@@ -235,15 +216,6 @@
         if (OnBack.HasDelegate)
         {
             await OnBack.InvokeAsync();
-        }
-    }
-
-    private async Task HandlePauseClick()
-    {
-        await AudioService.PlaySoundAsync(SoundEffect.Click);
-        if (OnPause.HasDelegate)
-        {
-            await OnPause.InvokeAsync();
         }
     }
 

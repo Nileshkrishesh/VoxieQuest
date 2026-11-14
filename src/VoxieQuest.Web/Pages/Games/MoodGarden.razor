@@ -3,377 +3,263 @@
 @page "/games/mood-garden"
 @inherits BaseGameComponent
 
-<div class="game-viewport">
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="5"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Hills"
+           ThemeClass="mood-garden-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Let's take 3 gentle breaths together!")"
+           HintText="Breathe with the glowing ring or hum 'Hooommm'!"
+           ShowHint="@(!isCalmed)"
+           MascotMood="@(isCalmed ? Mascot.MascotState.Happy : Mascot.MascotState.Idle)"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@GetMicButtonState()"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@(new List<string> { "Deep Breath In", "Gentle Breath Out", "Hummmm" })"
+           ShowSuccessBurst="@isCalmed"
+           IsRewardOpen="@(CurrentRound >= 5 && isCalmed)"
+           StarsEarned="3"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="HandlePracticeChoice"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="AdvanceToNextFriend"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Top HUD: Round 1 to 5 Progress Bar & Star Counter -->
-    <div class="storybook-card game-hud-card">
-        <div class="hud-top-row">
-            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
-                <span>◀ Map</span>
-            </button>
-            <h3 class="hud-game-title">
-                🌸 @GameTitle
-            </h3>
-            <div class="star-badge hud-star-badge">
-                <span>⭐</span>
-                <span>@SessionStars</span>
-            </div>
-        </div>
+    <SceneContent>
+        <!-- Picture-Book Weather Canopy and Baby Animal Sanctuary Scene -->
+        <div class="mood-stage-scene">
+            <svg class="mood-svg-viewport" viewBox="0 0 540 260" preserveAspectRatio="xMidYMid meet">
+                <!-- Sky & Grassy Meadow Backdrop -->
+                <rect x="0" y="0" width="540" height="260" rx="16" fill="@(isCalmed ? "#FEF9C3" : "#E2E8F0")" />
+                <path d="M0 170 Q 135 155 270 170 T 540 170 V 260 H 0 Z" fill="#7ED9A8" stroke="#2B2D42" stroke-width="2.5" />
+                <path d="M0 195 Q 135 185 270 195 T 540 195 V 260 H 0 Z" fill="#65A30D" opacity="0.4" />
 
-        <!-- 5 Gentle Rounds Indicator -->
-        <div class="round-stepper">
-            @for (int r = 1; r <= 5; r++)
-            {
-                var isCompleted = r < CurrentRound;
-                var isCurrent = r == CurrentRound;
-                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Sanctuary Friend @r">
-                    @(isCompleted ? "★" : r.ToString())
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Main Visual Stage: Sanctuary Meadow & Weather -->
-    <div class="storybook-card sanctuary-arena">
-        <!-- Weather Canopy Layer -->
-        <div class="weather-canopy @(isCalmed ? "weather-sunny" : "weather-stormy")">
-            @if (!isCalmed)
-            {
-                <div class="storm-cloud-anim">
-                    <span class="cloud-emoji">☁️</span>
-                    <span class="rain-drops">💧 💧 💧</span>
-                </div>
-                <div class="weather-label">
-                    <span>@CurrentCreature.StormText</span>
-                </div>
-            }
-            else
-            {
-                <div class="sunbeam-radiance">
-                    <span class="sun-emoji">☀️</span>
-                    <span class="rainbow-arc">🌈</span>
-                </div>
-                <div class="weather-label weather-peaceful">
-                    <span>Peaceful &amp; Sunny!</span>
-                </div>
-            }
-        </div>
-
-        <!-- Sanctuary Creature Stage -->
-        <div class="creature-nest">
-            <div class="nest-cushion">
-                <span class="creature-avatar @(isCalmed ? "creature-sleeping" : "creature-shivering")">
-                    @CurrentCreature.Emoji
-                </span>
-                @if (isCalmed)
+                <!-- Weather Canopy Layer -->
+                @if (!isCalmed)
                 {
-                    <span class="creature-zzz">💤</span>
+                    <!-- Soft Fluffy Raincloud & Falling Raindrops -->
+                    <g transform="translate(270, 50)" class="cloud-hover-anim">
+                        <!-- Cloud Shapes -->
+                        <path d="M-60,20 C-75,20 -85,5 -75,-10 C-75,-25 -55,-35 -35,-25 C-20,-45 15,-45 30,-25 C50,-35 70,-20 70,-5 C85,5 75,20 60,20 Z" 
+                              fill="#94A3B8" stroke="#2B2D42" stroke-width="3" />
+                        <!-- Raindrops falling -->
+                        <g class="rain-petals-anim">
+                            <line x1="-35" y1="30" x2="-40" y2="48" stroke="#5BC0EB" stroke-width="3" stroke-linecap="round" />
+                            <line x1="-10" y1="35" x2="-15" y2="53" stroke="#5BC0EB" stroke-width="3" stroke-linecap="round" />
+                            <line x1="15" y1="30" x2="10" y2="48" stroke="#5BC0EB" stroke-width="3" stroke-linecap="round" />
+                            <line x1="40" y1="35" x2="35" y2="53" stroke="#5BC0EB" stroke-width="3" stroke-linecap="round" />
+                        </g>
+                    </g>
                 }
-            </div>
+                else
+                {
+                    <!-- Smiling Morning Sun & Falling Flower Petals -->
+                    <g transform="translate(270, 55)" class="sun-bloom-anim">
+                        <!-- Sunbeams -->
+                        @for (int i = 0; i < 8; i++)
+                        {
+                            var angle = i * 45;
+                            <line x1="0" y1="0" x2="0" y2="-42" stroke="#FF9F43" stroke-width="4" stroke-linecap="round" transform="rotate(@angle)" />
+                        }
+                        <!-- Sun Core -->
+                        <circle cx="0" cy="0" r="28" fill="#FFC93C" stroke="#2B2D42" stroke-width="3" />
+                        <!-- Smiling Face -->
+                        <circle cx="-9" cy="-4" r="3" fill="#2B2D42" />
+                        <circle cx="9" cy="-4" r="3" fill="#2B2D42" />
+                        <path d="M-9,8 Q0,18 9,8" stroke="#2B2D42" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                        <!-- Rosy cheeks -->
+                        <circle cx="-16" cy="4" r="4" fill="#FF6B6B" opacity="0.6" />
+                        <circle cx="16" cy="4" r="4" fill="#FF6B6B" opacity="0.6" />
 
-            <div class="creature-story-tag">
-                <h4 class="creature-name">@CurrentCreature.Name</h4>
-                <p class="creature-feeling">
-                    @(isCalmed ? CurrentCreature.CalmText : CurrentCreature.AgitatedText)
-                </p>
-            </div>
+                        <!-- Falling Gentle Petals -->
+                        <g class="petal-drift-anim">
+                            <circle cx="-60" cy="40" r="4" fill="#FF6B6B" />
+                            <circle cx="60" cy="45" r="4" fill="#7ED9A8" />
+                            <circle cx="-80" cy="80" r="5" fill="#FFC93C" />
+                            <circle cx="80" cy="75" r="5" fill="#FF6B6B" />
+                        </g>
+                    </g>
+                }
+
+                <!-- Mossy Log Sanctuary Nest -->
+                <g transform="translate(270, 180)">
+                    <!-- Log Body -->
+                    <rect x="-80" y="0" width="160" height="28" rx="14" fill="#78350F" stroke="#2B2D42" stroke-width="3" />
+                    <!-- Green Moss Patch on Log -->
+                    <path d="M-60,0 Q-40,-8 -20,0 Q0,-8 20,0 Q40,-8 60,0" stroke="#7ED9A8" stroke-width="5" fill="none" />
+
+                    <!-- Baby Animal Resting on Log -->
+                    <g transform="translate(0, -18)" class="@(isCalmed ? "animal-stretch-anim" : "animal-shiver-anim")">
+                        <!-- Animal Body (Curled Fox Cub / Hedgehog) -->
+                        <ellipse cx="0" cy="0" rx="34" ry="22" fill="@(isCalmed ? "#FF9F43" : "#CBD5E1")" stroke="#2B2D42" stroke-width="3" />
+                        <!-- Animal Head -->
+                        <circle cx="20" cy="-6" r="16" fill="@(isCalmed ? "#FF9F43" : "#CBD5E1")" stroke="#2B2D42" stroke-width="2.5" />
+                        <!-- Ears -->
+                        <polygon points="14,-22 22,-32 26,-20" fill="#FF6B6B" stroke="#2B2D42" stroke-width="2" />
+                        <!-- Sleeping or Smiling Eyes -->
+                        @if (isCalmed)
+                        {
+                            <path d="M16,-6 Q22,-2 28,-6" stroke="#2B2D42" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <!-- Little nose -->
+                            <circle cx="32" cy="-4" r="3" fill="#2B2D42" />
+                        }
+                        else
+                        {
+                            <!-- Sleeping closed eyes -->
+                            <path d="M16,-6 Q22,-10 28,-6" stroke="#2B2D42" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                            <circle cx="32" cy="-4" r="2.5" fill="#2B2D42" />
+                        }
+                    </g>
+
+                    <!-- Botanical Flower Blooming beside Log when Calmed -->
+                    @if (isCalmed)
+                    {
+                        <g transform="translate(95, -10)" class="bloom-pop-anim">
+                            <line x1="0" y1="20" x2="0" y2="0" stroke="#16A34A" stroke-width="3.5" stroke-linecap="round" />
+                            <path d="M0,10 Q8,4 12,10" stroke="#16A34A" stroke-width="2.5" fill="none" />
+                            <!-- Flower Petals -->
+                            <circle cx="-7" cy="0" r="8" fill="#FF6B6B" />
+                            <circle cx="7" cy="0" r="8" fill="#FF6B6B" />
+                            <circle cx="0" cy="-7" r="8" fill="#FF6B6B" />
+                            <circle cx="0" cy="7" r="8" fill="#FF6B6B" />
+                            <circle cx="0" cy="0" r="6" fill="#FFC93C" stroke="#2B2D42" stroke-width="1.5" />
+                        </g>
+                    }
+                </g>
+            </svg>
         </div>
+    </SceneContent>
 
-        <!-- Blooming Botanical Gift upon Calming -->
-        @if (isCalmed)
-        {
-            <div class="bloom-celebration">
-                <span class="blooming-flower">@CurrentCreature.BloomFlower</span>
-                <span class="bloom-name">@CurrentCreature.FlowerName Bloomed!</span>
-            </div>
-        }
-    </div>
-
-    <!-- Somatic Breathing Guide Orb -->
-    @if (!isCalmed)
-    {
-        <div class="storybook-card breathing-orb-card">
-            <div class="breathing-prompt">
-                <span class="breath-instruction">@breathPhaseText</span>
-                <span class="breath-subtext">Hold your finger down or hum gently!</span>
+    <QuestionExtraContent>
+        <!-- Somatic Lotus Breathing Guide & Pacing Controls -->
+        <div class="breathing-guide-card">
+            <div class="breathing-prompt-row">
+                <LotusIcon Size="28" />
+                <span class="breathing-phase-text">@breathPhaseText</span>
             </div>
 
-            <!-- Pulsing Breathing Ring -->
-            <div class="breathing-ring-wrapper" 
+            <!-- Glowing Lotus Breathing Circle -->
+            <div class="breathing-circle-touch" 
                  @onpointerdown="StartBreathingIn" 
                  @onpointerup="StartBreathingOut" 
                  @onpointerleave="StartBreathingOut">
-                
-                <div class="breathing-circle-outer @(isInhaling ? "expanding-inhale" : "contracting-exhale")">
-                    <div class="breathing-circle-inner">
-                        <span class="breath-icon">@(isInhaling ? "🫁" : "✨")</span>
-                    </div>
+                <div class="lotus-glow-orb @(isInhaling ? "lotus-expand" : "lotus-contract")">
+                    <LotusIcon Size="36" />
                 </div>
             </div>
 
-            <!-- 3 Calming Breaths Progress Meter -->
-            <div class="breath-meter-row">
-                <span>Calming Breaths:</span>
-                <div class="breath-dots">
-                    @for (int b = 1; b <= 3; b++)
-                    {
-                        var filled = b <= breathCyclesCompleted;
-                        <span class="breath-dot @(filled ? "dot-filled" : "")">
-                            @(filled ? "●" : "○")
-                        </span>
-                    }
-                </div>
+            <!-- 3 Calming Breaths Indicator -->
+            <div class="calming-dots-row">
+                <span class="dots-label">Gentle Breaths:</span>
+                @for (int b = 1; b <= 3; b++)
+                {
+                    var filled = b <= breathCyclesCompleted;
+                    <span class="calm-dot @(filled ? "dot-bloomed" : "dot-sleeping")">
+                        @if (filled)
+                        {
+                            <FlowerIcon Size="18" PetalColor="#7ED9A8" CenterColor="#FFC93C" />
+                        }
+                        else
+                        {
+                            <SleepingSeedIcon Size="16" FillColor="#94A3B8" />
+                        }
+                    </span>
+                }
             </div>
 
-            <!-- Easy Tap Alternative -->
-            <button class="storybook-btn breathe-tap-btn" type="button" @onclick="HandleManualBreathCycle">
-                <span>🌬️ Take a Breath Together (@breathCyclesCompleted/3)</span>
-            </button>
+            <div class="breathing-action-buttons">
+                @if (!isCalmed)
+                {
+                    <button class="pill breath-button" type="button" @onclick="HandleManualBreathCycle">
+                        <LotusIcon Size="18" />
+                        <span>Breathe In &amp; Out (@breathCyclesCompleted/3)</span>
+                    </button>
+                }
+                else if (CurrentRound < 5)
+                {
+                    <button class="pill next-friend-pill" type="button" @onclick="AdvanceToNextFriend">
+                        <FlowerIcon Size="18" PetalColor="#FFC93C" CenterColor="#FF9F43" />
+                        <span>Next Sanctuary Friend ➔</span>
+                    </button>
+                }
+            </div>
         </div>
-    }
-    else
-    {
-        <!-- Next Friend Action -->
-        <div class="next-friend-row">
-            <button class="storybook-btn next-friend-btn" type="button" @onclick="AdvanceToNextFriend">
-                <span>🌸 Help Next Sanctuary Friend ➔</span>
-            </button>
-        </div>
-    }
-</div>
+    </QuestionExtraContent>
+</GameShell>
 
 <style>
-    .game-viewport {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: clamp(0.75rem, 2vw, 1.25rem);
-        max-width: 640px;
+    .mood-stage-scene {
+        width: 100%;
+        max-width: 600px;
         margin: 0 auto;
-        padding-bottom: 2rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .game-hud-card {
-        width: 100%;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .hud-top-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .hud-game-title {
-        font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 3.2vw, 1.6rem);
-        margin: 0;
-        color: var(--color-storybook-ink);
-    }
-
-    .round-stepper {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .round-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 2px solid var(--color-storybook-ink);
-        background: white;
-        display: flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.85rem;
     }
 
-    .round-dot.completed {
-        background: var(--color-sunny-yellow);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.current {
-        background: var(--color-mint);
-        color: white;
-        transform: scale(1.15);
-    }
-
-    /* Sanctuary Arena */
-    .sanctuary-arena {
+    .mood-svg-viewport {
         width: 100%;
-        background: linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 100%);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-lg);
-        min-height: 240px;
+        height: auto;
+        max-height: 250px;
+        border-radius: var(--radius-lg);
+        border: var(--border-storybook);
+        box-shadow: var(--shadow-hard-md);
+    }
+
+    .cloud-hover-anim {
+        animation: cloud-hover 3s infinite ease-in-out alternate;
+    }
+
+    .rain-petals-anim {
+        animation: rain-fall 0.8s infinite linear;
+    }
+
+    .sun-bloom-anim {
+        animation: sun-spin 8s infinite linear;
+    }
+
+    .animal-shiver-anim {
+        animation: shiver 0.8s infinite ease-in-out;
+    }
+
+    .animal-stretch-anim {
+        animation: breathe-stretch 3s infinite ease-in-out alternate;
+    }
+
+    .bloom-pop-anim {
+        animation: flower-grow 0.6s var(--spring-squish) forwards;
+    }
+
+    /* Breathing Guide Area */
+    .breathing-guide-card {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.25rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .weather-canopy {
-        text-align: center;
-        transition: all 0.6s ease;
-    }
-
-    .cloud-emoji {
-        font-size: 3.5rem;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
-        animation: cloud-hover 3s ease-in-out infinite alternate;
-        display: block;
-    }
-
-    .rain-drops {
-        font-size: 1.2rem;
-        letter-spacing: 0.3em;
-        animation: rain-fall 1s infinite linear;
-        display: block;
-    }
-
-    .sunbeam-radiance {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        font-size: 3.5rem;
-        animation: sun-pop 0.7s var(--spring-bounce);
-    }
-
-    .weather-label {
-        font-family: var(--font-heading);
-        font-size: 1rem;
-        font-weight: 800;
-        color: #475569;
-        margin-top: 0.25rem;
-    }
-
-    .weather-peaceful {
-        color: #15803D;
-    }
-
-    /* Creature Nest */
-    .creature-nest {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 0.5rem;
-    }
-
-    .nest-cushion {
-        width: 110px;
-        height: 80px;
-        background: #FEF08A;
-        border: 3px solid var(--color-storybook-ink);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        box-shadow: 0 4px 0 var(--color-storybook-ink);
-    }
-
-    .creature-avatar {
-        font-size: 3.8rem;
-        line-height: 1;
-    }
-
-    .creature-shivering {
-        animation: creature-tremble 0.6s infinite ease-in-out;
-    }
-
-    .creature-sleeping {
-        animation: creature-breath 2s infinite ease-in-out;
-    }
-
-    .creature-zzz {
-        position: absolute;
-        top: -15px;
-        right: -10px;
-        font-size: 1.6rem;
-        animation: float-zzz 1.5s infinite linear;
-    }
-
-    .creature-story-tag {
-        text-align: center;
-        margin-top: 0.5rem;
-    }
-
-    .creature-name {
-        margin: 0;
-        font-family: var(--font-heading);
-        font-size: 1.2rem;
-        color: var(--color-storybook-ink);
-    }
-
-    .creature-feeling {
-        margin: 0.2rem 0 0 0;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #64748B;
-    }
-
-    .bloom-celebration {
-        margin-top: 0.5rem;
-        display: flex;
         align-items: center;
         gap: 0.4rem;
-        background: white;
-        padding: 0.35rem 0.85rem;
-        border-radius: var(--border-radius-pill);
-        border: 2px solid var(--color-storybook-ink);
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
-        animation: scale-bloom 0.5s var(--spring-bounce);
+        margin-top: 0.4rem;
     }
 
-    .blooming-flower {
-        font-size: 1.5rem;
+    .breathing-prompt-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .bloom-name {
+    .breathing-phase-text {
         font-family: var(--font-heading);
-        font-weight: 800;
-        font-size: 0.95rem;
-        color: var(--color-storybook-ink);
-    }
-
-    /* Breathing Orb */
-    .breathing-orb-card {
-        width: 100%;
-        text-align: center;
-        padding: 1.25rem;
-        background: #FFFFFF;
-    }
-
-    .breath-instruction {
-        font-family: var(--font-heading);
-        font-size: 1.35rem;
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        display: block;
-    }
-
-    .breath-subtext {
-        font-size: 0.85rem;
-        color: #64748B;
+        font-size: 1.15rem;
         font-weight: 700;
-        display: block;
-        margin-top: 0.2rem;
+        color: var(--color-storybook-ink);
     }
 
-    .breathing-ring-wrapper {
-        margin: 1.2rem auto;
-        width: 140px;
-        height: 140px;
+    .breathing-circle-touch {
+        width: 76px;
+        height: 76px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -381,120 +267,99 @@
         touch-action: manipulation;
     }
 
-    .breathing-circle-outer {
-        width: 120px;
-        height: 120px;
+    .lotus-glow-orb {
+        width: 68px;
+        height: 68px;
         border-radius: 50%;
-        background: #BAE6FD;
-        border: 4px solid #0284C7;
+        background: #DCFCE7;
+        border: 3px solid #16A34A;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 4s ease-in-out, background-color 4s ease-in-out;
+        transition: transform 3.5s ease-in-out, background-color 3.5s ease-in-out;
+        box-shadow: 0 0 12px rgba(126, 217, 168, 0.5);
     }
 
-    .breathing-circle-outer.expanding-inhale {
-        transform: scale(1.35);
-        background: #A7F3D0;
-        border-color: #059669;
-    }
-
-    .breathing-circle-outer.contracting-exhale {
-        transform: scale(0.85);
+    .lotus-glow-orb.lotus-expand {
+        transform: scale(1.28);
         background: #FEF08A;
         border-color: #D97706;
     }
 
-    .breathing-circle-inner {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: white;
-        border: 2px solid var(--color-storybook-ink);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .lotus-glow-orb.lotus-contract {
+        transform: scale(0.92);
+        background: #DCFCE7;
+        border-color: #16A34A;
     }
 
-    .breath-icon {
-        font-size: 1.8rem;
+    .calming-dots-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .breath-meter-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.6rem;
+    .dots-label {
         font-family: var(--font-heading);
         font-size: 0.95rem;
-        font-weight: 800;
-        color: #475569;
-        margin-bottom: 0.85rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
     }
 
-    .breath-dots {
-        display: flex;
-        gap: 0.35rem;
-        font-size: 1.2rem;
-    }
-
-    .dot-filled {
-        color: var(--color-mint);
-    }
-
-    .breathe-tap-btn {
-        width: 100%;
+    .breath-button {
         background: var(--color-sunny-yellow);
-        font-size: 1.05rem !important;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 0.85rem;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
-    .next-friend-row {
-        width: 100%;
-    }
-
-    .next-friend-btn {
-        width: 100%;
+    .next-friend-pill {
         background: var(--color-mint);
-        color: white;
-        font-size: 1.15rem !important;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 0.95rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     @@keyframes cloud-hover {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-8px); }
+        0% { transform: translate(270px, 50px); }
+        100% { transform: translate(270px, 42px); }
     }
 
     @@keyframes rain-fall {
-        0% { opacity: 0.4; }
-        50% { opacity: 1; }
-        100% { opacity: 0.4; }
+        0% { opacity: 0.3; transform: translateY(-4px); }
+        100% { opacity: 1; transform: translateY(4px); }
     }
 
-    @@keyframes creature-tremble {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-3px); }
-        75% { transform: translateX(3px); }
+    @@keyframes shiver {
+        0%, 100% { transform: translate(0, -18px) rotate(0); }
+        50% { transform: translate(0, -18px) rotate(1.5deg); }
     }
 
-    @@keyframes creature-breath {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.06, 0.94); }
+    @@keyframes breathe-stretch {
+        0% { transform: translate(0, -18px) scale(1); }
+        100% { transform: translate(0, -18px) scale(1.06, 0.96); }
     }
 
-    @@keyframes float-zzz {
-        0% { transform: translateY(0) scale(0.8); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: translateY(-20px) scale(1.2); opacity: 0; }
-    }
-
-    @@keyframes sun-pop {
-        0% { transform: scale(0.3); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    @@keyframes scale-bloom {
-        0% { transform: scale(0.5); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+    @@keyframes flower-grow {
+        0% { transform: translate(95px, 10px) scale(0.2); opacity: 0; }
+        100% { transform: translate(95px, -10px) scale(1); opacity: 1; }
     }
 </style>
 
@@ -505,17 +370,17 @@
     private bool isInhaling = false;
     private bool isCalmed = false;
     private int breathCyclesCompleted = 0;
-    private string breathPhaseText = "Hold finger down to breathe in...";
+    private string breathPhaseText = "Hold the circle to breathe in...";
 
-    private record SanctuaryFriend(string Name, string Emoji, string StormText, string AgitatedText, string CalmText, string BloomFlower, string FlowerName);
+    private record SanctuaryFriend(string Name, string StormText, string AgitatedText, string CalmText, string FlowerName);
 
     private static readonly SanctuaryFriend[] SanctuaryFriends = new[]
     {
-        new SanctuaryFriend("Pip the Hedgehog", "🦔", "A prickly storm cloud is rumbling above!", "Pip feels overwhelmed and curled into a tight ball.", "Pip uncurls happily and rests in the sun!", "🌸", "Starlight Blossom"),
-        new SanctuaryFriend("Luna the Little Fawn", "🦌", "A chilly fog is drifting through the trees!", "Luna is startled by the thunder and shivering.", "Luna snuggles peacefully in the warm moss.", "🌼", "Golden Daisy"),
-        new SanctuaryFriend("Bramble the Bear Cub", "🐻", "A heavy rain cloud is pouring down!", "Bramble is feeling restless and grumpy.", "Bramble yawns softly and drifts into a sweet nap.", "🌺", "Calm Heather"),
-        new SanctuaryFriend("Willow the Songbird", "🐦", "Windy gusts are tossing the branches!", "Willow's wings are tired and fluttery.", "Willow perches safely and sings a gentle lullaby.", "🌻", "Sunbeam Bloom"),
-        new SanctuaryFriend("Nova the Baby Fox", "🦊", "A gray mist is hiding the forest trail!", "Nova is feeling lost and nervous.", "Nova wags his tail and rests beside Voxie.", "🌷", "Kindness Tulip")
+        new SanctuaryFriend("Pip the Hedgehog", "A prickly storm cloud is rumbling above!", "Pip feels overwhelmed and curled into a tight ball.", "Pip uncurls happily and rests in the warm sun!", "Starlight Blossom"),
+        new SanctuaryFriend("Luna the Little Fawn", "A chilly fog is drifting through the trees!", "Luna is startled by the wind and shivering.", "Luna snuggles peacefully in the warm moss.", "Golden Daisy"),
+        new SanctuaryFriend("Bramble the Bear Cub", "A heavy rain cloud is pouring down!", "Bramble is feeling restless and grumpy.", "Bramble yawns softly and drifts into a sweet nap.", "Calm Heather"),
+        new SanctuaryFriend("Willow the Songbird", "Windy gusts are tossing the branches!", "Willow's wings are tired and fluttery.", "Willow perches safely and sings a gentle lullaby.", "Sunbeam Bloom"),
+        new SanctuaryFriend("Nova the Baby Fox", "A gray mist is hiding the forest trail!", "Nova is feeling lost and nervous.", "Nova wags his tail and rests beside Voxie.", "Kindness Tulip")
     };
 
     private SanctuaryFriend CurrentCreature => SanctuaryFriends[Math.Min(CurrentRound - 1, SanctuaryFriends.Length - 1)];
@@ -524,17 +389,17 @@
     {
         isCalmed = false;
         breathCyclesCompleted = 0;
-        breathPhaseText = "Hold finger down to breathe in...";
+        breathPhaseText = "Hold the circle to breathe in...";
 
         var challenge = new GameChallenge
         {
             Category = GameCategory,
             Difficulty = difficulty,
-            Prompt = $"Let's take 3 deep breaths to help {CurrentCreature.Name} feel calm and peaceful.",
+            Prompt = $"Let's take 3 gentle breaths to help {CurrentCreature.Name} feel calm and peaceful.",
             TargetAnswer = "calm",
-            AcceptedAnswers = new() { "calm", "peace", "relax", "breathe", "sun", "happy", "gentle" },
-            Hint = "Hold the breathing circle as it expands, then release gently.",
-            DisplayItem = CurrentCreature.Emoji,
+            AcceptedAnswers = new() { "calm", "peace", "relax", "breathe", "sun", "happy", "gentle", "hooommm" },
+            Hint = "Hold the lotus as it glows, then release gently.",
+            DisplayItem = CurrentCreature.FlowerName,
             RewardStars = 2
         };
 
@@ -570,7 +435,7 @@
         isInhaling = true;
         breathPhaseText = "Breathe in gently...";
         StateHasChanged();
-        await Task.Delay(1200);
+        await Task.Delay(1000);
 
         isInhaling = false;
         breathPhaseText = "Breathe out slowly...";
@@ -589,7 +454,6 @@
         isCalmed = true;
         await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
 
-        // Record progress in extended botanical garden
         if (ProgressService.ActiveProfile != null)
         {
             ProgressService.ActiveProfile.NourishGardenSkill(
@@ -609,14 +473,30 @@
         {
             isCalmed = false;
             breathCyclesCompleted = 0;
-            breathPhaseText = "Hold finger down to breathe in...";
+            breathPhaseText = "Hold the circle to breathe in...";
             await SkipRoundAsync();
         }
         else
         {
-            // Completed 5 sanctuary rounds!
             await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
             await ReturnToMapAsync();
         }
+    }
+
+    private async Task HandlePracticeChoice(string choice)
+    {
+        await HandleManualBreathCycle();
+    }
+
+    private MicButton.MicState GetMicButtonState()
+    {
+        if (isCalmed) return MicButton.MicState.Done;
+        if (VoiceManager.IsListening) return MicButton.MicState.Listening;
+        return MicButton.MicState.Ready;
+    }
+
+    private void SwitchToPracticeMode()
+    {
+        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
     }
 }

@@ -5,55 +5,60 @@
 @inject IAudioService AudioService
 
 <div class="classroom-hub-container">
-    <!-- Header Hero -->
-    <div class="storybook-card classroom-hero">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-            <div>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                    <span style="font-size:2rem;">🏫</span>
-                    <h2 style="font-size:2rem; margin:0; color:var(--color-sunny-yellow);">
-                        Classroom &amp; Group Pods
-                    </h2>
+    <!-- Header Hero Card -->
+    <div class="storybook-card classroom-hero-card">
+        <div class="hero-header-flex">
+            <div class="hero-title-group">
+                <div class="hero-icon-title">
+                    <HouseIcon Size="40" RoofColor="#5BC0EB" WallColor="#FFF8E7" DoorColor="#FFC93C" />
+                    <h2 class="hero-main-title">Classroom Adventure</h2>
                 </div>
-                <p style="font-size:1.05rem; margin:0; opacity:0.95;">
-                    Private group learning with zero accounts, zero student emails, and mnemonic room codes.
+                <p class="hero-description">
+                    Play together with your class! Safe, private fun with zero passwords and zero emails.
                 </p>
             </div>
-            <a href="" class="pill" style="background:white; color:var(--color-storybook-ink); font-weight:800; text-decoration:none;">
-                <span>◀ Back to Home</span>
+            <a href="" class="pill hero-back-pill" title="Return to home">
+                <ArrowBackIcon Size="20" />
+                <span>Home</span>
             </a>
         </div>
     </div>
 
     <!-- Student Quick-Join Portal (Top for Easy Child Access) -->
     <div class="storybook-card student-join-card">
-        <div style="text-align:center; max-width:480px; margin:0 auto;">
-            <span style="font-size:2.8rem; display:block; margin-bottom:0.35rem;">🎒</span>
-            <h3 style="font-size:1.6rem; margin:0 0 0.35rem 0;">Student Room Code</h3>
-            <p style="font-size:0.95rem; color:#475569; margin-bottom:1rem;">
-                Type the 6-letter room code on your teacher's board to join your team!
+        <div class="student-join-inner">
+            <div class="backpack-icon-wrap">
+                <BackpackIcon Size="56" />
+            </div>
+            <h3 class="join-heading">Team Room Code</h3>
+            <p class="join-instructions">
+                Type the code from your teacher's board to join your class adventure!
             </p>
 
-            <div class="code-entry-box">
+            <div class="code-entry-row">
                 <input type="text" 
-                       class="room-code-input" 
-                       placeholder="e.g. OAK-742" 
+                       class="classroom-code-input" 
+                       placeholder="OAK-742" 
                        maxlength="10" 
                        @bind="studentInputCode" 
-                       @bind:event="oninput" />
+                       @bind:event="oninput" 
+                       aria-label="Enter Classroom Code" />
 
-                <button class="storybook-btn join-btn" 
-                        type="button" 
-                        disabled="@string.IsNullOrWhiteSpace(studentInputCode)"
-                        @onclick="HandleStudentJoin">
-                    🚀 Join Team
-                </button>
+                <div class="join-btn-wrap">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                                  Text="Join Team" 
+                                  Disabled="@string.IsNullOrWhiteSpace(studentInputCode)"
+                                  OnClick="HandleStudentJoin">
+                        <IconTemplate><NextIcon Size="22" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
 
             @if (!string.IsNullOrEmpty(joinErrorMessage))
             {
-                <div class="join-error-pill">
-                    <span>⚠️ @joinErrorMessage</span>
+                <div class="join-error-pill animate-pop">
+                    <CrossIcon Size="20" BgColor="#FF6B6B" BorderColor="#2B2D42" CrossColor="#FFF8E7" />
+                    <span>@joinErrorMessage</span>
                 </div>
             }
         </div>
@@ -61,21 +66,24 @@
 
     <!-- Teacher Station Management Section -->
     <div class="storybook-card teacher-station-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+        <div class="teacher-header-row">
             <div>
-                <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem;">
-                    <span>👩‍🏫</span> Teacher Station &amp; Room Creator
+                <h3 class="teacher-title">
+                    <FoxieFaceIcon Size="32" />
+                    <span>Teacher Station &amp; Room Creator</span>
                 </h3>
-                <p style="margin:0; font-size:0.92rem; color:#64748B;">
-                    Generate an ephemeral session pod. All student state is in-memory and auto-destructs after 60 minutes.
+                <p class="teacher-subtitle">
+                    Start a class adventure! Code stays active while your class is playing.
                 </p>
             </div>
 
             @if (activeTeacherRoom == null)
             {
-                <button class="storybook-btn create-pod-btn" type="button" @onclick="CreateNewClassroomPod">
-                    ✨ Create New Class Pod
-                </button>
+                <BouncyButton Variant="BouncyButton.ButtonVariant.Mint" 
+                              Text="Start Class Adventure" 
+                              OnClick="CreateNewClassroomPod">
+                    <IconTemplate><StarIcon Size="22" FillColor="#FFC93C" /></IconTemplate>
+                </BouncyButton>
             }
         </div>
 
@@ -89,26 +97,27 @@
                 </div>
 
                 <div class="pod-meta-info">
-                    <div><strong>Curriculum Focus:</strong> @activeTeacherRoom.ScenarioName</div>
-                    <div><strong>Target Game:</strong> @activeTeacherRoom.TargetGameTitle</div>
-                    <div><strong>Connected Stations:</strong> @activeTeacherRoom.ConnectedStations.Count Pairs</div>
+                    <div><strong>Today's Adventure:</strong> @activeTeacherRoom.ScenarioName</div>
+                    <div><strong>Game:</strong> @activeTeacherRoom.TargetGameTitle</div>
+                    <div><strong>Teams Playing:</strong> @activeTeacherRoom.ConnectedStations.Count Teams</div>
                 </div>
 
                 <button class="pill close-pod-btn" type="button" @onclick="CloseActivePod">
-                    <span>End Class Session ✕</span>
+                    <span>Finish Class Session ✕</span>
                 </button>
             </div>
 
             <!-- Group Debrief Discussion Cards -->
-            <div style="margin-top:1.5rem;">
-                <h4 style="font-size:1.15rem; margin:0 0 0.75rem 0; display:flex; align-items:center; gap:0.4rem;">
-                    <span>💬</span> Class Circle Debrief Discussion Cards
+            <div class="debrief-section">
+                <h4 class="debrief-heading">
+                    <HintBulbIcon Size="24" />
+                    <span>Class Circle Sharing Questions</span>
                 </h4>
                 <div class="debrief-cards-grid">
                     @foreach (var prompt in Classroom.GetDiscussionCards(activeTeacherRoom.TargetGameId))
                     {
-                        <div class="debrief-card">
-                            <span class="card-quote-icon">“</span>
+                        <div class="debrief-card storybook-card">
+                            <span class="card-quote-mark">“</span>
                             <p class="card-prompt-text">@prompt</p>
                         </div>
                     }
@@ -119,22 +128,28 @@
         {
             <!-- Scenario Selector Guide -->
             <div class="scenario-selector-grid">
-                <div class="scenario-card" @onclick='() => SetSelectedScenario("beacon-bridge", "Beacon Bridge Co-op", "Optics & Light Refraction")'>
-                    <span class="scenario-icon">🔦</span>
-                    <h4 class="scenario-title">Beacon Bridge Co-op</h4>
-                    <p class="scenario-desc">Physics &amp; Teamwork: 2-player light refraction &amp; prisms.</p>
+                <div class="scenario-card storybook-card" @onclick='() => SetSelectedScenario("beacon-bridge", "Team Light Quest", "Optics & Light Refraction")'>
+                    <div class="scenario-icon-box">
+                        <BeaconIcon Size="44" />
+                    </div>
+                    <h4 class="scenario-title">Team Light Quest</h4>
+                    <p class="scenario-desc">Physics &amp; Teamwork: 2-player light mirrors guiding ships safely home.</p>
                 </div>
 
-                <div class="scenario-card" @onclick='() => SetSelectedScenario("tumble-scale", "Tumble Scale Archipelago", "Mathematical Lever Torque & Fractions")'>
-                    <span class="scenario-icon">⚖️</span>
-                    <h4 class="scenario-title">Tumble Scale Archipelago</h4>
-                    <p class="scenario-desc">Maths: Physical balance, fractions, and lever balance.</p>
+                <div class="scenario-card storybook-card" @onclick='() => SetSelectedScenario("tumble-scale", "Island Balance", "Mathematical Lever Torque & Fractions")'>
+                    <div class="scenario-icon-box">
+                        <ScaleIcon Size="44" />
+                    </div>
+                    <h4 class="scenario-title">Island Balance</h4>
+                    <p class="scenario-desc">Maths &amp; Balance: Coconut and fruit weights on a friendly island seesaw.</p>
                 </div>
 
-                <div class="scenario-card" @onclick='() => SetSelectedScenario("mood-garden", "Mood Garden Sanctuary", "Emotional Self-Regulation & Breath Pacing")'>
-                    <span class="scenario-icon">🌸</span>
+                <div class="scenario-card storybook-card" @onclick='() => SetSelectedScenario("mood-garden", "Mood Garden Sanctuary", "Emotional Self-Regulation & Breath Pacing")'>
+                    <div class="scenario-icon-box">
+                        <LotusIcon Size="44" />
+                    </div>
                     <h4 class="scenario-title">Mood Garden Sanctuary</h4>
-                    <p class="scenario-desc">Social-Emotional: Guided somatic breath pacing &amp; empathy.</p>
+                    <p class="scenario-desc">Social-Emotional: Gentle calm breathing and warm sunshine for baby animals.</p>
                 </div>
             </div>
         }
@@ -145,86 +160,223 @@
     .classroom-hub-container {
         display: flex;
         flex-direction: column;
-        gap: clamp(1rem, 2.5vw, 1.5rem);
+        gap: 1.5rem;
         max-width: 960px;
         margin: 0 auto;
-        padding-bottom: 2.5rem;
+        padding-bottom: 2rem;
         width: 100%;
         box-sizing: border-box;
     }
 
-    .classroom-hero {
-        background: var(--color-storybook-ink);
-        color: white;
+    .classroom-hero-card {
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        padding: clamp(1.2rem, 3vw, 1.8rem);
+        border-top: 8px solid var(--color-sky-blue);
     }
 
-    .student-join-card {
-        background: #FFFDF7;
-        border: var(--border-ink-thick);
-    }
-
-    .code-entry-box {
+    .hero-header-flex {
         display: flex;
-        gap: 0.6rem;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        gap: 1rem;
     }
 
-    .room-code-input {
+    .hero-icon-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .hero-main-title {
         font-family: var(--font-heading);
-        font-size: 1.45rem !important;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        text-align: center;
-        width: 190px;
-        min-height: var(--tap-min);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-sm);
-        background: white;
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        margin: 0;
+        color: var(--color-storybook-ink);
     }
 
-    .join-btn {
-        background: var(--color-mint);
-        color: white;
-        font-size: 1.1rem !important;
+    .hero-description {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--color-storybook-ink);
+        opacity: 0.9;
+    }
+
+    .hero-back-pill {
+        background: #FFFFFF;
+        color: var(--color-storybook-ink);
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.9rem;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-hard-sm);
+    }
+
+    /* Student Join Card */
+    .student-join-card {
+        background: #FFFFFF;
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        border-top: 8px solid var(--color-sunny-yellow);
+    }
+
+    .student-join-inner {
+        text-align: center;
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+    .backpack-icon-wrap {
+        display: inline-flex;
+        margin-bottom: 0.5rem;
+        animation: gentle-wobble 2.5s infinite ease-in-out;
+    }
+
+    .join-heading {
+        font-family: var(--font-heading);
+        font-size: clamp(1.4rem, 3vw, 1.8rem);
+        margin: 0 0 0.35rem 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .join-instructions {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.85;
+        margin: 0 0 1.25rem 0;
+    }
+
+    /* Code Entry Form: Single Row >= 360px */
+    .code-entry-row {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 440px;
+        margin: 0 auto;
+    }
+
+    .classroom-code-input {
+        flex: 1;
+        min-width: 0;
+        height: 64px;
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-align: center;
+        background: var(--color-paper-light, #FFF8E7);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-md, 16px);
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+        color: var(--color-storybook-ink);
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.15s ease;
+    }
+
+    .classroom-code-input:focus {
+        border-color: var(--color-sky-blue);
+    }
+
+    .join-btn-wrap {
+        flex-shrink: 0;
+        height: 64px;
+        display: flex;
+    }
+
+    .join-btn-wrap ::deep button {
+        height: 64px !important;
+        min-height: 64px !important;
+        padding: 0 1.5rem !important;
+        font-size: 1.2rem !important;
     }
 
     .join-error-pill {
-        margin-top: 0.75rem;
+        margin-top: 1rem;
         background: #FEE2E2;
-        border: 2px solid #DC2626;
-        border-radius: var(--border-radius-pill);
-        padding: 0.3rem 0.85rem;
-        font-size: 0.88rem;
+        border: 3px solid #DC2626;
+        border-radius: var(--radius-pill);
+        padding: 0.45rem 1rem;
+        font-family: var(--font-body);
+        font-size: 1rem;
         font-weight: 700;
         color: #991B1B;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
+    /* Teacher Station */
     .teacher-station-card {
         background: #FFFFFF;
-        border: var(--border-ink-thick);
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        padding: clamp(1.2rem, 3vw, 1.8rem);
+        border-top: 8px solid var(--color-mint);
     }
 
-    .create-pod-btn {
-        background: var(--color-sunny-yellow);
-        font-size: 1rem !important;
+    .teacher-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .teacher-title {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .teacher-subtitle {
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.8;
+        margin: 0;
     }
 
     /* Active Pod Banner */
     .active-pod-banner {
-        background: #F0FDF4;
-        border: 3px solid #16A34A;
-        border-radius: var(--border-radius-md);
+        background: #DCFCE7;
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
         padding: 1.25rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
-        box-shadow: 0 4px 0 #16A34A;
+        box-shadow: var(--shadow-hard-md);
     }
 
     .pod-code-display {
@@ -233,8 +385,9 @@
     }
 
     .code-label {
-        font-size: 0.78rem;
-        font-weight: 800;
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
         color: #166534;
         letter-spacing: 0.05em;
     }
@@ -242,53 +395,75 @@
     .code-value {
         font-family: var(--font-heading);
         font-size: 2.2rem;
-        font-weight: 800;
+        font-weight: 700;
         color: #15803D;
         letter-spacing: 0.08em;
     }
 
     .pod-meta-info {
-        font-size: 0.92rem;
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+        font-weight: 700;
         line-height: 1.5;
-        color: #1F2937;
+        color: var(--color-storybook-ink);
     }
 
     .close-pod-btn {
         background: #FEE2E2;
         color: #991B1B;
-        border-color: #EF4444;
-        font-weight: 800;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.5rem 1rem;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: var(--shadow-hard-sm);
     }
 
-    /* Debrief Cards */
+    /* Debrief Section */
+    .debrief-section {
+        margin-top: 1.5rem;
+    }
+
+    .debrief-heading {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1rem 0;
+    }
+
     .debrief-cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 0.85rem;
+        gap: 1rem;
     }
 
     .debrief-card {
-        background: #FFFDF7;
-        border: 2px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-sm);
-        padding: 0.85rem 1rem;
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        position: relative;
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        box-shadow: var(--shadow-hard-sm);
     }
 
-    .card-quote-icon {
-        font-family: serif;
+    .card-quote-mark {
+        font-family: var(--font-heading);
         font-size: 2.2rem;
-        color: var(--color-warm-gold);
+        color: var(--color-sunny-yellow);
         line-height: 0.8;
         display: block;
     }
 
     .card-prompt-text {
-        font-size: 0.95rem;
-        line-height: 1.45;
-        color: #334155;
+        font-family: var(--font-body);
+        font-size: 1.05rem;
         font-weight: 700;
+        line-height: 1.45;
+        color: var(--color-storybook-ink);
         margin: 0.25rem 0 0 0;
     }
 
@@ -296,46 +471,50 @@
     .scenario-selector-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1rem;
+        gap: 1.25rem;
     }
 
     .scenario-card {
-        background: #F8FAFC;
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-md);
-        padding: 1.1rem;
+        background: #FFFFFF;
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
         cursor: pointer;
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        transition: transform 0.15s ease, background-color 0.15s ease;
+        box-shadow: var(--shadow-hard-md);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
         touch-action: manipulation;
     }
 
-    @@media (hover: hover) and (pointer: fine) {
-        .scenario-card:hover {
-            transform: translateY(-3px);
-            background: #FFF9DB;
-            box-shadow: 0 5px 0 var(--color-storybook-ink);
-        }
+    .scenario-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hard-lg);
     }
 
-    .scenario-icon {
-        font-size: 2rem;
-        display: block;
-        margin-bottom: 0.35rem;
+    .scenario-icon-box {
+        margin-bottom: 0.5rem;
     }
 
     .scenario-title {
         font-family: var(--font-heading);
-        font-size: 1.15rem;
-        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+        font-weight: 700;
         color: var(--color-storybook-ink);
+        margin: 0 0 0.35rem 0;
     }
 
     .scenario-desc {
-        font-size: 0.85rem;
-        color: #64748B;
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.85;
         margin: 0;
         line-height: 1.4;
+    }
+
+    @@keyframes gentle-wobble {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-4px) rotate(2deg); }
     }
 </style>
 
@@ -345,7 +524,7 @@
 
     private ClassroomRoom? activeTeacherRoom;
     private string selectedGameId = "beacon-bridge";
-    private string selectedGameTitle = "Beacon Bridge Co-op";
+    private string selectedGameTitle = "Team Light Quest";
     private string selectedScenario = "Optics & Light Refraction";
 
     private async Task SetSelectedScenario(string id, string title, string scenario)
@@ -388,12 +567,11 @@
         if (room != null)
         {
             await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
-            // Route directly to the targeted game
             Navigation.NavigateTo($"games/{room.TargetGameId}");
         }
         else
         {
-            joinErrorMessage = $"Room code '{studentInputCode.Trim().ToUpperInvariant()}' not found or has expired. Ask your teacher!";
+            joinErrorMessage = $"Room code '{studentInputCode.Trim().ToUpperInvariant()}' not found or has ended. Ask your teacher!";
             await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
         }
     }

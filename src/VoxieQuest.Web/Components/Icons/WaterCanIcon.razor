@@ -1,0 +1,22 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" class="@Class" xmlns="http://www.w3.org/2000/svg">
+    <!-- Can Body -->
+    <rect x="7" y="12" width="13" height="15" rx="3" fill="@BodyColor" stroke="@BorderColor" stroke-width="2.5" />
+    <!-- Handle -->
+    <path d="M7 15C3 15 3 24 7 24" stroke="@BorderColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <!-- Spout -->
+    <path d="M19 19L27 12" stroke="@BorderColor" stroke-width="3" stroke-linecap="round" />
+    <!-- Rose Head -->
+    <ellipse cx="27" cy="12" rx="3" ry="5" fill="#FFC93C" stroke="@BorderColor" stroke-width="2" transform="rotate(-30 27 12)" />
+    <!-- Water Drops -->
+    <circle cx="28" cy="17" r="1.5" fill="#5BC0EB" />
+    <circle cx="26" cy="20" r="1.2" fill="#5BC0EB" />
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string BodyColor { get; set; } = "#5BC0EB";
+    [Parameter] public string BorderColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

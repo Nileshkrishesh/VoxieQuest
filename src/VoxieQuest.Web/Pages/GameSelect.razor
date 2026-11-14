@@ -7,228 +7,216 @@
 <div class="games-select-container">
     <!-- Header Card -->
     <div class="storybook-card games-header-banner">
-        <div style="font-size:3.5rem; animation: gentle-float 2.5s infinite ease-in-out;">🗺️ ✨</div>
-        <h1 class="games-header-title">Choose Your Quest!</h1>
-        <p class="games-header-subtitle">
-            Which magical voice game do you want to play, <strong>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</strong>?
-        </p>
+        <div class="header-banner-content">
+            <div class="header-icon-wrap">
+                <GamesIcon Size="52" FillColor="#FFC93C" />
+            </div>
+            <h1 class="games-header-title">Choose Your Quest!</h1>
+            <p class="games-header-subtitle">
+                Which magical voice adventure do you want to explore, <strong>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</strong>?
+            </p>
+        </div>
     </div>
 
-    <!-- 5 Featured Voice Games - Big Touch-Friendly Cards -->
-    <div class="quest-games-list">
+    <!-- 8 Big Chunky Cards in 2-Column Grid (1-Column on Phone) -->
+    <div class="quest-games-grid">
         <!-- 1. Letter Rocket -->
-        <div class="quest-card quest-card-rocket" @onclick='() => LaunchGame("game/letter-rocket")'>
-            <div class="quest-left-icon">🚀</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill pill-space">✨ Letters &amp; Phonics</span>
-                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+        <div class="quest-card quest-card-rocket storybook-card" @onclick='() => LaunchGame("game/letter-rocket")'>
+            <div class="quest-top-band band-rocket"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <RocketIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Letter Rocket</h2>
-                <p class="quest-desc">Look at the letter and say it aloud! Watch your rocket blast into outer space with fiery smoke and glowing stars!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-blue quest-play-btn" type="button">
-                    <span>Blast Off! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Letters &amp; Phonics</span>
+                        <span class="quest-rounds-badge">10 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Letter Rocket</h2>
+                    <p class="quest-card-desc">Say the letter aloud to blast your rocket into starlight!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Blue" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/letter-rocket")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
         <!-- 2. Number Jump -->
-        <div class="quest-card quest-card-frog" @onclick='() => LaunchGame("game/number-jump")'>
-            <div class="quest-left-icon">🐸</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill pill-pond">🌊 Counting &amp; Math</span>
-                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+        <div class="quest-card quest-card-frog storybook-card" @onclick='() => LaunchGame("game/number-jump")'>
+            <div class="quest-top-band band-frog"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <FrogIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Number Jump</h2>
-                <p class="quest-desc">Solve the simple sum and shout the number! Help the friendly green froggy hop across water lilies without splashing in!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-mint quest-play-btn" type="button">
-                    <span>Hop Along! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Counting &amp; Math</span>
+                        <span class="quest-rounds-badge">10 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Number Jump</h2>
+                    <p class="quest-card-desc">Shout the sum number to hop across sunny water lilies!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Mint" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/number-jump")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
         <!-- 3. Color Splash -->
-        <div class="quest-card quest-card-paint" @onclick='() => LaunchGame("game/color-splash")'>
-            <div class="quest-left-icon">🎨</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill pill-paint">🌈 Rainbow Colors</span>
-                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+        <div class="quest-card quest-card-paint storybook-card" @onclick='() => LaunchGame("game/color-splash")'>
+            <div class="quest-top-band band-paint"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <PaletteIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Color Splash</h2>
-                <p class="quest-desc">Say the color name loud and clear! Splash big buckets of vibrant paint onto black-and-white drawings to bring them alive!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-yellow quest-play-btn" type="button">
-                    <span>Splash! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Rainbow Colors</span>
+                        <span class="quest-rounds-badge">10 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Color Splash</h2>
+                    <p class="quest-card-desc">Name the bright color to splash paint buckets onto drawings!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/color-splash")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
         <!-- 4. Animal Safari -->
-        <div class="quest-card quest-card-safari" @onclick='() => LaunchGame("game/animal-safari")'>
-            <div class="quest-left-icon">🦁</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill pill-safari">🐾 Animals &amp; Sounds</span>
-                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+        <div class="quest-card quest-card-safari storybook-card" @onclick='() => LaunchGame("game/animal-safari")'>
+            <div class="quest-top-band band-safari"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <SafariIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Animal Safari</h2>
-                <p class="quest-desc">Listen to real animal calls! Roar or say the animal's name to invite lions, elephants, and monkeys onto your safari caravan!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-coral quest-play-btn" type="button">
-                    <span>Safari Ride! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Animal Calls</span>
+                        <span class="quest-rounds-badge">10 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Animal Safari</h2>
+                    <p class="quest-card-desc">Listen to wild calls and call the animal to your caravan!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Coral" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/animal-safari")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
         <!-- 5. Word Builder -->
-        <div class="quest-card quest-card-blocks" @onclick='() => LaunchGame("game/word-builder")'>
-            <div class="quest-left-icon">🧱</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill pill-blocks">🎁 Spelling &amp; Toys</span>
-                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+        <div class="quest-card quest-card-blocks storybook-card" @onclick='() => LaunchGame("game/word-builder")'>
+            <div class="quest-top-band band-blocks"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <BlocksIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Word Builder</h2>
-                <p class="quest-desc">Pronounce the secret word to snap colorful puzzle blocks into place and unlock a joyful animated surprise gift!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-orange quest-play-btn" type="button">
-                    <span>Build Toy! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Spelling &amp; Toys</span>
+                        <span class="quest-rounds-badge">10 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Word Builder</h2>
+                    <p class="quest-card-desc">Speak the word to snap puzzle blocks and reveal a toy surprise!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Orange" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/word-builder")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
-        <!-- 6. Mood Garden Sanctuary (Emotional Intelligence) -->
-        <div class="quest-card quest-card-mood" style="background:#ECFDF5; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/mood-garden")'>
-            <div class="quest-left-icon">🌸</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#10B981; color:white;">💛 Calm &amp; Breath</span>
-                    <span class="quest-rounds-tag">Ages 3–5</span>
+        <!-- 6. Team Light Quest (Beacon Bridge) -->
+        <div class="quest-card quest-card-beacon storybook-card" @onclick='() => LaunchGame("game/beacon-bridge")'>
+            <div class="quest-top-band band-beacon"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <BeaconIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Mood Garden Sanctuary</h2>
-                <p class="quest-desc">Breathe with the glowing ring or hum gently to turn rumbling storm clouds into warm sunshine for tired baby animals!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-mint quest-play-btn" type="button">
-                    <span>Soothe &amp; Bloom! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Teamwork &amp; Light</span>
+                        <span class="quest-rounds-badge">5 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Team Light Quest</h2>
+                    <p class="quest-card-desc">Turn light mirrors together to guide ships safely to the lighthouse!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Blue" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/beacon-bridge")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
-        <!-- 7. Tumble Scale (Physics & Torque Balance) -->
-        <div class="quest-card quest-card-scale" style="background:#FEF3C7; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/tumble-scale")'>
-            <div class="quest-left-icon">⚖️</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#F59E0B; color:white;">⚖️ Torque &amp; Levers</span>
-                    <span class="quest-rounds-tag">Ages 6–8</span>
+        <!-- 7. Island Balance (Tumble Scale) -->
+        <div class="quest-card quest-card-scale storybook-card" @onclick='() => LaunchGame("game/tumble-scale")'>
+            <div class="quest-top-band band-scale"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <ScaleIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Tumble Scale Islands</h2>
-                <p class="quest-desc">Balance the mechanical seesaw bridge! Place coconuts, pineapples, and stones to solve physics torque equations and guide friends across!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-yellow quest-play-btn" type="button">
-                    <span>Balance Bridge! ➔</span>
-                </button>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Maths &amp; Balance</span>
+                        <span class="quest-rounds-badge">5 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Island Balance</h2>
+                    <p class="quest-card-desc">Add coconut weights to balance the friendly seesaw bridge!</p>
+                </div>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/tumble-scale")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
+                </div>
             </div>
         </div>
 
-        <!-- 8. Beacon Bridge (Optics & Cooperative Angles) -->
-        <div class="quest-card quest-card-optics" style="background:#EFF6FF; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/beacon-bridge")'>
-            <div class="quest-left-icon">🔦</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#3B82F6; color:white;">✨ Optics &amp; Co-op</span>
-                    <span class="quest-rounds-tag">Ages 6–8+</span>
+        <!-- 8. Mood Garden Sanctuary -->
+        <div class="quest-card quest-card-mood storybook-card" @onclick='() => LaunchGame("game/mood-garden")'>
+            <div class="quest-top-band band-mood"></div>
+            <div class="quest-card-body">
+                <div class="quest-left-icon">
+                    <LotusIcon Size="64" />
                 </div>
-                <h2 class="quest-title">Beacon Bridge</h2>
-                <p class="quest-desc">Rotate tactical mirrors to bounce and refract photon beams through fog reefs to guide the lost fleet safely into harbor!</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-blue quest-play-btn" type="button">
-                    <span>Shine Light! ➔</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 9. Fable Weaver (Narrative Architecture & Storytelling) -->
-        <div class="quest-card quest-card-story" style="background:#FAF5FF; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/fable-weaver")'>
-            <div class="quest-left-icon">📜</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#8B5CF6; color:white;">🎭 Story Loom</span>
-                    <span class="quest-rounds-tag">Ages 9–12</span>
+                <div class="quest-details">
+                    <div class="quest-tags-row">
+                        <span class="pill quest-tag-pill">Calm &amp; Breath</span>
+                        <span class="quest-rounds-badge">5 Rounds</span>
+                    </div>
+                    <h2 class="quest-card-title">Mood Garden</h2>
+                    <p class="quest-card-desc">Take gentle breaths to turn rainy clouds into warm sunshine!</p>
                 </div>
-                <h2 class="quest-title">Fable Weaver Loom</h2>
-                <p class="quest-desc">Spin folklore cards into living story tapestries! Pick characters, obstacles, and clever resolutions to generate illustrated children's legends.</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-purple quest-play-btn" type="button">
-                    <span>Weave Tale! ➔</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 10. HydroCity Watershed (Urban Ecology & Systems Thinking) -->
-        <div class="quest-card quest-card-watershed" style="background:#E0F2FE; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/hydrocity")'>
-            <div class="quest-left-icon">🌊</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#0284C7; color:white;">🌱 Ecology &amp; Cities</span>
-                    <span class="quest-rounds-tag">Ages 9–12+</span>
+                <div class="quest-action-col">
+                    <BouncyButton Variant="BouncyButton.ButtonVariant.Mint" 
+                                  Text="Play" 
+                                  OnClick='() => LaunchGame("game/mood-garden")'>
+                        <IconTemplate><NextIcon Size="20" /></IconTemplate>
+                    </BouncyButton>
                 </div>
-                <h2 class="quest-title">HydroCity Watershed</h2>
-                <p class="quest-desc">Design resilient urban watersheds! Transform asphalt into bioswales, rain gardens, and retention wetlands to buffer against 100-year storms.</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-mint quest-play-btn" type="button">
-                    <span>Protect City! ➔</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 11. Grover's Gearwork Maze (Coding & Computational Thinking) -->
-        <div class="quest-card quest-card-coding" style="background:#F1F5F9; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/gearwork-maze")'>
-            <div class="quest-left-icon">⚙️</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#64748B; color:white;">💻 Logic &amp; Loops</span>
-                    <span class="quest-rounds-tag">Ages 6–12</span>
-                </div>
-                <h2 class="quest-title">Grover's Gearwork Maze</h2>
-                <p class="quest-desc">Program direction cogs and sequence tape! Route Grover the hedgehog through subterranean clockwork labyrinths avoiding steam vents.</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-orange quest-play-btn" type="button">
-                    <span>Program Grover! ➔</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 12. Pip's Acorn Orchard (Resource Stewardship & Financial Literacy) -->
-        <div class="quest-card quest-card-orchard" style="background:#FEF9C3; border:3.5px solid var(--color-storybook-ink);" @onclick='() => LaunchGame("game/acorn-orchard")'>
-            <div class="quest-left-icon">🌰</div>
-            <div class="quest-info">
-                <div class="quest-badge-row">
-                    <span class="quest-pill" style="background:#CA8A04; color:white;">💰 Budget &amp; Wisdom</span>
-                    <span class="quest-rounds-tag">Ages 6–15</span>
-                </div>
-                <h2 class="quest-title">Pip's Acorn Orchard</h2>
-                <p class="quest-desc">Master delayed gratification and stewardship! Balance winter survival reserves, tool workshop investments, and communal sapling planting.</p>
-            </div>
-            <div class="quest-action">
-                <button class="btn-story btn-story-green quest-play-btn" type="button">
-                    <span>Manage Grove! ➔</span>
-                </button>
             </div>
         </div>
     </div>
@@ -239,156 +227,191 @@
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+        max-width: 1040px;
+        margin: 0 auto;
         padding-bottom: 2rem;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .games-header-banner {
-        background: linear-gradient(135deg, #4EA8DE 0%, #06D6A0 100%);
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 28px;
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        background: var(--color-paper-light, #FFF8E7);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-lg, 24px);
+        box-shadow: var(--shadow-hard-md, 5px 5px 0 #2B2D42);
+        padding: clamp(1.5rem, 3vw, 2rem);
         text-align: center;
-        padding: 1.5rem 1rem;
-        color: white;
+        border-top: 10px solid var(--color-sunny-yellow);
+    }
+
+    .header-banner-content {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    .header-icon-wrap {
+        display: inline-flex;
+        margin-bottom: 0.5rem;
+        animation: gentle-wobble 3s infinite ease-in-out;
     }
 
     .games-header-title {
         font-family: var(--font-heading);
-        font-size: 2.3rem;
-        margin: 0.25rem 0;
-        color: white;
-        text-shadow: 2px 3px 0 var(--color-storybook-ink);
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0 0 0.5rem 0;
     }
 
     .games-header-subtitle {
         font-family: var(--font-body);
         font-size: 1.15rem;
         font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.88;
         margin: 0;
-        opacity: 0.95;
     }
 
-    /* Quest Games List */
-    .quest-games-list {
-        display: flex;
-        flex-direction: column;
+    /* 2-Column Grid (1-Column on Phone) */
+    .quest-games-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem;
-    }
-
-    .quest-card {
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 26px;
-        box-shadow: 0 7px 0 var(--color-storybook-ink);
-        padding: 1.25rem 1.75rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        cursor: pointer;
-        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
-    }
-
-    .quest-card:hover {
-        transform: translateY(-5px) scale(1.01);
-        box-shadow: 0 12px 0 var(--color-storybook-ink);
-    }
-
-    .quest-card:active {
-        transform: translateY(2px);
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
-    }
-
-    .quest-card-rocket { background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); }
-    .quest-card-frog   { background: linear-gradient(135deg, #DCFCE7 0%, #A7F3D0 100%); }
-    .quest-card-paint  { background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); }
-    .quest-card-safari { background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%); }
-    .quest-card-blocks { background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%); }
-
-    .quest-left-icon {
-        font-size: 4.5rem;
-        filter: drop-shadow(0 3px 0 rgba(43, 45, 66, 0.2));
-        animation: gentle-bob 3s ease-in-out infinite;
-    }
-
-    .quest-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-    }
-
-    .quest-badge-row {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        flex-wrap: wrap;
-    }
-
-    .quest-pill {
-        border: 2px solid var(--color-storybook-ink);
-        border-radius: 999px;
-        padding: 0.2rem 0.65rem;
-        font-family: var(--font-heading);
-        font-size: 0.85rem;
-        font-weight: 700;
-        background: #FFFFFF;
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
-    }
-
-    .quest-rounds-tag {
-        font-family: var(--font-heading);
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-    }
-
-    .quest-title {
-        font-family: var(--font-heading);
-        font-size: 1.7rem;
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        margin: 0;
-    }
-
-    .quest-desc {
-        font-family: var(--font-body);
-        font-size: 1.02rem;
-        font-weight: 600;
-        color: #334155;
-        margin: 0;
-        line-height: 1.45;
-    }
-
-    .quest-play-btn {
-        font-size: 1.15rem !important;
-        padding: 0.75rem 1.5rem !important;
-        white-space: nowrap;
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        touch-action: manipulation;
+        width: 100%;
     }
 
     @@media (max-width: 768px) {
-        .quest-card {
+        .quest-games-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .quest-card {
+        background: #FFFFFF;
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-lg, 24px);
+        box-shadow: 6px 6px 0 var(--color-storybook-ink, #2B2D42);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        touch-action: manipulation;
+    }
+
+    .quest-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 8px 8px 0 var(--color-storybook-ink);
+    }
+
+    .quest-top-band {
+        height: 10px;
+        width: 100%;
+        border-bottom: 2px solid var(--color-storybook-ink);
+    }
+
+    .band-rocket { background: var(--color-sky-blue); }
+    .band-frog { background: var(--color-mint); }
+    .band-paint { background: var(--color-sunny-yellow); }
+    .band-safari { background: var(--color-coral); }
+    .band-blocks { background: var(--color-soft-orange); }
+    .band-beacon { background: #38BDF8; }
+    .band-scale { background: #FBBF24; }
+    .band-mood { background: #34D399; }
+
+    .quest-card-body {
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .quest-left-icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quest-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .quest-tags-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .quest-tag-pill {
+        background: var(--color-paper-light);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 2px 8px;
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    .quest-rounds-badge {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+    }
+
+    .quest-card-title {
+        font-family: var(--font-heading);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .quest-card-desc {
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.85;
+        margin: 0;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .quest-action-col {
+        flex-shrink: 0;
+    }
+
+    @@media (max-width: 480px) {
+        .quest-card-body {
             flex-direction: column;
             text-align: center;
-            padding: 1.25rem 1rem;
         }
-
-        .quest-badge-row {
+        .quest-tags-row {
             justify-content: center;
         }
-
-        .quest-play-btn {
-            width: 100%;
-            min-height: var(--tap-min);
+        .quest-card-desc {
+            white-space: normal;
         }
+    }
+
+    @@keyframes gentle-wobble {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(4deg); }
     }
 </style>
 
 @code {
-    private async Task LaunchGame(string gameUrl)
+    private async Task LaunchGame(string route)
     {
-        await AudioService.PlaySoundAsync(SoundEffect.Pop);
-        Navigation.NavigateTo(gameUrl);
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        Navigation.NavigateTo(route);
     }
 }

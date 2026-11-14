@@ -1,0 +1,332 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+<div class="gameshell-root @ThemeClass">
+    <!-- Atmospheric Parallax Backdrop -->
+    <ParallaxBackground Theme="@Theme" />
+
+    <!-- Wide Screen Decorative Doodles (Only visible on wide desktop screens > 1200px) -->
+    <div class="desktop-side-doodles left-doodles" aria-hidden="true">
+        <StarIcon Size="32" FillColor="#FFC93C" Class="doodle-float-1" />
+        <FlowerIcon Size="36" PetalColor="#7ED9A8" CenterColor="#FFC93C" Class="doodle-float-2" />
+        <SleepingSeedIcon Size="28" FillColor="#FFF8E7" Class="doodle-float-3" />
+    </div>
+    <div class="desktop-side-doodles right-doodles" aria-hidden="true">
+        <SunIcon Size="36" FillColor="#FFC93C" Class="doodle-float-2" />
+        <StarIcon Size="28" FillColor="#5BC0EB" Class="doodle-float-3" />
+        <FlowerIcon Size="32" PetalColor="#FF6B6B" CenterColor="#FFC93C" Class="doodle-float-1" />
+    </div>
+
+    <!-- Main Flex Layout Container (Takes 100dvh, zero overflow) -->
+    <div class="gameshell-stage-container">
+        <!-- 1. TOP ZONE: GameHeader (Fits on one row at 320px) -->
+        <header class="gameshell-top-zone">
+            <GameHeader Title="@GameTitle" 
+                        CurrentRound="@CurrentRound" 
+                        TotalRounds="@TotalRounds" 
+                        Stars="@Stars" 
+                        OnBack="HandleBack" />
+        </header>
+
+        <!-- 2. DUAL-PANE CONTAINER (Switches to Side-by-Side in Phone Landscape) -->
+        <div class="gameshell-core-content">
+            <!-- MIDDLE ZONE: SVG Visual Game Scene (Takes flex: 1, scales smoothly) -->
+            <main class="gameshell-middle-scene">
+                @SceneContent
+            </main>
+
+            <!-- QUESTION & FEEDBACK ZONE -->
+            <div class="gameshell-question-zone">
+                <QuestionCard Prompt="@Prompt"
+                              HintText="@HintText"
+                              ShowHint="@ShowHint"
+                              MascotMood="@MascotMood"
+                              OnRepeatPrompt="OnRepeatPrompt">
+                    @QuestionExtraContent
+                </QuestionCard>
+            </div>
+        </div>
+
+        <!-- 3. BOTTOM ZONE: Reserved Height for MicButton & Practice Mode Chips -->
+        <footer class="gameshell-bottom-zone">
+            @if (IsPracticeMode && PracticeChoices != null && PracticeChoices.Any())
+            {
+                <AnswerChips Options="@PracticeChoices" OnAnswerSelected="HandlePracticeSelect" />
+            }
+            else
+            {
+                <MicButton IsListening="@IsListening" 
+                           VolumeLevel="@VolumeLevel" 
+                           State="@MicButtonState" 
+                           OnToggleListening="OnToggleListening" />
+            }
+        </footer>
+    </div>
+
+    <!-- OVERLAYS: Feedback, Celebrations, Pause, Breaks & Error Screens -->
+    <FeedbackBurst ShowSuccess="@ShowSuccessBurst" 
+                   ShowEncourage="@ShowEncourageBurst" 
+                   HintText="@HintText" />
+
+    <RewardScreen IsOpen="@IsRewardOpen" 
+                  StarsEarned="@StarsEarned" 
+                  OnPlayAgain="OnPlayAgain" 
+                  OnNextQuest="OnNextQuest" />
+
+    <PauseSheet IsOpen="@isPauseOpen" 
+                OnResume="() => isPauseOpen = false" 
+                OnReturnToMap="HandleBack" />
+
+    <SleepyBreakScreen IsOpen="@isSleepyBreakOpen" 
+                       OnResume="() => isSleepyBreakOpen = false" 
+                       OnWarmUp="HandleBack" />
+
+    <!-- Mic Permission Denied Friendly Screen -->
+    @if (IsMicDenied)
+    {
+        <div class="mic-denied-modal" role="alertdialog" aria-modal="true">
+            <div class="storybook-card mic-denied-card bounce-in-anim">
+                <FoxieFaceIcon Size="64" />
+                <h3 class="denied-title">Microphone is Resting</h3>
+                <p class="denied-subtext">No worries! You can play using friendly touch buttons!</p>
+                <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                              Text="Use Buttons Instead" 
+                              IsTall="true" 
+                              OnClick="HandleSwitchToButtons">
+                    <IconTemplate><GamesIcon Size="24" /></IconTemplate>
+                </BouncyButton>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .gameshell-root {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-width: 100%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        touch-action: manipulation;
+    }
+
+    .gameshell-stage-container {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 1100px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(6px, 1.5vh, 14px) clamp(8px, 2vw, 16px);
+        padding-top: max(6px, env(safe-area-inset-top));
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+        box-sizing: border-box;
+    }
+
+    .gameshell-top-zone {
+        width: 100%;
+        flex-shrink: 0;
+        margin-bottom: 4px;
+    }
+
+    .gameshell-core-content {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .gameshell-middle-scene {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .gameshell-question-zone {
+        flex-shrink: 0;
+        width: 100%;
+    }
+
+    .gameshell-bottom-zone {
+        flex-shrink: 0;
+        width: 100%;
+        min-height: 106px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Desktop Side Doodles (> 1200px) */
+    .desktop-side-doodles {
+        position: fixed;
+        top: 20%;
+        display: none;
+        flex-direction: column;
+        gap: 2.5rem;
+        z-index: 5;
+        pointer-events: none;
+    }
+    .left-doodles { left: 24px; }
+    .right-doodles { right: 24px; }
+
+    @@media (min-width: 1280px) {
+        .desktop-side-doodles {
+            display: flex;
+        }
+    }
+
+    .doodle-float-1 { animation: doodle-bob 3s infinite ease-in-out alternate; }
+    .doodle-float-2 { animation: doodle-bob 3.6s infinite ease-in-out alternate 0.5s; }
+    .doodle-float-3 { animation: doodle-bob 2.8s infinite ease-in-out alternate 1s; }
+
+    @@keyframes doodle-bob {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-12px); }
+    }
+
+    /* Phones in Landscape (max-height: 500px) */
+    @@media (max-height: 500px) {
+        .gameshell-stage-container {
+            padding: 4px 8px;
+        }
+        .gameshell-core-content {
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+        .gameshell-middle-scene {
+            width: 55%;
+            height: 100%;
+        }
+        .gameshell-question-zone {
+            width: 45%;
+        }
+        .gameshell-bottom-zone {
+            min-height: 70px;
+        }
+    }
+
+    /* Mic Denied Friendly Modal */
+    .mic-denied-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(43, 45, 66, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 500;
+    }
+
+    .mic-denied-card {
+        background: var(--color-paper-light);
+        border: var(--border-storybook-heavy);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-lg);
+        padding: 2rem;
+        text-align: center;
+        max-width: 440px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .denied-title {
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .denied-subtext {
+        font-family: var(--font-body);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        margin: 0;
+    }
+</style>
+
+@code {
+    [Parameter] public string GameTitle { get; set; } = "Quest";
+    [Parameter] public int CurrentRound { get; set; } = 1;
+    [Parameter] public int TotalRounds { get; set; } = 10;
+    [Parameter] public int Stars { get; set; } = 0;
+    [Parameter] public ParallaxBackground.ParallaxTheme Theme { get; set; } = ParallaxBackground.ParallaxTheme.Hills;
+    [Parameter] public string ThemeClass { get; set; } = "";
+
+    [Parameter] public string Prompt { get; set; } = string.Empty;
+    [Parameter] public string HintText { get; set; } = string.Empty;
+    [Parameter] public bool ShowHint { get; set; } = false;
+    [Parameter] public Mascot.MascotState MascotMood { get; set; } = Mascot.MascotState.Idle;
+
+    [Parameter] public bool IsListening { get; set; } = false;
+    [Parameter] public float VolumeLevel { get; set; } = 0.0f;
+    [Parameter] public MicButton.MicState MicButtonState { get; set; } = MicButton.MicState.Ready;
+
+    [Parameter] public bool IsPracticeMode { get; set; } = false;
+    [Parameter] public List<string> PracticeChoices { get; set; } = new();
+
+    [Parameter] public bool ShowSuccessBurst { get; set; } = false;
+    [Parameter] public bool ShowEncourageBurst { get; set; } = false;
+
+    [Parameter] public bool IsRewardOpen { get; set; } = false;
+    [Parameter] public int StarsEarned { get; set; } = 3;
+
+    [Parameter] public bool IsMicDenied { get; set; } = false;
+
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnRepeatPrompt { get; set; }
+    [Parameter] public EventCallback OnToggleListening { get; set; }
+    [Parameter] public EventCallback<string> OnSelectPracticeChoice { get; set; }
+    [Parameter] public EventCallback OnPlayAgain { get; set; }
+    [Parameter] public EventCallback OnNextQuest { get; set; }
+    [Parameter] public EventCallback OnSwitchToPractice { get; set; }
+
+    [Parameter] public RenderFragment? SceneContent { get; set; }
+    [Parameter] public RenderFragment? QuestionExtraContent { get; set; }
+
+    private bool isPauseOpen = false;
+    private bool isSleepyBreakOpen = false;
+
+    private async Task HandleBack()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnBack.HasDelegate)
+        {
+            await OnBack.InvokeAsync();
+        }
+    }
+
+    private async Task HandlePracticeSelect(string answer)
+    {
+        if (OnSelectPracticeChoice.HasDelegate)
+        {
+            await OnSelectPracticeChoice.InvokeAsync(answer);
+        }
+    }
+
+    private async Task HandleSwitchToButtons()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (OnSwitchToPractice.HasDelegate)
+        {
+            await OnSwitchToPractice.InvokeAsync();
+        }
+    }
+}

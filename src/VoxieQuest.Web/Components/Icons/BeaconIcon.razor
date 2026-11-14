@@ -1,0 +1,22 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="@Class" aria-hidden="true">
+    <!-- Light Beam Rays -->
+    <path d="M18 10L6 4M18 10L30 4M18 10L33 14M18 10L3 14" stroke="@BeamColor" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Lighthouse Body -->
+    <path d="M14 12L11 32H25L22 12H14Z" fill="@BodyColor" stroke="@StrokeColor" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Stripe -->
+    <path d="M12.5 22H23.5" stroke="#FF6B6B" stroke-width="3"/>
+    <!-- Lantern Room -->
+    <rect x="13" y="7" width="10" height="6" rx="2" fill="#FFC93C" stroke="@StrokeColor" stroke-width="2"/>
+    <!-- Roof Cone -->
+    <path d="M11 7L18 2L25 7H11Z" fill="#FF6B6B" stroke="@StrokeColor" stroke-width="2" stroke-linejoin="round"/>
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 32;
+    [Parameter] public string BodyColor { get; set; } = "#FFF8E7";
+    [Parameter] public string BeamColor { get; set; } = "#FFC93C";
+    [Parameter] public string StrokeColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

@@ -1,0 +1,99 @@
+@namespace VoxieQuest.Web.Components
+@inject NavigationManager Navigation
+
+<div class="error-screen-card storybook-card">
+    <div class="error-icon-wrap">
+        <FoxieFaceIcon Size="72" />
+    </div>
+
+    <h3 class="error-title">Oops! A Little Pebble!</h3>
+    <p class="error-message">
+        Voxie stumbled for a second, but we're all okay! Let's dust off and jump back in.
+    </p>
+
+    <div class="error-actions">
+        <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                      Text="Try Again" 
+                      OnClick="HandleRetry">
+            <IconTemplate><ReplayIcon Size="22" /></IconTemplate>
+        </BouncyButton>
+        <BouncyButton Variant="BouncyButton.ButtonVariant.Mint" 
+                      Text="Go Home" 
+                      OnClick="HandleHome">
+            <IconTemplate><HomeIcon Size="22" /></IconTemplate>
+        </BouncyButton>
+    </div>
+</div>
+
+<style>
+    .error-screen-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        max-width: 480px;
+        margin: 2rem auto;
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        gap: 0.75rem;
+    }
+
+    .error-icon-wrap {
+        animation: gentle-wobble 2s infinite ease-in-out;
+    }
+
+    .error-title {
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--color-coral);
+        margin: 0;
+    }
+
+    .error-message {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.85;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    @@keyframes gentle-wobble {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback OnRetry { get; set; }
+
+    private async Task HandleRetry()
+    {
+        if (OnRetry.HasDelegate)
+        {
+            await OnRetry.InvokeAsync();
+        }
+        else
+        {
+            Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        }
+    }
+
+    private void HandleHome()
+    {
+        Navigation.NavigateTo(string.Empty);
+    }
+}

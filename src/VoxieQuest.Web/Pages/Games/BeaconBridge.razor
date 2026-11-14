@@ -2,317 +2,256 @@
 @page "/games/beacon-bridge"
 @inherits BaseGameComponent
 
-<div class="game-viewport">
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Clouds" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="5"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Hills"
+           ThemeClass="beacon-bridge-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Guide the friendly light beam safely home!")"
+           HintText="Say 'Voxie, light the way!' or turn the mirrors!"
+           ShowHint="@(!isBeamLit)"
+           MascotMood="@(isBeamLit ? Mascot.MascotState.Happy : Mascot.MascotState.Idle)"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@GetMicButtonState()"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@(new List<string> { "Light the way!", "Turn Mirror 1", "Turn Mirror 2" })"
+           ShowSuccessBurst="@isBeamLit"
+           IsRewardOpen="@(CurrentRound >= 5 && isBeamLit)"
+           StarsEarned="3"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="HandlePracticeChoice"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="AdvanceBeacon"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Top HUD -->
-    <div class="storybook-card game-hud-card">
-        <div class="hud-top-row">
-            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
-                <span>◀ Map</span>
-            </button>
-            <h3 class="hud-game-title">
-                🔦 @GameTitle
-            </h3>
-            <div class="star-badge hud-star-badge">
-                <span>⭐</span>
-                <span>@SessionStars</span>
-            </div>
-        </div>
+    <SceneContent>
+        <!-- Picture-Book Sea, Lighthouse, and Optics Grid Scene -->
+        <div class="beacon-stage-scene">
+            <svg class="beacon-svg-viewport" viewBox="0 0 540 280" preserveAspectRatio="xMidYMid meet">
+                <!-- Night Sea Water -->
+                <rect x="0" y="0" width="540" height="280" rx="16" fill="#1E293B" />
+                <path d="M0 210 Q 135 195 270 210 T 540 210 V 280 H 0 Z" fill="#0F172A" />
+                <path d="M0 225 Q 135 215 270 225 T 540 225 V 280 H 0 Z" fill="#0284C7" opacity="0.7" />
 
-        <div class="round-stepper">
-            @for (int r = 1; r <= 5; r++)
-            {
-                var isCompleted = r < CurrentRound;
-                var isCurrent = r == CurrentRound;
-                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Beacon @r">
-                    @(isCompleted ? "★" : r.ToString())
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Optics Grid Arena -->
-    <div class="storybook-card beacon-arena">
-        <div class="team-banner">
-            <span>🤝 Co-op Mission: Rotate mirrors to guide the light beam to Lighthouse!</span>
-        </div>
-
-        <!-- 4x4 Optical Grid SVG -->
-        <div class="optics-grid-wrapper">
-            <svg width="100%" height="280" viewBox="0 0 360 280" preserveAspectRatio="xMidYMid meet">
-                <!-- Dark Foggy Sea Background -->
-                <rect x="0" y="0" width="360" height="280" rx="16" fill="#1E293B" />
-
-                <!-- Grid Cells -->
-                @for (int row = 0; row < 4; row++)
+                <!-- Optical Grid Grid Cells -->
+                @for (int row = 0; row < 3; row++)
                 {
                     for (int col = 0; col < 4; col++)
                     {
-                        var cellX = 30 + col * 75;
-                        var cellY = 20 + row * 60;
-                        <rect x="@cellX" y="@cellY" width="70" height="55" rx="8" fill="#334155" stroke="#475569" stroke-width="1.5" />
+                        var cx = 35 + col * 90;
+                        var cy = 25 + row * 65;
+                        <rect x="@cx" y="@cy" width="80" height="55" rx="10" fill="#334155" stroke="#475569" stroke-width="2" />
                     }
                 }
 
-                <!-- Light Beam Path -->
+                <!-- Glowing Hand-Drawn Light Path -->
                 @if (isBeamLit)
                 {
-                    <polyline points="45,47 180,47 180,167 310,167" 
-                              stroke="#FFD166" 
-                              stroke-width="6" 
+                    <!-- Dotted golden beam with star sparkles -->
+                    <polyline points="75,52 255,52 255,182 435,182" 
+                              stroke="#FFC93C" 
+                              stroke-width="8" 
                               stroke-linecap="round" 
                               stroke-linejoin="round" 
                               class="glowing-beam" />
+                    <circle cx="75" cy="52" r="6" fill="#FFF8E7" />
+                    <circle cx="255" cy="52" r="6" fill="#FFF8E7" />
+                    <circle cx="255" cy="182" r="6" fill="#FFF8E7" />
+                    <circle cx="435" cy="182" r="8" fill="#FFF8E7" />
                 }
 
-                <!-- Light Emitter Beacon at (0, 0) -->
-                <circle cx="45" cy="47" r="14" fill="#F59E0B" stroke="#FFF" stroke-width="2" />
-                <text x="37" y="52" font-size="14">🔦</text>
-
-                <!-- Rotatable Mirrors at (2, 0) and (2, 2) -->
-                <!-- Mirror 1 -->
-                <g transform="translate(180, 47) rotate(@mirror1Angle)" @onclick="RotateMirror1" style="cursor:pointer;">
-                    <circle cx="0" cy="0" r="20" fill="rgba(255,255,255,0.15)" />
-                    <line x1="-15" y1="15" x2="15" y2="-15" stroke="#38BDF8" stroke-width="5" stroke-linecap="round" />
-                    <circle cx="0" cy="0" r="4" fill="#FFF" />
+                <!-- Beacon Light Source at (0, 0) -->
+                <g transform="translate(75, 52)">
+                    <circle cx="0" cy="0" r="22" fill="#FFC93C" stroke="#2B2D42" stroke-width="3" />
+                    <circle cx="0" cy="0" r="14" fill="#FFF8E7" />
+                    <circle cx="0" cy="0" r="6" fill="#FF9F43" />
                 </g>
 
-                <!-- Mirror 2 -->
-                <g transform="translate(180, 167) rotate(@mirror2Angle)" @onclick="RotateMirror2" style="cursor:pointer;">
-                    <circle cx="0" cy="0" r="20" fill="rgba(255,255,255,0.15)" />
-                    <line x1="-15" y1="-15" x2="15" y2="15" stroke="#38BDF8" stroke-width="5" stroke-linecap="round" />
-                    <circle cx="0" cy="0" r="4" fill="#FFF" />
+                <!-- Rotatable Mirror 1 at (2, 0) - Centered at (255, 52) -->
+                <g transform="translate(255, 52) rotate(@mirror1Angle)" @onclick="RotateMirror1" style="cursor:pointer;" class="interactive-mirror">
+                    <circle cx="0" cy="0" r="26" fill="rgba(255, 255, 255, 0.2)" stroke="#5BC0EB" stroke-width="2" />
+                    <rect x="-20" y="-4" width="40" height="8" rx="4" fill="#5BC0EB" stroke="#2B2D42" stroke-width="2.5" />
+                    <circle cx="0" cy="0" r="5" fill="#FFC93C" stroke="#2B2D42" stroke-width="2" />
+                    <!-- Handle -->
+                    <circle cx="-16" cy="0" r="4" fill="#FF6B6B" />
+                    <circle cx="16" cy="0" r="4" fill="#FF6B6B" />
                 </g>
 
-                <!-- Destination Lighthouse at (3, 2) -->
-                <g transform="translate(310, 167)">
-                    <circle cx="0" cy="0" r="18" fill="@(isBeamLit ? "#22C55E" : "#64748B")" stroke="#FFF" stroke-width="2" />
-                    <text x="-10" y="7" font-size="20">🏮</text>
+                <!-- Rotatable Mirror 2 at (2, 2) - Centered at (255, 182) -->
+                <g transform="translate(255, 182) rotate(@mirror2Angle)" @onclick="RotateMirror2" style="cursor:pointer;" class="interactive-mirror">
+                    <circle cx="0" cy="0" r="26" fill="rgba(255, 255, 255, 0.2)" stroke="#5BC0EB" stroke-width="2" />
+                    <rect x="-20" y="-4" width="40" height="8" rx="4" fill="#5BC0EB" stroke="#2B2D42" stroke-width="2.5" />
+                    <circle cx="0" cy="0" r="5" fill="#FFC93C" stroke="#2B2D42" stroke-width="2" />
+                    <!-- Handle -->
+                    <circle cx="-16" cy="0" r="4" fill="#FF6B6B" />
+                    <circle cx="16" cy="0" r="4" fill="#FF6B6B" />
                 </g>
 
-                <!-- Saved Ship at bottom -->
-                @if (isBeamLit)
+                <!-- Friendly Striped Lighthouse on Rocky Cliff at (435, 182) -->
+                <g transform="translate(435, 182)">
+                    <!-- Rocky Cliff Base -->
+                    <ellipse cx="0" cy="24" rx="35" ry="14" fill="#475569" stroke="#2B2D42" stroke-width="3" />
+                    <!-- Lighthouse Tower -->
+                    <polygon points="-16,20 -10,-32 10,-32 16,20" fill="#FFF8E7" stroke="#2B2D42" stroke-width="3" />
+                    <!-- Red Stripes -->
+                    <polygon points="-14,8 -12,-8 12,-8 14,8" fill="#FF6B6B" stroke="#2B2D42" stroke-width="2" />
+                    <!-- Lantern Cupola -->
+                    <rect x="-12" y="-46" width="24" height="14" rx="4" fill="@(isBeamLit ? "#FFC93C" : "#94A3B8")" stroke="#2B2D42" stroke-width="2.5" />
+                    <!-- Roof Peak -->
+                    <polygon points="-14,-46 0,-58 14,-46" fill="#FF6B6B" stroke="#2B2D42" stroke-width="2.5" />
+                    <!-- Lighthouse Glow -->
+                    @if (isBeamLit)
+                    {
+                        <circle cx="0" cy="-39" r="18" fill="#FFC93C" opacity="0.4" class="bloom-glow" />
+                    }
+                </g>
+
+                <!-- Little Wooden Boat at Sea with White Sails -->
+                <g transform="translate(110, 225)" class="boat-bobbing">
+                    <!-- Boat Hull -->
+                    <path d="M-22,0 L22,0 L16,14 L-16,14 Z" fill="#92400E" stroke="#2B2D42" stroke-width="2.5" />
+                    <!-- Mast -->
+                    <line x1="0" y1="0" x2="0" y2="-28" stroke="#2B2D42" stroke-width="2.5" />
+                    <!-- Sail -->
+                    <polygon points="0,-26 18,-6 0,-6" fill="#FFF8E7" stroke="#2B2D42" stroke-width="2" />
+                    <!-- Little Flag -->
+                    <polygon points="0,-28 -8,-24 0,-20" fill="#FF6B6B" />
+                </g>
+
+                <!-- Clearing Fog Effect (Puffs out when lit) -->
+                @if (!isBeamLit)
                 {
-                    <g><text x="140" y="250" font-size="28" class="ship-sail">⛵✨</text></g>
+                    <g opacity="0.35" class="fog-drift">
+                        <ellipse cx="180" cy="120" rx="90" ry="25" fill="#E2E8F0" />
+                        <ellipse cx="360" cy="140" rx="100" ry="28" fill="#E2E8F0" />
+                    </g>
                 }
             </svg>
         </div>
+    </SceneContent>
 
-        <div class="readout-bar">
-            @if (isBeamLit)
-            {
-                <span class="beacon-lit-badge">✨ Lighthouse Illuminated! Reef Cleared!</span>
-            }
-            else
-            {
-                <span class="beacon-aim-badge">Tap mirrors to reflect beam toward the lighthouse!</span>
-            }
-        </div>
-    </div>
-
-    <!-- Tactical Team Interaction Controls -->
-    @if (!isBeamLit)
-    {
-        <div class="storybook-card tactical-card">
-            <h4 class="tactical-title">Tap Mirror to Rotate (45° steps):</h4>
-            <div class="mirror-buttons-row">
-                <button class="storybook-btn rotate-btn" type="button" @onclick="RotateMirror1">
-                    <span>🔄 Rotate Mirror 1 (@(mirror1Angle)°)</span>
-                </button>
-                <button class="storybook-btn rotate-btn" type="button" @onclick="RotateMirror2">
-                    <span>🔄 Rotate Mirror 2 (@(mirror2Angle)°)</span>
-                </button>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="next-beacon-row">
-            <button class="storybook-btn next-beacon-btn" type="button" @onclick="AdvanceBeacon">
-                <span>⛵ Guide Next Ship Safe Home ➔</span>
+    <QuestionExtraContent>
+        <!-- In-Question Interactive Mirror Rotation Buttons -->
+        <div class="mirror-action-row">
+            <button class="pill mirror-tap-btn" type="button" @onclick="RotateMirror1">
+                <NextIcon Size="18" />
+                <span>Turn Mirror 1 (@(mirror1Angle)°)</span>
             </button>
+            <button class="pill mirror-tap-btn" type="button" @onclick="RotateMirror2">
+                <NextIcon Size="18" />
+                <span>Turn Mirror 2 (@(mirror2Angle)°)</span>
+            </button>
+            @if (isBeamLit && CurrentRound < 5)
+            {
+                <button class="pill next-ship-btn" type="button" @onclick="AdvanceBeacon">
+                    <StarIcon Size="18" FillColor="#FFC93C" />
+                    <span>Next Ship Safe! ➔</span>
+                </button>
+            }
         </div>
-    }
-</div>
+    </QuestionExtraContent>
+</GameShell>
 
 <style>
-    .game-viewport {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: clamp(0.75rem, 2vw, 1.25rem);
-        max-width: 640px;
+    .beacon-stage-scene {
+        width: 100%;
+        max-width: 600px;
         margin: 0 auto;
-        padding-bottom: 2rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .game-hud-card {
-        width: 100%;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .hud-top-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .hud-game-title {
-        font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 3.2vw, 1.6rem);
-        margin: 0;
-        color: var(--color-storybook-ink);
-    }
-
-    .round-stepper {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .round-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 2px solid var(--color-storybook-ink);
-        background: white;
-        display: flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.85rem;
     }
 
-    .round-dot.completed {
-        background: var(--color-sunny-yellow);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.current {
-        background: var(--color-mint);
-        color: white;
-        transform: scale(1.15);
-    }
-
-    /* Beacon Arena */
-    .beacon-arena {
+    .beacon-svg-viewport {
         width: 100%;
-        background: #0F172A;
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-lg);
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-sizing: border-box;
-    }
-
-    .team-banner {
-        background: rgba(255, 255, 255, 0.95);
-        border: 2px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-pill);
-        padding: 0.35rem 1rem;
-        font-family: var(--font-heading);
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        margin-bottom: 0.75rem;
-        text-align: center;
-    }
-
-    .optics-grid-wrapper {
-        width: 100%;
-        border-radius: 12px;
-        overflow: hidden;
+        height: auto;
+        max-height: 250px;
+        border-radius: var(--radius-lg);
+        border: var(--border-storybook);
+        box-shadow: var(--shadow-hard-md);
     }
 
     .glowing-beam {
-        filter: drop-shadow(0 0 8px #FFD166);
-        animation: beam-pulse 1.5s infinite alternate;
+        filter: drop-shadow(0 0 10px #FFC93C);
+        animation: beam-shine 1.6s infinite alternate ease-in-out;
     }
 
-    .ship-sail {
-        animation: ship-bob 2s infinite ease-in-out;
+    .interactive-mirror {
+        transition: transform 0.25s var(--spring-squish);
     }
 
-    .readout-bar {
-        margin-top: 0.75rem;
-        font-family: var(--font-heading);
-        font-size: 0.95rem;
-        font-weight: 800;
-        text-align: center;
+    .boat-bobbing {
+        animation: boat-sway 2.5s infinite ease-in-out alternate;
     }
 
-    .beacon-lit-badge {
-        background: #DCFCE7;
-        color: #15803D;
-        border: 2px solid #16A34A;
-        border-radius: var(--border-radius-pill);
-        padding: 0.3rem 0.85rem;
-        display: inline-block;
+    .fog-drift {
+        animation: fog-sway 4s infinite ease-in-out alternate;
     }
 
-    .beacon-aim-badge {
-        color: #94A3B8;
-    }
-
-    .tactical-card {
-        width: 100%;
-        padding: 1rem;
-        background: white;
-        text-align: center;
-    }
-
-    .tactical-title {
-        font-family: var(--font-heading);
-        font-size: 0.98rem;
-        margin: 0 0 0.65rem 0;
-        color: var(--color-storybook-ink);
-    }
-
-    .mirror-buttons-row {
+    .mirror-action-row {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem;
         justify-content: center;
         flex-wrap: wrap;
+        margin-top: 0.5rem;
     }
 
-    .rotate-btn {
-        background: #E0F2FE;
-        font-size: 0.92rem !important;
-        padding: 0.5rem 1rem !important;
+    .mirror-tap-btn {
+        background: #FFFFFF;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.45rem 0.85rem;
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
-    .next-beacon-row {
-        width: 100%;
-    }
-
-    .next-beacon-btn {
-        width: 100%;
+    .next-ship-btn {
         background: var(--color-mint);
-        color: white;
-        font-size: 1.15rem !important;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.45rem 1rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
-    @@keyframes beam-pulse {
-        0% { opacity: 0.8; stroke-width: 5; }
-        100% { opacity: 1; stroke-width: 7; }
+    @@keyframes beam-shine {
+        0% { stroke-width: 6; opacity: 0.85; }
+        100% { stroke-width: 10; opacity: 1; }
     }
 
-    @@keyframes ship-bob {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-4px); }
+    @@keyframes boat-sway {
+        0% { transform: translate(110px, 225px) rotate(-3deg); }
+        100% { transform: translate(110px, 225px) rotate(3deg); }
+    }
+
+    @@keyframes fog-sway {
+        0% { transform: translateX(-15px); }
+        100% { transform: translateX(15px); }
     }
 </style>
 
 @code {
     protected override SkillCategory GameCategory => SkillCategory.Numbers;
-    protected override string GameTitle => "Beacon Bridge Co-op";
+    protected override string GameTitle => "Team Light Quest";
 
     private int mirror1Angle = 0;
     private int mirror2Angle = 90;
@@ -328,10 +267,10 @@
         {
             Category = GameCategory,
             Difficulty = difficulty,
-            Prompt = "Rotate the optical mirrors to guide the light beam to the lighthouse!",
-            TargetAnswer = "light",
-            AcceptedAnswers = new() { "light", "beam", "mirror" },
-            DisplayItem = "🏮",
+            Prompt = "Say 'Voxie, light the way!' or turn the mirrors to guide the ship safely home!",
+            TargetAnswer = "light the way",
+            AcceptedAnswers = new() { "light", "beam", "mirror", "light the way", "turn mirror" },
+            DisplayItem = "Lighthouse",
             RewardStars = 2
         };
 
@@ -357,7 +296,6 @@
 
     private async void CheckBeamAlignment()
     {
-        // Aligned when mirror 1 is at 0° or 180° and mirror 2 is at 0° or 180°
         if ((mirror1Angle % 180 == 0) && (mirror2Angle % 180 == 0))
         {
             isBeamLit = true;
@@ -389,5 +327,36 @@
             await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
             await ReturnToMapAsync();
         }
+    }
+
+    private async Task HandlePracticeChoice(string choice)
+    {
+        if (choice.Contains("Mirror 1"))
+        {
+            await RotateMirror1();
+        }
+        else if (choice.Contains("Mirror 2"))
+        {
+            await RotateMirror2();
+        }
+        else
+        {
+            // Light the way command
+            mirror1Angle = 0;
+            mirror2Angle = 0;
+            CheckBeamAlignment();
+        }
+    }
+
+    private MicButton.MicState GetMicButtonState()
+    {
+        if (isBeamLit) return MicButton.MicState.Done;
+        if (VoiceManager.IsListening) return MicButton.MicState.Listening;
+        return MicButton.MicState.Ready;
+    }
+
+    private void SwitchToPracticeMode()
+    {
+        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
     }
 }

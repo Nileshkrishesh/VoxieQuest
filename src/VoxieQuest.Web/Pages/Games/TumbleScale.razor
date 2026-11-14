@@ -2,385 +2,250 @@
 @page "/games/tumble-scale"
 @inherits BaseGameComponent
 
-<div class="game-viewport">
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+<GameShell GameTitle="@GameTitle"
+           CurrentRound="@CurrentRound"
+           TotalRounds="5"
+           Stars="@SessionStars"
+           Theme="ParallaxBackground.ParallaxTheme.Hills"
+           ThemeClass="tumble-scale-theme"
+           Prompt="@(ActiveChallenge?.Prompt ?? "Add weights to balance the friendly island seesaw!")"
+           HintText="Shout 'Add two!' or tap a fruit weight!"
+           ShowHint="@(!isBalanced)"
+           MascotMood="@(isBalanced ? Mascot.MascotState.Happy : Mascot.MascotState.Thinking)"
+           IsListening="@VoiceManager.IsListening"
+           VolumeLevel="@CurrentVolume"
+           MicButtonState="@GetMicButtonState()"
+           IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
+           PracticeChoices="@(new List<string> { "Add 1", "Add 2", "Add 3", "Reset" })"
+           ShowSuccessBurst="@isBalanced"
+           IsRewardOpen="@(CurrentRound >= 5 && isBalanced)"
+           StarsEarned="3"
+           IsMicDenied="false"
+           OnBack="ReturnToMapAsync"
+           OnRepeatPrompt="RepeatPromptAloudAsync"
+           OnToggleListening="ToggleListeningAsync"
+           OnSelectPracticeChoice="HandlePracticeChoice"
+           OnPlayAgain="StartGameSessionAsync"
+           OnNextQuest="AdvanceIsland"
+           OnSwitchToPractice="SwitchToPracticeMode">
 
-    <!-- Top HUD -->
-    <div class="storybook-card game-hud-card">
-        <div class="hud-top-row">
-            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
-                <span>◀ Map</span>
-            </button>
-            <h3 class="hud-game-title">
-                ⚖️ @GameTitle
-            </h3>
-            <div class="star-badge hud-star-badge">
-                <span>⭐</span>
-                <span>@SessionStars</span>
-            </div>
-        </div>
+    <SceneContent>
+        <!-- Picture-Book Island Seesaw Balance Scene -->
+        <div class="scale-stage-scene">
+            <svg class="scale-svg-viewport" viewBox="0 0 540 240" preserveAspectRatio="xMidYMid meet">
+                <!-- Gentle Sandy Beach & Ocean Ripples -->
+                <rect x="0" y="0" width="540" height="240" rx="16" fill="#E0F2FE" />
+                <path d="M0 190 Q 135 180 270 190 T 540 190 V 240 H 0 Z" fill="#FEF08A" stroke="#2B2D42" stroke-width="2.5" />
+                <path d="M0 210 Q 135 200 270 210 T 540 210 V 240 H 0 Z" fill="#5BC0EB" opacity="0.6" />
 
-        <!-- 5 Rounds Stepper -->
-        <div class="round-stepper">
-            @for (int r = 1; r <= 5; r++)
-            {
-                var isCompleted = r < CurrentRound;
-                var isCurrent = r == CurrentRound;
-                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Island @r">
-                    @(isCompleted ? "★" : r.ToString())
-                </div>
-            }
-        </div>
-    </div>
+                <!-- Smooth Round Pebble Fulcrum on Beach -->
+                <ellipse cx="270" cy="170" rx="28" ry="20" fill="#94A3B8" stroke="#2B2D42" stroke-width="3" />
+                <ellipse cx="270" cy="155" rx="8" ry="6" fill="#FFC93C" stroke="#2B2D42" stroke-width="2" />
 
-    <!-- Main Island Balance Scale Arena -->
-    <div class="storybook-card scale-arena">
-        <div class="target-banner">
-            <span>Island Target Weight: <strong>@targetTorque</strong> Balance Units</span>
-        </div>
+                <!-- Tilting Palm Log Beam (Rotates around (270, 155)) -->
+                <g transform="rotate(@beamAngle, 270, 155)" class="balance-beam-group">
+                    <!-- Palm Log Beam -->
+                    <rect x="40" y="148" width="460" height="16" rx="8" fill="#92400E" stroke="#2B2D42" stroke-width="3.5" />
+                    <!-- Green Grass Strip along Log -->
+                    <rect x="42" y="144" width="456" height="6" rx="3" fill="#7ED9A8" stroke="#2B2D42" stroke-width="1.5" />
 
-        <!-- SVG Balance Beam Island -->
-        <div class="scale-svg-container">
-            <svg width="100%" height="220" viewBox="0 0 540 220" preserveAspectRatio="xMidYMid meet">
-                <!-- Water Waves Base -->
-                <path d="M0 200Q75 190 150 200T300 200T450 200T540 200V220H0Z" fill="#38BDF8" opacity="0.6" />
-                <path d="M0 205Q60 198 120 205T240 205T360 205T480 205T540 205V220H0Z" fill="#0284C7" opacity="0.8" />
-
-                <!-- Central Fulcrum Pivot Stone -->
-                <polygon points="270,140 245,195 295,195" fill="#64748B" stroke="#2B2D42" stroke-width="3" />
-                <circle cx="270" cy="142" r="8" fill="#FFD166" stroke="#2B2D42" stroke-width="2.5" />
-
-                <!-- Tilting Island Beam (Rotates based on balance angle) -->
-                <g transform="rotate(@beamAngle, 270, 142)">
-                    <!-- Island Platform Beam -->
-                    <rect x="50" y="136" width="440" height="14" rx="7" fill="#92400E" stroke="#2B2D42" stroke-width="3" />
-                    <!-- Grassy turf on beam -->
-                    <rect x="52" y="132" width="436" height="6" rx="3" fill="#22C55E" />
-
-                    <!-- Left Arm Hook Slots (Positions 3, 2, 1) -->
-                    <circle cx="90" cy="143" r="5" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2" />
-                    <circle cx="150" cy="143" r="5" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2" />
-                    <circle cx="210" cy="143" r="5" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2" />
-
-                    <!-- Left Palm Tree -->
-                    <text x="60" y="125" font-size="28">🌴</text>
+                    <!-- Left Palm Tree Sticker & Weight Slots (Positions 1, 2, 3) -->
+                    <g transform="translate(60, 95)">
+                        <!-- Hand-drawn Palm Trunk -->
+                        <path d="M12,50 Q16,25 24,0" stroke="#92400E" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                        <!-- Palm Fronds -->
+                        <path d="M24,0 Q5,-15 -10,0" stroke="#22C55E" stroke-width="4" stroke-linecap="round" fill="none" />
+                        <path d="M24,0 Q35,-20 45,-5" stroke="#22C55E" stroke-width="4" stroke-linecap="round" fill="none" />
+                        <path d="M24,0 Q24,-24 20,-30" stroke="#22C55E" stroke-width="4" stroke-linecap="round" fill="none" />
+                    </g>
 
                     <!-- Placed Items on Left Arm -->
                     @foreach (var placed in placedWeights)
                     {
-                        var posX = placed.Slot switch { 1 => 210, 2 => 150, _ => 90 };
-                        <g transform="translate(@(posX - 16), 96)">
-                            <text x="0" y="24" font-size="26">@placed.Emoji</text>
-                            <text x="12" y="36" font-size="11" font-weight="800" font-family="var(--font-heading)" fill="#2B2D42">@placed.Weight</text>
+                        var posX = placed.Slot switch { 1 => 200, 2 => 140, _ => 90 };
+                        <g transform="translate(@(posX - 14), 105)">
+                            <!-- Tactile Wooden Weight Token -->
+                            <circle cx="14" cy="14" r="14" fill="#FFC93C" stroke="#2B2D42" stroke-width="2.5" />
+                            <text x="14" y="19" font-family="var(--font-heading)" font-size="14" font-weight="700" fill="#2B2D42" text-anchor="middle">
+                                @placed.Weight
+                            </text>
                         </g>
                     }
 
-                    <!-- Right Arm Target Island with Mascot / Animals -->
-                    <rect x="370" y="90" width="100" height="46" rx="10" fill="#FEF08A" stroke="#2B2D42" stroke-width="2.5" />
-                    <text x="382" y="120" font-size="26">🦤</text>
-                    <text x="420" y="122" font-size="14" font-weight="800" font-family="var(--font-heading)" fill="#2B2D42">@targetTorque</text>
-                    <text x="445" y="120" font-size="24">🌴</text>
+                    <!-- Right Arm Target Basket with Target Weight -->
+                    <g transform="translate(380, 100)">
+                        <!-- Woven Basket -->
+                        <path d="M0,15 L60,15 L52,45 L8,45 Z" fill="#F59E0B" stroke="#2B2D42" stroke-width="3" />
+                        <!-- Basket Rim -->
+                        <rect x="-3" y="10" width="66" height="8" rx="4" fill="#D97706" stroke="#2B2D42" stroke-width="2" />
+                        <!-- Target Weight Pill on Basket -->
+                        <rect x="10" y="22" width="40" height="18" rx="9" fill="#FFF8E7" stroke="#2B2D42" stroke-width="2" />
+                        <text x="30" y="35" font-family="var(--font-heading)" font-size="14" font-weight="700" fill="#2B2D42" text-anchor="middle">
+                            @targetTorque
+                        </text>
+                    </g>
                 </g>
 
-                <!-- Bridge Lock Animation upon balance -->
+                <!-- Cheerful Wooden Flag popping up when Level -->
                 @if (isBalanced)
                 {
-                    <rect x="180" y="140" width="180" height="12" rx="6" fill="#F59E0B" stroke="#2B2D42" stroke-width="2.5" />
-                    <g><text x="248" y="130" font-size="28">🦊✨</text></g>
+                    <g transform="translate(255, 60)" class="flag-pop-anim">
+                        <!-- Flagpole -->
+                        <line x1="15" y1="0" x2="15" y2="80" stroke="#2B2D42" stroke-width="3.5" />
+                        <!-- Cheerful Triangular Banner -->
+                        <polygon points="15,0 55,16 15,32" fill="#7ED9A8" stroke="#2B2D42" stroke-width="2.5" />
+                        <!-- Star on Banner -->
+                        <polygon points="28,16 30,12 34,12 31,14 32,18 28,15 24,18 25,14 22,12 26,12" fill="#FFC93C" stroke="#2B2D42" stroke-width="1" />
+                    </g>
                 }
             </svg>
         </div>
+    </SceneContent>
 
-        <!-- Live Weight Readout -->
-        <div class="readout-bar">
-            <span>Your Current Island Weight: <strong>@currentTorque</strong></span>
-            @if (isBalanced)
-            {
-                <span class="balanced-badge">✨ Balanced! Bridge Locked!</span>
-            }
-            else if (currentTorque > targetTorque)
-            {
-                <span class="heavy-badge">Too Heavy! Remove a weight</span>
-            }
-            else
-            {
-                <span class="light-badge">Add weights to balance</span>
-            }
-        </div>
-    </div>
-
-    <!-- Weight Selector Tray (Tap to place weights) -->
-    @if (!isBalanced)
-    {
-        <div class="storybook-card tray-card">
-            <h4 class="tray-title">Tap a Weight to Add to Island:</h4>
-            <div class="weights-tray">
-                <button class="weight-btn" type="button" @onclick='() => AddWeight(1, 1, "🥥")'>
-                    <span class="weight-icon">🥥</span>
-                    <span class="weight-val">Coconut (1)</span>
-                </button>
-                <button class="weight-btn" type="button" @onclick='() => AddWeight(2, 1, "🍍")'>
-                    <span class="weight-icon">🍍</span>
-                    <span class="weight-val">Pineapple (2)</span>
-                </button>
-                <button class="weight-btn" type="button" @onclick='() => AddWeight(3, 1, "🍉")'>
-                    <span class="weight-icon">🍉</span>
-                    <span class="weight-val">Melon (3)</span>
-                </button>
-                <button class="weight-btn" type="button" @onclick='() => AddWeight(5, 1, "🪨")'>
-                    <span class="weight-icon">🪨</span>
-                    <span class="weight-val">Stone (5)</span>
-                </button>
-            </div>
-
-            <div class="tray-actions">
-                <button class="pill reset-weights-btn" type="button" @onclick="ResetWeights" disabled="@(!placedWeights.Any())">
-                    <span>↺ Clear Weights</span>
-                </button>
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- Next Island Action -->
-        <div class="next-island-row">
-            <button class="storybook-btn next-island-btn" type="button" @onclick="AdvanceIsland">
-                <span>🌴 Cross Bridge to Next Island ➔</span>
+    <QuestionExtraContent>
+        <!-- Weight Selector Buttons -->
+        <div class="weight-controls-row">
+            <button class="pill weight-token-btn" type="button" @onclick='() => AddWeight(1, 1, "1")'>
+                <span class="weight-badge">+1</span>
+                <span>Coconut</span>
             </button>
+            <button class="pill weight-token-btn" type="button" @onclick='() => AddWeight(2, 1, "2")'>
+                <span class="weight-badge">+2</span>
+                <span>Pineapple</span>
+            </button>
+            <button class="pill weight-token-btn" type="button" @onclick='() => AddWeight(3, 1, "3")'>
+                <span class="weight-badge">+3</span>
+                <span>Melon</span>
+            </button>
+            <button class="pill weight-token-btn" type="button" @onclick='() => AddWeight(5, 1, "5")'>
+                <span class="weight-badge">+5</span>
+                <span>Stone</span>
+            </button>
+
+            <button class="pill clear-weight-btn" type="button" @onclick="ResetWeights" disabled="@(!placedWeights.Any())">
+                <ReplayIcon Size="16" />
+                <span>Clear</span>
+            </button>
+
+            @if (isBalanced && CurrentRound < 5)
+            {
+                <button class="pill next-island-btn" type="button" @onclick="AdvanceIsland">
+                    <StarIcon Size="18" FillColor="#FFC93C" />
+                    <span>Next Island ➔</span>
+                </button>
+            }
         </div>
-    }
-</div>
+    </QuestionExtraContent>
+</GameShell>
 
 <style>
-    .game-viewport {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: clamp(0.75rem, 2vw, 1.25rem);
-        max-width: 640px;
+    .scale-stage-scene {
+        width: 100%;
+        max-width: 600px;
         margin: 0 auto;
-        padding-bottom: 2rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .game-hud-card {
-        width: 100%;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .hud-top-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .hud-game-title {
-        font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 3.2vw, 1.6rem);
-        margin: 0;
-        color: var(--color-storybook-ink);
-    }
-
-    .round-stepper {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .round-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 2px solid var(--color-storybook-ink);
-        background: white;
-        display: flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.85rem;
     }
 
-    .round-dot.completed {
-        background: var(--color-sunny-yellow);
-        color: var(--color-storybook-ink);
-    }
-
-    .round-dot.current {
-        background: var(--color-mint);
-        color: white;
-        transform: scale(1.15);
-    }
-
-    /* Scale Arena */
-    .scale-arena {
-        width: 100%;
-        background: linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 100%);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-lg);
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-sizing: border-box;
-    }
-
-    .target-banner {
-        background: white;
-        border: 2px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-pill);
-        padding: 0.35rem 1.1rem;
-        font-family: var(--font-heading);
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: var(--color-storybook-ink);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        margin-bottom: 0.5rem;
-    }
-
-    .scale-svg-container {
+    .scale-svg-viewport {
         width: 100%;
         height: auto;
+        max-height: 250px;
+        border-radius: var(--radius-lg);
+        border: var(--border-storybook);
+        box-shadow: var(--shadow-hard-md);
     }
 
-    .readout-bar {
+    .balance-beam-group {
+        transition: transform 0.4s var(--spring-squish);
+    }
+
+    .flag-pop-anim {
+        animation: flag-rise 0.5s var(--spring-squish) forwards;
+    }
+
+    .weight-controls-row {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
         margin-top: 0.5rem;
+    }
+
+    .weight-token-btn {
+        background: #FFFFFF;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 0.75rem;
         font-family: var(--font-heading);
         font-size: 0.95rem;
-        font-weight: 800;
+        font-weight: 700;
         color: var(--color-storybook-ink);
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .balanced-badge {
-        background: #DCFCE7;
-        color: #15803D;
-        border: 2px solid #16A34A;
-        border-radius: var(--border-radius-pill);
-        padding: 0.2rem 0.65rem;
-    }
-
-    .heavy-badge {
-        background: #FEE2E2;
-        color: #B91C1C;
-        border: 2px solid #EF4444;
-        border-radius: var(--border-radius-pill);
-        padding: 0.2rem 0.65rem;
-    }
-
-    .light-badge {
-        background: #FEF9C3;
-        color: #854D0E;
-        border: 2px solid #CA8A04;
-        border-radius: var(--border-radius-pill);
-        padding: 0.2rem 0.65rem;
-    }
-
-    /* Tray Card */
-    .tray-card {
-        width: 100%;
-        padding: 1rem;
-        background: white;
-    }
-
-    .tray-title {
-        font-family: var(--font-heading);
-        font-size: 1rem;
-        margin: 0 0 0.65rem 0;
-        text-align: center;
-        color: var(--color-storybook-ink);
-    }
-
-    .weights-tray {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.5rem;
-    }
-
-    .weight-btn {
-        background: #F8FAFC;
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-sm);
-        padding: 0.5rem 0.25rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.2rem;
+        box-shadow: var(--shadow-hard-sm);
         cursor: pointer;
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        transition: transform 0.12s ease;
-        touch-action: manipulation;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
-    @@media (hover: hover) and (pointer: fine) {
-        .weight-btn:hover {
-            transform: translateY(-2px);
-            background: #FFF9DB;
-        }
+    .weight-badge {
+        background: var(--color-sunny-yellow);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 1px 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
     }
 
-    .weight-btn:active {
-        transform: translateY(2px);
-        box-shadow: 0 1px 0 var(--color-storybook-ink);
-    }
-
-    .weight-icon {
-        font-size: 1.8rem;
-    }
-
-    .weight-val {
+    .clear-weight-btn {
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 0.75rem;
         font-family: var(--font-heading);
-        font-size: 0.78rem;
-        font-weight: 800;
+        font-size: 0.95rem;
+        font-weight: 700;
         color: var(--color-storybook-ink);
-    }
-
-    .tray-actions {
-        display: flex;
-        justify-content: center;
-        margin-top: 0.75rem;
-    }
-
-    .reset-weights-btn {
-        background: #F1F5F9;
-        font-weight: 800;
-    }
-
-    .next-island-row {
-        width: 100%;
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     .next-island-btn {
-        width: 100%;
         background: var(--color-mint);
-        color: white;
-        font-size: 1.15rem !important;
+        border: var(--border-storybook);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 0.95rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
-    @@media (max-width: 480px) {
-        .weights-tray {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    @@keyframes flag-rise {
+        0% { transform: translate(255px, 120px) scale(0.4); opacity: 0; }
+        100% { transform: translate(255px, 60px) scale(1); opacity: 1; }
     }
 </style>
 
 @code {
     protected override SkillCategory GameCategory => SkillCategory.Numbers;
-    protected override string GameTitle => "Tumble Scale Archipelago";
+    protected override string GameTitle => "Island Balance";
 
     private int targetTorque = 6;
     private int currentTorque = 0;
     private double beamAngle = 10;
     private bool isBalanced = false;
 
-    private record PlacedWeight(int Weight, int Slot, string Emoji);
+    private record PlacedWeight(int Weight, int Slot, string Label);
     private List<PlacedWeight> placedWeights = new();
 
     private static readonly int[] TargetChallenges = new[] { 4, 6, 8, 10, 12 };
@@ -390,7 +255,7 @@
         isBalanced = false;
         placedWeights.Clear();
         currentTorque = 0;
-        beamAngle = 12; // tilted right because target island is heavy
+        beamAngle = 12;
 
         var index = Math.Min(round - 1, TargetChallenges.Length - 1);
         targetTorque = TargetChallenges[index] + (difficulty == DifficultyLevel.Hard ? 2 : 0);
@@ -399,23 +264,22 @@
         {
             Category = GameCategory,
             Difficulty = difficulty,
-            Prompt = $"Add weights to the left island to reach {targetTorque} and balance the archipelago bridge!",
+            Prompt = $"Add friendly weights to match {targetTorque} and level the island seesaw!",
             TargetAnswer = targetTorque.ToString(),
-            AcceptedAnswers = new() { targetTorque.ToString() },
-            DisplayItem = "⚖️",
+            AcceptedAnswers = new() { targetTorque.ToString(), $"add {targetTorque}", "level", "balanced" },
+            DisplayItem = $"{targetTorque}",
             RewardStars = 2
         };
 
         return Task.FromResult(challenge);
     }
 
-    private async Task AddWeight(int weight, int slot, string emoji)
+    private async Task AddWeight(int weight, int slot, string label)
     {
         if (isBalanced) return;
 
-        placedWeights.Add(new PlacedWeight(weight, (placedWeights.Count % 3) + 1, emoji));
+        placedWeights.Add(new PlacedWeight(weight, (placedWeights.Count % 3) + 1, label));
         await AudioService.PlaySoundAsync(SoundEffect.Pop);
-
         CalculateTorque();
     }
 
@@ -431,7 +295,7 @@
 
         if (currentTorque == targetTorque)
         {
-            beamAngle = 0; // perfectly flat
+            beamAngle = 0;
             isBalanced = true;
             await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
 
@@ -449,13 +313,11 @@
         }
         else if (currentTorque < targetTorque)
         {
-            // Tilted right
             var diff = targetTorque - currentTorque;
             beamAngle = Math.Min(16, 4 + diff * 2);
         }
         else
         {
-            // Tilted left (too heavy)
             var diff = currentTorque - targetTorque;
             beamAngle = -Math.Min(16, 4 + diff * 2);
         }
@@ -474,5 +336,25 @@
             await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
             await ReturnToMapAsync();
         }
+    }
+
+    private async Task HandlePracticeChoice(string choice)
+    {
+        if (choice.Contains("Add 1")) await AddWeight(1, 1, "1");
+        else if (choice.Contains("Add 2")) await AddWeight(2, 1, "2");
+        else if (choice.Contains("Add 3")) await AddWeight(3, 1, "3");
+        else ResetWeights();
+    }
+
+    private MicButton.MicState GetMicButtonState()
+    {
+        if (isBalanced) return MicButton.MicState.Done;
+        if (VoiceManager.IsListening) return MicButton.MicState.Listening;
+        return MicButton.MicState.Ready;
+    }
+
+    private void SwitchToPracticeMode()
+    {
+        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
     }
 }

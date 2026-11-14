@@ -1,0 +1,14 @@
+@namespace VoxieQuest.Web.Components.Icons
+
+<svg width="@Size" height="@Size" viewBox="0 0 32 32" fill="none" class="@Class" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="16" r="14" fill="@BgColor" stroke="@BorderColor" stroke-width="3" />
+    <path d="M9 16.5L14 21.5L23 11.5" stroke="@CheckColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+
+@code {
+    [Parameter] public int Size { get; set; } = 28;
+    [Parameter] public string BgColor { get; set; } = "#7ED9A8";
+    [Parameter] public string BorderColor { get; set; } = "#2B2D42";
+    [Parameter] public string CheckColor { get; set; } = "#2B2D42";
+    [Parameter] public string Class { get; set; } = "";
+}

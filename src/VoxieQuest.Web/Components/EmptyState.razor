@@ -1,0 +1,82 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="empty-state-card storybook-card">
+    <div class="empty-icon-wrap">
+        @if (IconContent != null)
+        {
+            @IconContent
+        }
+        else
+        {
+            <SleepingSeedIcon Size="64" FillColor="#FFC93C" />
+        }
+    </div>
+
+    <h3 class="empty-title">@Title</h3>
+    <p class="empty-message">@Message</p>
+
+    @if (!string.IsNullOrEmpty(ActionText) && OnAction.HasDelegate)
+    {
+        <div class="empty-action">
+            <BouncyButton Variant="BouncyButton.ButtonVariant.Yellow" 
+                          Text="@ActionText" 
+                          OnClick="OnAction" />
+        </div>
+    }
+</div>
+
+<style>
+    .empty-state-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        max-width: 480px;
+        margin: 1.5rem auto;
+        background: var(--color-paper-light);
+        border: var(--border-storybook);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-hard-md);
+        gap: 0.75rem;
+    }
+
+    .empty-icon-wrap {
+        animation: empty-wobble 3s infinite ease-in-out;
+    }
+
+    .empty-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .empty-message {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        opacity: 0.85;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .empty-action {
+        margin-top: 0.5rem;
+    }
+
+    @@keyframes empty-wobble {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-6px) rotate(2deg); }
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = "All Quiet Here!";
+    [Parameter] public string Message { get; set; } = "There's nothing here just yet. Play a game to see flowers bloom!";
+    [Parameter] public string? ActionText { get; set; }
+    [Parameter] public RenderFragment? IconContent { get; set; }
+    [Parameter] public EventCallback OnAction { get; set; }
+}

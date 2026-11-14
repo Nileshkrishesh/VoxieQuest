@@ -7,148 +7,142 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-<div class="storybook-app @(Accessibility.IsDyslexiaFont ? "dyslexia-font" : "") @(Accessibility.IsColorblindMode ? "colorblind-mode" : "")">
+<div class="storybook-app @(Accessibility.IsDyslexiaFont ? "dyslexia-font" : "") @(Accessibility.IsColorblindMode ? "colorblind-mode" : "") @(IsGameRoute ? "in-game-mode" : "")">
     <!-- Cloud Wipe Page Transition Overlay -->
     <CloudWipeTransition />
 
-    <!-- Atmospheric Parallax Backdrop -->
-    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+    @if (!IsGameRoute)
+    {
+        <!-- Atmospheric Parallax Backdrop for Main Pages -->
+        <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
 
-    <!-- Screen Time Rest Break Modal -->
-    <BreakScreenModal />
+        <!-- Screen Time Rest Break Modal -->
+        <BreakScreenModal />
 
-    <!-- Clean, Colorful Storybook Responsive Sticky Header -->
-    <header class="storybook-header">
-        <a href="" class="brand-badge" title="Voxie Quest Home">
-            <FoxieFaceIcon Size="32" />
-            <span class="brand-title-text">VOXIE QUEST</span>
-        </a>
+        <!-- Clean, Single-Row Sticky Header (64px, never wraps) -->
+        <header class="storybook-header" role="banner">
+            <a href="" class="brand-badge" title="Voxie Quest Home">
+                <FoxieFaceIcon Size="36" />
+                <span class="brand-title-text">VOXIE QUEST</span>
+            </a>
 
-        <div class="header-status-pills">
-            <!-- Total Stars Display with SVG Star -->
-            <div class="star-pill-badge" title="Total Stars Collected!">
-                <StarIcon Size="22" FillColor="#FFD166" Class="star-spin-hover" />
-                <span class="star-count-num">@(ProgressService.ActiveProfile?.TotalStars ?? 0)</span>
+            <div class="header-status-pills">
+                <!-- Total Stars Counter with SVG Star -->
+                <div class="star-pill-badge" title="Total Stars Collected!">
+                    <StarIcon Size="22" FillColor="#FFC93C" />
+                    <span class="star-count-num">@(ProgressService.ActiveProfile?.TotalStars ?? 0)</span>
+                </div>
+
+                <!-- Streak Fire Flame Counter -->
+                <StreakBadge Size="24" />
+
+                <!-- Desktop Navigation Items (>= 1280px only) -->
+                <div class="desktop-header-items">
+                    <a href="profile" class="pill kid-profile-pill" title="Explorer profile">
+                        <FoxieFaceIcon Size="20" />
+                        <span class="profile-name">@(ProgressService.ActiveProfile?.Name ?? "Explorer")</span>
+                    </a>
+
+                    <button class="pill header-action-btn sound-btn @(AudioService.IsMuted ? "muted" : "")" 
+                            @onclick="ToggleMute" 
+                            type="button" 
+                            title="@(AudioService.IsMuted ? "Sound: Muted" : "Sound: Playing")">
+                        <SpeakerIcon Size="20" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
+                        <span class="btn-label-text">@(AudioService.IsMuted ? "Muted" : "Sound")</span>
+                    </button>
+
+                    <a href="classroom" class="pill header-action-btn classroom-btn" title="Classroom Adventure">
+                        <BackpackIcon Size="20" />
+                        <span class="btn-label-text">Class</span>
+                    </a>
+
+                    <a href="league" class="pill header-action-btn league-btn" title="Weekly League">
+                        <FlowerIcon Size="20" PetalColor="#FFC93C" CenterColor="#FF9F43" />
+                        <span class="btn-label-text">League</span>
+                    </a>
+
+                    <a href="parent" class="pill header-action-btn parent-btn" title="Grown-Ups Dashboard">
+                        <ShieldIcon Size="20" FillColor="#FFF8E7" />
+                        <span class="btn-label-text">Parents</span>
+                    </a>
+                </div>
+
+                <!-- Compact Menu Pill Button (< 1280px) -->
+                <div class="compact-menu-container">
+                    <button class="pill header-menu-pill" 
+                            @onclick="ToggleMobileMenu" 
+                            type="button" 
+                            aria-label="Open Quick Menu" 
+                            title="Menu">
+                        <span class="menu-icon-bars">☰</span>
+                        <span class="menu-pill-text">Menu</span>
+                    </button>
+
+                    @if (isMobileMenuOpen)
+                    {
+                        <div class="menu-popover-backdrop" @onclick="CloseMobileMenu"></div>
+                        <div class="menu-popover-panel animate-pop">
+                            <a href="profile" class="popover-link-item" @onclick="CloseMobileMenu">
+                                <FoxieFaceIcon Size="24" />
+                                <span>@(ProgressService.ActiveProfile?.Name ?? "Explorer Profile")</span>
+                            </a>
+
+                            <button class="popover-link-item sound-popover-btn" 
+                                    @onclick="ToggleMuteFromPopover" 
+                                    type="button">
+                                <SpeakerIcon Size="24" IsMuted="@AudioService.IsMuted" FillColor="#2B2D42" />
+                                <span>@(AudioService.IsMuted ? "Unmute Sound" : "Mute Sound")</span>
+                            </button>
+
+                            <a href="classroom" class="popover-link-item" @onclick="CloseMobileMenu">
+                                <BackpackIcon Size="24" />
+                                <span>Classroom Adventure</span>
+                            </a>
+
+                            <a href="league" class="popover-link-item" @onclick="CloseMobileMenu">
+                                <FlowerIcon Size="24" PetalColor="#FFC93C" CenterColor="#FF9F43" />
+                                <span>Garden League</span>
+                            </a>
+
+                            <a href="parent" class="popover-link-item parent-item" @onclick="CloseMobileMenu">
+                                <ShieldIcon Size="24" FillColor="#FFF8E7" />
+                                <span>Grown-Ups Area</span>
+                            </a>
+                        </div>
+                    }
+                </div>
             </div>
+        </header>
+    }
 
-            <!-- Streak Fire Flame Counter -->
-            <StreakBadge Size="22" />
-
-            <!-- Desktop and Tablet Pill Items 600px and up -->
-            <div class="desktop-header-items">
-                <!-- Active Profile Pill -->
-                <a href="profile" class="pill kid-profile-pill" title="Change explorer profile">
-                    <span class="avatar-emoji">@GetAvatarEmoji(ProgressService.ActiveProfile?.Avatar)</span>
-                    <span class="profile-name">@(ProgressService.ActiveProfile?.Name ?? "Explorer")</span>
-                </a>
-
-                <!-- Audio Mute Toggle Button -->
-                <button class="pill header-action-btn sound-btn @(AudioService.IsMuted ? "muted" : "")" 
-                        @onclick="ToggleMute" 
-                        type="button" 
-                        title="@(AudioService.IsMuted ? "Sound: Muted (Click to Unmute)" : "Sound: Playing (Click to Mute)")">
-                    <SpeakerIcon Size="22" IsMuted="@AudioService.IsMuted" FillColor="#FFFDF7" />
-                    <span class="btn-label-text">@(AudioService.IsMuted ? "Muted" : "Sound")</span>
-                </button>
-
-                <!-- Classroom Pods -->
-                <a href="classroom" class="pill header-action-btn classroom-btn" title="Classroom & Group Pods">
-                    <HouseIcon Size="20" RoofColor="#5BC0EB" WallColor="#FFF8E7" DoorColor="#FFC93C" />
-                    <span class="btn-label-text">Class</span>
-                </a>
-
-                <!-- Weekly League Garden -->
-                <a href="league" class="pill header-action-btn league-btn" style="background:#FFF9DB; border-color:#FFC93C; color:#2B2D42;" title="Weekly Garden League">
-                    <FlowerIcon Size="20" PetalColor="#FFC93C" CenterColor="#FF9F43" />
-                    <span class="btn-label-text">League</span>
-                </a>
-
-                <!-- Grown-Ups and Settings Gate -->
-                <a href="parent" class="pill header-action-btn parent-btn" title="Grown-Ups Dashboard &amp; Settings">
-                    <ShieldIcon Size="22" FillColor="#FFFDF7" />
-                    <span class="btn-label-text">Parents</span>
-                </a>
-            </div>
-
-            <!-- Phone Menu Button for screens under 600px -->
-            <div class="phone-menu-container">
-                <button class="pill header-menu-btn" 
-                        @onclick="ToggleMobileMenu" 
-                        type="button" 
-                        aria-label="Open menu" 
-                        title="Open Quick Menu">
-                    <span class="menu-icon-bars">☰</span>
-                </button>
-
-                @if (isMobileMenuOpen)
-                {
-                    <div class="phone-popover-backdrop" @onclick="CloseMobileMenu"></div>
-                    <div class="phone-popover-menu animate-pop">
-                        <a href="profile" class="popover-item profile-popover-link" @onclick="CloseMobileMenu">
-                            <span class="avatar-emoji">@GetAvatarEmoji(ProgressService.ActiveProfile?.Avatar)</span>
-                            <span>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</span>
-                        </a>
-
-                        <button class="popover-item sound-popover-btn @(AudioService.IsMuted ? "muted" : "")" 
-                                @onclick="ToggleMuteFromPopover" 
-                                type="button">
-                            <SpeakerIcon Size="24" IsMuted="@AudioService.IsMuted" FillColor="@(AudioService.IsMuted ? "#2B2D42" : "#FFFDF7")" />
-                            <span>@(AudioService.IsMuted ? "Unmute Sound" : "Mute Sound")</span>
-                        </button>
-
-                        <a href="classroom" class="popover-item classroom-popover-link" @onclick="CloseMobileMenu" style="background:#E0F2FE; color:#0369A1;">
-                            <HouseIcon Size="22" RoofColor="#5BC0EB" WallColor="#FFF8E7" DoorColor="#FFC93C" />
-                            <span>Classroom Pods</span>
-                        </a>
-
-                        <a href="league" class="popover-item league-popover-link" @onclick="CloseMobileMenu" style="background:#FEF3C7; color:#2B2D42;">
-                            <FlowerIcon Size="22" PetalColor="#FFC93C" CenterColor="#FF9F43" />
-                            <span>Garden League</span>
-                        </a>
-
-                        <a href="parent" class="popover-item parent-popover-link" @onclick="CloseMobileMenu">
-                            <ShieldIcon Size="24" FillColor="#FFFDF7" />
-                            <span>Grown-Ups (Parents)</span>
-                        </a>
-                    </div>
-                }
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Game Page Body with Fixed Overlap Padding and Safe Area Insets -->
-    <main class="storybook-main-body">
+    <!-- Main Game Page Body -->
+    <main class="storybook-main-body @(IsGameRoute ? "game-route-body" : "")">
         @Body
     </main>
 
-    <!-- Simple, Chunky 4-Tab Fixed Bottom Navigation for Kids -->
-    <nav class="storybook-nav-kids" aria-label="Game navigation">
-        <NavLink href="" Match="NavLinkMatch.All" class="nav-kid-big-tab">
-            <HouseIcon Size="26" RoofColor="#EF476F" WallColor="#FFFDF7" DoorColor="#FFD166" />
-            <span class="nav-kid-label">Home</span>
-        </NavLink>
-        <NavLink href="games" class="nav-kid-big-tab">
-            <GameControllerIcon Size="26" BodyColor="#4EA8DE" />
-            <span class="nav-kid-label">Games</span>
-        </NavLink>
-        <NavLink href="garden" class="nav-kid-big-tab">
-            <FlowerIcon Size="26" PetalColor="#06D6A0" CenterColor="#FFD166" />
-            <span class="nav-kid-label">Garden</span>
-        </NavLink>
-        <NavLink href="stickers" class="nav-kid-big-tab">
-            <TrophyIcon Size="26" CupColor="#FFC93C" />
-            <span class="nav-kid-label">Rewards</span>
-        </NavLink>
-    </nav>
+    @if (!IsGameRoute)
+    {
+        <!-- Simple, Chunky 4-Tab Fixed Bottom Navigation for Kids (72px) -->
+        <nav class="storybook-nav-kids" aria-label="Main Navigation">
+            <NavLink href="" Match="NavLinkMatch.All" class="nav-kid-big-tab">
+                <HomeIcon Size="28" FillColor="#2B2D42" />
+                <span class="nav-kid-label">Home</span>
+            </NavLink>
+            <NavLink href="games" class="nav-kid-big-tab">
+                <GamesIcon Size="28" FillColor="#2B2D42" />
+                <span class="nav-kid-label">Games</span>
+            </NavLink>
+            <NavLink href="garden" class="nav-kid-big-tab">
+                <FlowerIcon Size="28" PetalColor="#7ED9A8" CenterColor="#FFC93C" />
+                <span class="nav-kid-label">Garden</span>
+            </NavLink>
+            <NavLink href="stickers" class="nav-kid-big-tab">
+                <TrophyIcon Size="28" CupColor="#FFC93C" />
+                <span class="nav-kid-label">Rewards</span>
+            </NavLink>
+        </nav>
+    }
 </div>
-
-<!-- Lightweight Hand-drawn Wobbly Border SVG Filter -->
-<svg style="position:absolute; width:0; height:0; pointer-events:none;" aria-hidden="true">
-    <filter id="wobbly-border">
-        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-</svg>
 
 <style>
     .storybook-app {
@@ -156,24 +150,30 @@
         flex-direction: column;
         min-height: 100dvh;
         width: 100%;
-        background: #FFFDF7;
+        background: var(--color-paper-light, #FFF8E7);
         box-sizing: border-box;
         overflow-x: hidden;
     }
 
-    /* Fixed Sticky Header with responsive fluid height */
+    .storybook-app.in-game-mode {
+        height: 100dvh;
+        overflow: hidden;
+        background: transparent;
+    }
+
+    /* Fixed Sticky Header with fluid height (64px) */
     .storybook-header {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: var(--header-h);
-        background: var(--color-sunny-yellow);
-        border-bottom: var(--border-ink-thick);
+        height: var(--header-height, 64px);
+        background: var(--color-sunny-yellow, #FFC93C);
+        border-bottom: var(--border-storybook, 4px solid #2B2D42);
         box-shadow: 0 4px 0 rgba(43, 45, 66, 0.15);
         padding-top: env(safe-area-inset-top);
-        padding-left: max(0.85rem, env(safe-area-inset-left));
-        padding-right: max(0.85rem, env(safe-area-inset-right));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -184,27 +184,16 @@
     .brand-badge {
         display: flex;
         align-items: center;
-        gap: clamp(0.3rem, 1.5vw, 0.5rem);
+        gap: 0.5rem;
         text-decoration: none;
-        color: var(--color-storybook-ink);
-        transition: transform 0.15s ease;
+        color: var(--color-storybook-ink, #2B2D42);
         flex-shrink: 0;
     }
 
-    .brand-badge:hover {
-        transform: scale(1.04);
-        color: var(--color-storybook-ink);
-    }
-
-    .brand-mascot-emoji {
-        font-size: clamp(1.6rem, 4vw, 2.2rem);
-        filter: drop-shadow(0 2px 0 rgba(43, 45, 66, 0.3));
-    }
-
     .brand-title-text {
-        font-family: var(--font-heading);
-        font-size: clamp(1.1rem, 3.2vw, 1.65rem);
-        font-weight: 800;
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+        font-weight: 700;
         letter-spacing: 0.02em;
         text-shadow: 2px 2px 0 #FFFFFF;
         white-space: nowrap;
@@ -213,201 +202,191 @@
     .header-status-pills {
         display: flex;
         align-items: center;
-        gap: clamp(0.35rem, 1.2vw, 0.65rem);
+        gap: clamp(0.4rem, 1vw, 0.75rem);
         position: relative;
     }
 
     .star-pill-badge {
-        background: linear-gradient(135deg, #FFD166 0%, #FFB703 100%);
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: var(--border-radius-pill);
-        padding: 0.3rem clamp(0.5rem, 1.5vw, 0.85rem);
+        background: var(--color-paper-light, #FFF8E7);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-pill, 999px);
+        padding: 0.25rem 0.75rem;
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        min-height: 40px;
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+        min-height: 44px;
         box-sizing: border-box;
     }
 
     .star-count-num {
-        font-family: var(--font-heading);
-        font-size: clamp(1rem, 2.5vw, 1.25rem);
-        font-weight: 800;
-        color: var(--color-storybook-ink);
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink, #2B2D42);
     }
 
     .desktop-header-items {
-        display: flex;
+        display: none;
         align-items: center;
-        gap: 0.55rem;
+        gap: 0.5rem;
+    }
+
+    @@media (min-width: 1280px) {
+        .desktop-header-items {
+            display: flex;
+        }
+        .compact-menu-container {
+            display: none !important;
+        }
     }
 
     .kid-profile-pill {
         background: #FFFFFF;
-        border: 2.5px solid var(--color-storybook-ink);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-pill, 999px);
+        font-family: var(--font-heading);
         font-size: 1rem;
         font-weight: 700;
-        padding: 0.3rem 0.75rem;
-        min-height: 40px;
+        padding: 0.25rem 0.85rem;
+        min-height: 44px;
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: 0.45rem;
         text-decoration: none;
         color: var(--color-storybook-ink);
-    }
-
-    .avatar-emoji {
-        font-size: 1.25rem;
+        box-shadow: var(--shadow-hard-sm);
     }
 
     .header-action-btn {
         display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
-        padding: 0.35rem 0.85rem;
-        min-height: 40px;
-        border: 2.5px solid var(--color-storybook-ink);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
-        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        gap: 0.4rem;
+        padding: 0.25rem 0.85rem;
+        min-height: 44px;
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-pill, 999px);
+        box-shadow: var(--shadow-hard-sm);
         text-decoration: none;
         cursor: pointer;
-    }
-
-    @@media (hover: hover) and (pointer: fine) {
-        .header-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 var(--color-storybook-ink);
-        }
-    }
-
-    .sound-btn {
-        background: #06D6A0;
-        color: var(--color-storybook-ink);
-    }
-
-    .sound-btn.muted {
-        background: #FFD166;
-        color: var(--color-storybook-ink);
-    }
-
-    .parent-btn {
-        background: #F78C6B;
-        color: #FFFFFF;
-    }
-
-    .btn-label-text {
         font-family: var(--font-heading);
-        font-size: 0.92rem;
-        font-weight: 800;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        transition: transform 0.1s var(--spring-squish);
+    }
+    .header-action-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: var(--shadow-hard-pressed);
     }
 
-    /* Phone Menu Button under 600px */
-    .phone-menu-container {
-        display: none;
+    .sound-btn { background: var(--color-mint, #7ED9A8); }
+    .sound-btn.muted { background: var(--color-soft-orange, #FF9F43); }
+    .classroom-btn { background: var(--color-sky-blue, #5BC0EB); }
+    .league-btn { background: #FFF9DB; }
+    .parent-btn { background: var(--color-coral, #FF6B6B); color: #FFF8E7; }
+
+    /* Compact Menu Button under 1280px */
+    .compact-menu-container {
+        display: block;
         position: relative;
     }
 
-    .header-menu-btn {
-        min-width: var(--tap-min);
-        min-height: var(--tap-min);
-        padding: 0;
+    .header-menu-pill {
+        min-height: 44px;
+        padding: 0.25rem 0.85rem;
         background: #FFFFFF;
-        border: 2.5px solid var(--color-storybook-ink);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-hard-sm);
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 0.4rem;
         cursor: pointer;
-        font-size: 1.4rem;
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        font-weight: 700;
         color: var(--color-storybook-ink);
     }
 
-    .phone-popover-backdrop {
+    .menu-popover-backdrop {
         position: fixed;
         inset: 0;
         z-index: 1050;
-        background: rgba(43, 45, 66, 0.4);
+        background: rgba(43, 45, 66, 0.45);
     }
 
-    .phone-popover-menu {
+    .menu-popover-panel {
         position: absolute;
-        top: calc(100% + 8px);
+        top: calc(100% + 10px);
         right: 0;
-        width: 230px;
-        background: #FFFDF7;
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-md);
-        box-shadow: var(--shadow-chunky-lg);
-        padding: 0.6rem;
+        width: 250px;
+        background: var(--color-paper-light, #FFF8E7);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-lg, 24px);
+        box-shadow: var(--shadow-hard-lg, 8px 8px 0 #2B2D42);
+        padding: 0.75rem;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.6rem;
         z-index: 1100;
     }
 
-    .popover-item {
+    .popover-link-item {
         display: flex;
         align-items: center;
-        gap: 0.65rem;
-        padding: 0.75rem 0.85rem;
-        min-height: var(--tap-min);
-        border-radius: var(--border-radius-sm);
-        border: 2px solid var(--color-storybook-ink);
+        gap: 0.75rem;
+        padding: 0.65rem 0.95rem;
+        min-height: 52px;
+        border-radius: var(--radius-md, 16px);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        background: #FFFFFF;
         font-family: var(--font-heading);
-        font-size: 1rem;
-        font-weight: 800;
+        font-size: 1.1rem;
+        font-weight: 700;
         text-decoration: none;
-        box-shadow: 0 2px 0 var(--color-storybook-ink);
+        color: var(--color-storybook-ink);
+        box-shadow: var(--shadow-hard-sm);
         box-sizing: border-box;
     }
 
-    .profile-popover-link {
-        background: #FFFFFF;
-        color: var(--color-storybook-ink);
-    }
-
-    .sound-popover-btn {
-        background: #06D6A0;
-        color: #FFFFFF;
-        text-align: left;
-        cursor: pointer;
-    }
-
-    .sound-popover-btn.muted {
-        background: #FFD166;
-        color: var(--color-storybook-ink);
-    }
-
-    .parent-popover-link {
-        background: #F78C6B;
+    .popover-link-item.parent-item {
+        background: var(--color-coral);
         color: #FFFFFF;
     }
 
-    /* Main body with fluid safe padding */
+    /* Main Content Body */
     .storybook-main-body {
         flex: 1;
-        padding-top: calc(var(--header-h) + var(--space-3));
-        padding-bottom: calc(var(--nav-h) + max(0.5rem, env(safe-area-inset-bottom)) + var(--space-3));
-        padding-left: max(0.75rem, env(safe-area-inset-left));
-        padding-right: max(0.75rem, env(safe-area-inset-right));
+        padding-top: calc(var(--header-height, 64px) + 16px);
+        padding-bottom: calc(var(--nav-height, 72px) + max(0.5rem, env(safe-area-inset-bottom)) + 24px);
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
         max-width: 1180px;
         margin: 0 auto;
         width: 100%;
         box-sizing: border-box;
     }
 
-    /* Fixed Sticky Bottom Navigation */
+    .storybook-main-body.game-route-body {
+        padding: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    /* 4-Tab Bottom Navigation (72px) */
     .storybook-nav-kids {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: var(--nav-h);
+        height: var(--nav-height, 72px);
         background: #FFFFFF;
-        border-top: var(--border-ink-thick);
-        padding-top: 0.35rem;
-        padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+        border-top: var(--border-storybook, 4px solid #2B2D42);
+        padding-top: 0.25rem;
+        padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
         padding-left: max(0.5rem, env(safe-area-inset-left));
         padding-right: max(0.5rem, env(safe-area-inset-right));
         display: flex;
@@ -425,61 +404,38 @@
         justify-content: center;
         text-decoration: none;
         color: var(--color-storybook-ink);
-        min-height: var(--tap-min);
-        min-width: var(--tap-min);
-        padding: 0.25rem clamp(0.5rem, 2vw, 1.5rem);
-        border-radius: var(--border-radius-sm);
-        border: 2.5px solid transparent;
-        transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+        min-height: 56px;
+        min-width: 68px;
+        padding: 0.2rem 0.8rem;
+        border-radius: var(--radius-md, 16px);
+        border: 3px solid transparent;
+        transition: transform 0.1s var(--spring-squish);
         touch-action: manipulation;
     }
 
-    @@media (hover: hover) and (pointer: fine) {
-        .nav-kid-big-tab:hover {
-            transform: translateY(-2px);
-            background: #FFF9DB;
-        }
-    }
-
     .nav-kid-big-tab.active {
-        background: var(--color-sunny-yellow);
-        border: 2.5px solid var(--color-storybook-ink);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        background: var(--color-sunny-yellow, #FFC93C);
+        border: 3px solid var(--color-storybook-ink, #2B2D42);
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
         transform: translateY(-2px);
     }
 
     .nav-kid-label {
         font-family: var(--font-heading);
-        font-size: clamp(0.78rem, 2vw, 0.95rem);
-        font-weight: 800;
-        margin-top: 0.15rem;
+        font-size: 14px;
+        font-weight: 700;
+        margin-top: 2px;
     }
 
-    /* Breakpoint: Phone under 600px */
-    @@media (max-width: 599px) {
-        .desktop-header-items {
-            display: none;
-        }
-
-        .phone-menu-container {
-            display: block;
-        }
-
-        .brand-title-text {
-            display: none; /* Icon-first branding on very compact phones */
-        }
-    }
-
-    /* Breakpoint: Desktop Nav Centering 1024px and up */
     @@media (min-width: 1024px) {
         .storybook-nav-kids {
-            max-width: 820px;
+            max-width: 800px;
             left: 50%;
             transform: translateX(-50%);
-            border-left: var(--border-ink-thick);
-            border-right: var(--border-ink-thick);
-            border-top-left-radius: var(--border-radius-md);
-            border-top-right-radius: var(--border-radius-md);
+            border-left: var(--border-storybook);
+            border-right: var(--border-storybook);
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
             box-shadow: 0 -4px 0 rgba(43, 45, 66, 0.12);
         }
     }
@@ -488,11 +444,25 @@
 @code {
     private bool isMobileMenuOpen = false;
 
+    private bool IsGameRoute
+    {
+        get
+        {
+            var uri = Navigation.Uri.ToLowerInvariant();
+            if (uri.Contains("/game/") || uri.Contains("/games/"))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         ProgressService.OnProfileChanged += HandleStateChanged;
         Accessibility.OnSettingsChanged += HandleStateChanged;
         SessionTimer.OnTimerTick += HandleStateChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
 
         try
         {
@@ -505,6 +475,12 @@
         {
             // Fallbacks safely retained
         }
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        isMobileMenuOpen = false;
+        InvokeAsync(StateHasChanged);
     }
 
     private void HandleStateChanged()
@@ -533,18 +509,11 @@
         CloseMobileMenu();
     }
 
-    private static string GetAvatarEmoji(AvatarType? avatar) => avatar switch
-    {
-        AvatarType.LeoLion => "🦁",
-        AvatarType.PipPenguin => "🐧",
-        AvatarType.MiaMonkey => "🐵",
-        _ => "🦎"
-    };
-
     public void Dispose()
     {
         ProgressService.OnProfileChanged -= HandleStateChanged;
         Accessibility.OnSettingsChanged -= HandleStateChanged;
         SessionTimer.OnTimerTick -= HandleStateChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 }
