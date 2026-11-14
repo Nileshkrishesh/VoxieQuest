@@ -39,6 +39,8 @@ bld/
 build/
 bin/
 obj/
+publish/
+publish_test/
 
 # Windows temp
 Thumbs.db

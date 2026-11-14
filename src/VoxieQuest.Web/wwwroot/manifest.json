@@ -1,0 +1,23 @@
+{
+  "name": "VOXIE QUEST - Speak, Play, Learn!",
+  "short_name": "Voxie Quest",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFFDF7",
+  "theme_color": "#FFD166",
+  "description": "Educational voice-controlled learning adventure for children aged 5-10.",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
