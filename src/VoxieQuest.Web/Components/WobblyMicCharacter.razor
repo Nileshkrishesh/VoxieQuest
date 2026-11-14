@@ -1,0 +1,78 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="wobbly-mic-container" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div style="transform: scale(@(1.0f + (VolumeLevel * 0.4f))) rotate(@(GetWobbleDegrees())deg); transition: transform 0.06s ease-out; cursor:pointer;"
+         title="Voice Volume: @((int)(VolumeLevel * 100))%">
+        <svg width="110" height="110" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Pulsing sound wave rings when volume is elevated -->
+            @if (VolumeLevel > 0.1f)
+            {
+                <circle cx="60" cy="50" r="@(42 + (VolumeLevel * 20))" stroke="#06D6A0" stroke-width="4" stroke-dasharray="6 6" opacity="@(0.4f + (VolumeLevel * 0.6f))"/>
+            }
+            @if (VolumeLevel > 0.35f)
+            {
+                <circle cx="60" cy="50" r="@(52 + (VolumeLevel * 22))" stroke="#FFD166" stroke-width="3" opacity="0.6"/>
+            }
+
+            <!-- Microphone Stand & Base -->
+            <path d="M40 105H80" stroke="#2B2D42" stroke-width="6" stroke-linecap="round"/>
+            <path d="M60 85V105" stroke="#2B2D42" stroke-width="6" stroke-linecap="round"/>
+            <path d="M35 55C35 72 45 84 60 84C75 84 85 72 85 55" stroke="#2B2D42" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+            <!-- Microphone Capsule Body -->
+            <rect x="42" y="20" width="36" height="52" rx="18" fill="@GetMicColor()" stroke="#2B2D42" stroke-width="5"/>
+
+            <!-- Metal Grille Texture Lines -->
+            <line x1="48" y1="32" x2="72" y2="32" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+            <line x1="46" y1="40" x2="74" y2="40" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+
+            <!-- Googly Eyes -->
+            <circle cx="52" cy="48" r="6" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2"/>
+            <circle cx="53" cy="@(VolumeLevel > 0.15f ? 46 : 48)" r="3" fill="#2B2D42"/>
+
+            <circle cx="68" cy="48" r="6" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2"/>
+            <circle cx="69" cy="@(VolumeLevel > 0.15f ? 46 : 48)" r="3" fill="#2B2D42"/>
+
+            <!-- Rosy Cheeks -->
+            <circle cx="45" cy="55" r="3.5" fill="#EF476F" opacity="0.6"/>
+            <circle cx="75" cy="55" r="3.5" fill="#EF476F" opacity="0.6"/>
+
+            <!-- Mouth: Opens wide when volume > 0.15f -->
+            @if (VolumeLevel > 0.15f)
+            {
+                <ellipse cx="60" cy="58" rx="@(3.5f + (VolumeLevel * 4f))" ry="@(4f + (VolumeLevel * 6f))" fill="#EF476F" stroke="#2B2D42" stroke-width="2"/>
+            }
+            else
+            {
+                <path d="M55 56C58 60 62 60 65 56" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+            }
+        </svg>
+    </div>
+
+    <!-- Live Audio Level Meter Bar -->
+    <div style="width:140px; height:12px; background:#E2E8F0; border:2px solid #2B2D42; border-radius:999px; overflow:hidden; margin-top:0.4rem;">
+        <div style="height:100%; width:@(Math.Min(100, (int)(VolumeLevel * 100)))%; background:linear-gradient(90deg, #06D6A0, #FFD166, #EF476F); border-radius:999px; transition:width 0.05s linear;"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public float VolumeLevel { get; set; } = 0.0f;
+
+    [Parameter]
+    public bool IsListening { get; set; } = false;
+
+    private float GetWobbleDegrees()
+    {
+        if (VolumeLevel < 0.05f) return 0.0f;
+        var wobblePhase = (float)Math.Sin(Environment.TickCount / 80.0);
+        return wobblePhase * (VolumeLevel * 18.0f);
+    }
+
+    private string GetMicColor()
+    {
+        if (VolumeLevel > 0.25f) return "#FFD166"; // Glows sunny yellow when receiving voice
+        if (IsListening) return "#06D6A0";        // Mint green while listening
+        return "#4EA8DE";                         // Sky blue idle
+    }
+}

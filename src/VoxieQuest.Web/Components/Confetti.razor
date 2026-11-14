@@ -1,0 +1,84 @@
+@namespace VoxieQuest.Web.Components
+
+@if (IsActive)
+{
+    <div class="confetti-container" aria-hidden="true">
+        @for (int i = 0; i < ParticleCount; i++)
+        {
+            var p = particles[i % particles.Count];
+            <div class="confetti-piece" 
+                 style="left: @(p.Left)%; 
+                        background-color: @p.Color; 
+                        width: @(p.Width)px; 
+                        height: @(p.Height)px; 
+                        border-radius: @(p.IsCircle ? "50%" : "3px");
+                        animation-delay: @(p.Delay)s; 
+                        animation-duration: @(p.Duration)s;">
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .confetti-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 9999;
+        overflow: hidden;
+    }
+
+    .confetti-piece {
+        position: absolute;
+        top: -20px;
+        opacity: 0.9;
+        animation: confetti-fall linear forwards;
+    }
+
+    @@keyframes confetti-fall {
+        0% {
+            transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+            opacity: 1;
+        }
+        75% {
+            opacity: 0.9;
+        }
+        100% {
+            transform: translateY(105vh) rotateX(360deg) rotateY(720deg) rotateZ(180deg);
+            opacity: 0;
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public bool IsActive { get; set; } = false;
+
+    [Parameter]
+    public int ParticleCount { get; set; } = 35;
+
+    private record ParticleDef(int Left, string Color, int Width, int Height, bool IsCircle, double Delay, double Duration);
+    private List<ParticleDef> particles = new();
+
+    protected override void OnInitialized()
+    {
+        var random = new Random(42);
+        var colors = new[] { "#FFD166", "#4EA8DE", "#EF476F", "#06D6A0", "#F78C6B", "#8338EC" };
+
+        for (int i = 0; i < 40; i++)
+        {
+            particles.Add(new ParticleDef(
+                Left: random.Next(2, 98),
+                Color: colors[random.Next(colors.Length)],
+                Width: random.Next(8, 16),
+                Height: random.Next(10, 20),
+                IsCircle: random.NextDouble() > 0.65,
+                Delay: Math.Round(random.NextDouble() * 1.5, 2),
+                Duration: Math.Round(2.5 + random.NextDouble() * 2.0, 2)
+            ));
+        }
+    }
+}

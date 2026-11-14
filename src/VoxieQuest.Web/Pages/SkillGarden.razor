@@ -1,0 +1,540 @@
+@page "/garden"
+@page "/skill-garden"
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+
+<div class="garden-viewport">
+    <!-- Garden Welcome Header -->
+    <div class="storybook-card garden-header-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h2 style="font-size:2.2rem; color:var(--color-mint); text-shadow:0 1px 0 #fff; margin:0 0 0.25rem 0;">
+                    🌸 @(ProgressService.ActiveProfile?.Name ?? "Explorer")'s Skill Garden
+                </h2>
+                <p style="font-size:1.05rem; font-weight:700; color:#374151; margin:0;">
+                    Every star you collect waters your 5 magical plants! Watch them grow from tiny seeds into golden blossoms!
+                </p>
+            </div>
+
+            <!-- Watering Can Action Button -->
+            <button class="btn-story btn-story-blue @(isWatering ? "btn-watering" : "")" 
+                    type="button" 
+                    @onclick="WaterGardenAsync"
+                    disabled="@isWatering"
+                    style="font-size:1.1rem; padding:0.6rem 1.4rem;">
+                <span>💧 Water Plants!</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Interactive Watering Animation Overlay -->
+    @if (isWatering)
+    {
+        <div class="watering-shower-banner">
+            <span class="watering-can-icon">🚿</span>
+            <span class="watering-text">Watering with sparkling stars! Splish splash! ✨</span>
+            <div class="water-droplets-row">
+                <span class="droplet d1">💧</span>
+                <span class="droplet d2">✨</span>
+                <span class="droplet d3">💧</span>
+                <span class="droplet d4">✨</span>
+                <span class="droplet d5">💧</span>
+            </div>
+        </div>
+    }
+
+    <!-- 5 Garden Plots Arena -->
+    <div class="garden-plots-grid">
+        @{
+            var plants = new[]
+            {
+                new GardenPlant(
+                    "Letters", 
+                    "Alphabet Sunflower", 
+                    SkillCategory.Letters, 
+                    "game/letter-rocket", 
+                    "#FEF3C7", 
+                    "#EF476F", 
+                    "🚀 Letter Rocket",
+                    "Grows with alphabet sounds and phoneme speech accuracy."
+                ),
+                new GardenPlant(
+                    "Numbers", 
+                    "Number Tulips", 
+                    SkillCategory.Numbers, 
+                    "game/number-jump", 
+                    "#E0F2FE", 
+                    "#4EA8DE", 
+                    "🐸 Number Jump",
+                    "Grows with verbal sums, additions, and counting."
+                ),
+                new GardenPlant(
+                    "Colors", 
+                    "Rainbow Rose", 
+                    SkillCategory.Colors, 
+                    "game/color-splash", 
+                    "#FFE4E6", 
+                    "#FFD166", 
+                    "🎨 Color Splash",
+                    "Grows with vibrant color naming and hue recognition."
+                ),
+                new GardenPlant(
+                    "Animals", 
+                    "Safari Vine", 
+                    SkillCategory.Animals, 
+                    "game/animal-safari", 
+                    "#DCFCE7", 
+                    "#06D6A0", 
+                    "🦁 Animal Safari",
+                    "Grows with animal calls, sound matching, and species discovery."
+                ),
+                new GardenPlant(
+                    "Spelling", 
+                    "Word Block Tree", 
+                    SkillCategory.Spelling, 
+                    "game/word-builder", 
+                    "#F3E8FF", 
+                    "#F78C6B", 
+                    "🧱 Word Builder",
+                    "Grows with CVC words, blends, and block word building."
+                )
+            };
+        }
+
+        @foreach (var plant in plants)
+        {
+            var pData = GetProgress(plant.Category);
+            var stage = CalculateGrowthStage(pData.Correct, pData.AccuracyPercentage);
+
+            <div class="storybook-card plant-plot-card @(isWatering ? "plant-wobble" : "")" 
+                 style="background:@plant.PlotBg; cursor:pointer;" 
+                 @onclick="() => SelectPlant(plant, pData, stage)">
+
+                <div class="plant-stage-badge">
+                    Stage @stage.Level: @stage.StageName
+                </div>
+
+                <!-- Custom SVG Plant Illustration according to Growth Stage -->
+                <div class="plant-svg-container">
+                    @RenderPlantSvg(plant.Name, stage.Level)
+                </div>
+
+                <!-- Plant Name & Subtitle -->
+                <h3 style="font-size:1.3rem; margin:0.4rem 0 0.15rem 0; color:var(--color-storybook-ink);">
+                    @plant.Name
+                </h3>
+                <p style="font-size:0.85rem; font-weight:700; color:#4B5563; margin:0 0 0.6rem 0;">
+                    @plant.BotanicalName
+                </p>
+
+                <!-- Growth Progress Bar -->
+                <div class="growth-meter-container" title="Growth to next stage">
+                    <div class="growth-meter-bar" style="width:@(stage.ProgressToNext)% ; background:@plant.AccentColor;"></div>
+                </div>
+
+                <!-- Accuracy and Stars Stats -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.85rem; font-weight:700;">
+                    <span class="pill" style="font-size:0.8rem; padding:0.2rem 0.55rem; background:white;">
+                        🎯 @pData.AccuracyPercentage%
+                    </span>
+                    <span style="color:var(--color-storybook-ink);">
+                        ⭐ @pData.Correct / 40
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Plant Inspection Modal -->
+    @if (selectedPlant != null && selectedStage != null && selectedProgress != null)
+    {
+        <div class="plant-modal-overlay" @onclick="() => selectedPlant = null">
+            <div class="storybook-card plant-inspect-card" @onclick:stopPropagation="true">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-size:2rem;">🌱</span>
+                        <h3 style="margin:0; font-size:1.5rem;">@selectedPlant.BotanicalName</h3>
+                    </div>
+                    <button class="pill" type="button" @onclick="() => selectedPlant = null">✕</button>
+                </div>
+
+                <div style="display:flex; justify-content:center; margin:1rem 0;">
+                    <div style="width:140px; height:140px;">
+                        @RenderPlantSvg(selectedPlant.Name, selectedStage.Level)
+                    </div>
+                </div>
+
+                <div class="pill" style="background:var(--color-mint); font-size:1.1rem; margin-bottom:0.75rem;">
+                    Stage @selectedStage.Level: @selectedStage.StageName
+                </div>
+
+                <p style="font-size:0.95rem; color:#4B5563; line-height:1.45; margin-bottom:1rem;">
+                    @selectedStage.Description
+                </p>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; text-align:center; margin-bottom:1.25rem;">
+                    <div class="storybook-card" style="background:#F8FAFC; padding:0.6rem;">
+                        <div style="font-size:1.4rem; font-weight:800;">@selectedProgress.AccuracyPercentage%</div>
+                        <div style="font-size:0.8rem; color:#64748B;">Speech Accuracy</div>
+                    </div>
+                    <div class="storybook-card" style="background:#F8FAFC; padding:0.6rem;">
+                        <div style="font-size:1.4rem; font-weight:800;">@selectedProgress.Correct</div>
+                        <div style="font-size:0.8rem; color:#64748B;">Stars Watered</div>
+                    </div>
+                </div>
+
+                <button class="btn-story btn-story-yellow" style="width:100%; font-size:1.1rem; padding:0.6rem;" 
+                        type="button" 
+                        @onclick="() => Navigation.NavigateTo(selectedPlant.GameRoute)">
+                    <span>Play @selectedPlant.GameTitle ➔</span>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .garden-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        max-width: 960px;
+        margin: 0 auto;
+        padding-bottom: 2rem;
+    }
+
+    .garden-header-card {
+        background: #D8F3DC;
+        border-color: #06D6A0;
+    }
+
+    .watering-shower-banner {
+        background: #E0F2FE;
+        border: 3.5px solid var(--color-storybook-ink);
+        border-radius: 20px;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: 0 6px 0 var(--color-storybook-ink);
+        animation: pulse-shower 0.8s ease-in-out infinite alternate;
+    }
+
+    .watering-can-icon {
+        font-size: 2rem;
+        animation: tilt-can 0.6s infinite alternate;
+    }
+
+    .droplet {
+        display: inline-block;
+        font-size: 1.3rem;
+        animation: drop-fall 0.8s ease-in-out infinite;
+    }
+    .d1 { animation-delay: 0s; }
+    .d2 { animation-delay: 0.15s; }
+    .d3 { animation-delay: 0.3s; }
+    .d4 { animation-delay: 0.45s; }
+    .d5 { animation-delay: 0.6s; }
+
+    /* 5 Plots Grid */
+    .garden-plots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .plant-plot-card {
+        text-align: center;
+        padding: 1.2rem 1rem 1rem 1rem;
+        border: 4px solid var(--color-storybook-ink);
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        position: relative;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .plant-plot-card:hover {
+        transform: translateY(-6px) scale(1.02);
+    }
+
+    .plant-stage-badge {
+        font-family: var(--font-heading);
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #4B5563;
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.15rem 0.55rem;
+        display: inline-block;
+        margin-bottom: 0.35rem;
+    }
+
+    .plant-svg-container {
+        height: 125px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .growth-meter-container {
+        height: 12px;
+        background: rgba(0, 0, 0, 0.08);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .growth-meter-bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+
+    .plant-wobble {
+        animation: plant-wiggle 0.5s ease-in-out infinite alternate;
+    }
+
+    /* Modal Inspection */
+    .plant-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 45, 66, 0.75);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .plant-inspect-card {
+        background: white;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+        padding: 1.75rem;
+        border: 5px solid var(--color-storybook-ink);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        animation: scale-up-inspect 0.4s var(--spring-bounce);
+    }
+
+    @@keyframes tilt-can {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(-25deg); }
+    }
+
+    @@keyframes drop-fall {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(14px); opacity: 0; }
+    }
+
+    @@keyframes plant-wiggle {
+        0% { transform: rotate(-3deg) scale(1.02); }
+        100% { transform: rotate(3deg) scale(1.02); }
+    }
+
+    @@keyframes scale-up-inspect {
+        0% { transform: scale(0.6); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    private bool isWatering = false;
+    private GardenPlant? selectedPlant;
+    private PlantGrowthStage? selectedStage;
+    private SkillProgress? selectedProgress;
+
+    private record GardenPlant(
+        string Name, 
+        string BotanicalName, 
+        SkillCategory Category, 
+        string GameRoute, 
+        string PlotBg, 
+        string AccentColor, 
+        string GameTitle, 
+        string Description
+    );
+
+    private record PlantGrowthStage(
+        int Level, 
+        string StageName, 
+        string Description, 
+        int ProgressToNext
+    );
+
+    private SkillProgress GetProgress(SkillCategory category)
+    {
+        if (ProgressService.ActiveProfile != null && 
+            ProgressService.ActiveProfile.SkillProgressMap.TryGetValue(category, out var p))
+        {
+            return p;
+        }
+        return new SkillProgress { Attempts = 0, Correct = 0 };
+    }
+
+    private PlantGrowthStage CalculateGrowthStage(int correct, double accuracy)
+    {
+        // 5 Stages:
+        // Stage 1: Seed in Soil (0-3 correct)
+        // Stage 2: Green Sprout (4-9 correct)
+        // Stage 3: Growing Leafy Stem (10-19 correct)
+        // Stage 4: Budding Blossom (20-34 correct)
+        // Stage 5: Radiant Blooming Flower (35+ correct)
+        if (correct >= 35)
+        {
+            return new PlantGrowthStage(5, "Radiant Blossom", "Your plant has reached full golden bloom with glorious sparkling petals!", 100);
+        }
+        if (correct >= 20)
+        {
+            var pct = (int)(((correct - 20) / 15.0) * 100);
+            return new PlantGrowthStage(4, "Budding Petals", "Colorful buds are unfolding under the warm sunshine!", pct);
+        }
+        if (correct >= 10)
+        {
+            var pct = (int)(((correct - 10) / 10.0) * 100);
+            return new PlantGrowthStage(3, "Leafy Stem", "Reaching upward with healthy green leaves!", pct);
+        }
+        if (correct >= 4)
+        {
+            var pct = (int)(((correct - 4) / 6.0) * 100);
+            return new PlantGrowthStage(2, "Fresh Sprout", "A bright green seedling has sprouted from the soil!", pct);
+        }
+
+        var initialPct = (int)((correct / 4.0) * 100);
+        return new PlantGrowthStage(1, "Cozy Seed", "Resting in warm soil, waiting for stars to begin growing!", Math.Max(15, initialPct));
+    }
+
+    private async Task WaterGardenAsync()
+    {
+        if (isWatering) return;
+        isWatering = true;
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        await AudioService.PlaySoundAsync(SoundEffect.StarBurst);
+
+        await Task.Delay(2000);
+        isWatering = false;
+    }
+
+    private void SelectPlant(GardenPlant plant, SkillProgress progress, PlantGrowthStage stage)
+    {
+        selectedPlant = plant;
+        selectedProgress = progress;
+        selectedStage = stage;
+    }
+
+    private RenderFragment RenderPlantSvg(string plantName, int stageLevel) => builder =>
+    {
+        builder.OpenElement(0, "svg");
+        builder.AddAttribute(1, "width", "110");
+        builder.AddAttribute(2, "height", "110");
+        builder.AddAttribute(3, "viewBox", "0 0 110 110");
+        builder.AddAttribute(4, "fill", "none");
+
+        // Common Rich Soil Mound
+        builder.AddMarkupContent(5, @"
+            <ellipse cx='55' cy='95' rx='42' ry='12' fill='#78350F' stroke='#2B2D42' stroke-width='3'/>
+            <ellipse cx='55' cy='92' rx='34' ry='8' fill='#92400E'/>
+        ");
+
+        if (stageLevel == 1)
+        {
+            // Seedling with tiny sprout tip
+            builder.AddMarkupContent(6, @"
+                <circle cx='55' cy='86' r='9' fill='#D97706' stroke='#2B2D42' stroke-width='2.5'/>
+                <path d='M55 80C55 74 60 72 63 70' stroke='#10B981' stroke-width='3' stroke-linecap='round'/>
+            ");
+        }
+        else if (stageLevel == 2)
+        {
+            // Two vibrant green sprout leaves
+            builder.AddMarkupContent(7, @"
+                <path d='M55 90V65' stroke='#10B981' stroke-width='4.5' stroke-linecap='round'/>
+                <path d='M55 68C42 64 40 52 46 48C52 48 55 58 55 68Z' fill='#34D399' stroke='#2B2D42' stroke-width='2.5'/>
+                <path d='M55 68C68 64 70 52 64 48C58 48 55 58 55 68Z' fill='#34D399' stroke='#2B2D42' stroke-width='2.5'/>
+            ");
+        }
+        else if (stageLevel == 3)
+        {
+            // Tall stem with multiple leaves and a small bud
+            builder.AddMarkupContent(8, @"
+                <path d='M55 90V45' stroke='#059669' stroke-width='5' stroke-linecap='round'/>
+                <path d='M55 75C42 72 38 60 45 56C52 56 55 65 55 75Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+                <path d='M55 62C68 59 72 47 65 43C58 43 55 52 55 62Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+                <!-- Bud -->
+                <circle cx='55' cy='42' r='10' fill='#6EE7B7' stroke='#2B2D42' stroke-width='2.5'/>
+            ");
+        }
+        else if (stageLevel == 4)
+        {
+            // Petals opening
+            var petalColor = plantName switch
+            {
+                "Letters" => "#FBBF24",
+                "Numbers" => "#38BDF8",
+                "Colors" => "#F43F5E",
+                "Animals" => "#34D399",
+                _ => "#C084FC"
+            };
+
+            builder.AddMarkupContent(9, $@"
+                <path d='M55 90V38' stroke='#059669' stroke-width='5' stroke-linecap='round'/>
+                <path d='M55 70C38 66 35 52 44 48C51 48 55 58 55 70Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+                <path d='M55 58C72 54 75 40 66 36C59 36 55 46 55 58Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+                <!-- Opening Flower -->
+                <circle cx='46' cy='32' r='10' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='64' cy='32' r='10' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='55' cy='23' r='10' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='55' cy='34' r='11' fill='#FFD166' stroke='#2B2D42' stroke-width='2.5'/>
+            ");
+        }
+        else
+        {
+            // Full Grand Blooming Wonder with Golden Sparkles
+            var petalColor = plantName switch
+            {
+                "Letters" => "#FFD166",
+                "Numbers" => "#4EA8DE",
+                "Colors" => "#EF476F",
+                "Animals" => "#06D6A0",
+                _ => "#F78C6B"
+            };
+
+            builder.AddMarkupContent(10, $@"
+                <!-- Sparkles -->
+                <path d='M20 20L23 26L29 29L23 32L20 38L17 32L11 29L17 26Z' fill='#FFD166'/>
+                <path d='M90 15L92 20L97 22L92 24L90 29L88 24L83 22L88 20Z' fill='#FFD166'/>
+
+                <!-- Stem -->
+                <path d='M55 90V35' stroke='#047857' stroke-width='6' stroke-linecap='round'/>
+                <path d='M55 65C35 60 30 45 42 40C52 40 55 52 55 65Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+                <path d='M55 55C75 50 80 35 68 30C58 30 55 42 55 55Z' fill='#10B981' stroke='#2B2D42' stroke-width='2.5'/>
+
+                <!-- Magnificent 8-Petal Blossom -->
+                <circle cx='55' cy='14' r='12' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='55' cy='46' r='12' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='39' cy='30' r='12' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='71' cy='30' r='12' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='43' cy='18' r='11' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='67' cy='18' r='11' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='43' cy='42' r='11' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+                <circle cx='67' cy='42' r='11' fill='{petalColor}' stroke='#2B2D42' stroke-width='2.5'/>
+
+                <!-- Radiant Center Sun with Happy Face -->
+                <circle cx='55' cy='30' r='15' fill='#FFFDF7' stroke='#2B2D42' stroke-width='3'/>
+                <circle cx='50' cy='28' r='2.5' fill='#2B2D42'/>
+                <circle cx='60' cy='28' r='2.5' fill='#2B2D42'/>
+                <path d='M49 33C52 36 58 36 61 33' stroke='#2B2D42' stroke-width='2' stroke-linecap='round'/>
+            ");
+        }
+
+        builder.CloseElement();
+    };
+}

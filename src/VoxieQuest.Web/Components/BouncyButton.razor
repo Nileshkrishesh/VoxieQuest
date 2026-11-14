@@ -1,0 +1,154 @@
+@namespace VoxieQuest.Web.Components
+@inject IAudioService AudioService
+
+<button class="bouncy-btn bouncy-btn-@Variant.ToString().ToLowerInvariant() @(Disabled ? "disabled" : "")"
+        style="min-width:@(MinWidth)px; @Style"
+        type="@Type"
+        disabled="@Disabled"
+        @onclick="HandleClick">
+    @if (!string.IsNullOrWhiteSpace(Icon))
+    {
+        <span class="bouncy-btn-icon">@Icon</span>
+    }
+    @if (!string.IsNullOrWhiteSpace(Text))
+    {
+        <span class="bouncy-btn-text">@Text</span>
+    }
+    @ChildContent
+</button>
+
+<style>
+    .bouncy-btn {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding: 0.85rem 1.75rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-pill);
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        position: relative;
+        outline: none;
+        user-select: none;
+        text-decoration: none;
+        transform: translateY(0) scale(1, 1);
+        transition: transform 0.12s var(--spring-bounce), box-shadow 0.12s ease;
+    }
+
+    .bouncy-btn:hover:not(:disabled) {
+        transform: translateY(-3px) scale(1.02, 1.02);
+        box-shadow: 0 11px 0 var(--color-storybook-ink);
+    }
+
+    /* Squishy tactile press */
+    .bouncy-btn:active:not(:disabled) {
+        transform: translateY(6px) scale(0.96, 1.05);
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .bouncy-btn.disabled, .bouncy-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+        transform: none !important;
+    }
+
+    /* Color Variants */
+    .bouncy-btn-yellow {
+        background-color: var(--color-sunny-yellow);
+        color: var(--color-storybook-ink);
+    }
+
+    .bouncy-btn-coral {
+        background-color: var(--color-coral);
+        color: #FFFFFF;
+    }
+
+    .bouncy-btn-mint {
+        background-color: var(--color-mint);
+        color: var(--color-storybook-ink);
+    }
+
+    .bouncy-btn-blue {
+        background-color: var(--color-sky-blue);
+        color: #FFFFFF;
+    }
+
+    .bouncy-btn-orange {
+        background-color: var(--color-soft-orange);
+        color: #FFFFFF;
+    }
+
+    .bouncy-btn-purple {
+        background-color: var(--color-purple-dream);
+        color: #FFFFFF;
+    }
+
+    .bouncy-btn-icon {
+        font-size: 1.4rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .bouncy-btn-text {
+        letter-spacing: 0.02em;
+    }
+</style>
+
+@code {
+    public enum ButtonVariant
+    {
+        Yellow,
+        Coral,
+        Mint,
+        Blue,
+        Orange,
+        Purple
+    }
+
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Icon { get; set; } = string.Empty;
+
+    [Parameter]
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Yellow;
+
+    [Parameter]
+    public int MinWidth { get; set; } = 130;
+
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    [Parameter]
+    public string Type { get; set; } = "button";
+
+    [Parameter]
+    public string Style { get; set; } = string.Empty;
+
+    [Parameter]
+    public SoundEffect Sound { get; set; } = SoundEffect.Click;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (Disabled) return;
+
+        await AudioService.PlaySoundAsync(Sound);
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}

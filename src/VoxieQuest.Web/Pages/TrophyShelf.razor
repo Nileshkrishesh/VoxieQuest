@@ -1,0 +1,339 @@
+@page "/trophies"
+@page "/trophy-shelf"
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+
+<div class="trophy-shelf-viewport">
+    <!-- Header Card -->
+    <div class="storybook-card trophy-header-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h2 style="font-size:2.2rem; color:var(--color-sunny-yellow); text-shadow:0 1px 0 var(--color-storybook-ink); margin:0 0 0.25rem 0;">
+                    🏆 @(ProgressService.ActiveProfile?.Name ?? "Explorer")'s Trophy Shelf
+                </h2>
+                <p style="font-size:1.05rem; font-weight:700; color:#374151; margin:0;">
+                    Your grand showcase of golden cups, badges, and awards earned on your learning journey!
+                </p>
+            </div>
+
+            <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+                <a href="stickers" class="pill" style="font-weight:800; background:#FFFDF7;" title="View stickers">
+                    <span>📒 Sticker Album ➔</span>
+                </a>
+                <div class="star-badge" style="font-size:1.15rem; padding:0.5rem 1.25rem;">
+                    <span>🏆</span>
+                    <span>@UnlockedTrophyCount / @AllTrophies.Count Trophies</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Storybook Wooden Shelf Structure -->
+    <div class="storybook-card wooden-bookcase">
+        <!-- Shelf Level 1: Grand Master Awards -->
+        <div class="shelf-tier">
+            <div class="tier-label">Grand Realm Champions</div>
+            <div class="shelf-trophies-row">
+                @foreach (var trophy in AllTrophies.Take(3))
+                {
+                    @RenderTrophySlot(trophy)
+                }
+            </div>
+            <!-- Heavy Wooden Plank Plank -->
+            <div class="wooden-plank"></div>
+        </div>
+
+        <!-- Shelf Level 2: Skill Realm Cups -->
+        <div class="shelf-tier" style="margin-top:1.5rem;">
+            <div class="tier-label">Game Realm Honors</div>
+            <div class="shelf-trophies-row">
+                @foreach (var trophy in AllTrophies.Skip(3).Take(3))
+                {
+                    @RenderTrophySlot(trophy)
+                }
+            </div>
+            <!-- Heavy Wooden Plank Plank -->
+            <div class="wooden-plank"></div>
+        </div>
+
+        <!-- Shelf Level 3: Milestone Medals & Badges -->
+        <div class="shelf-tier" style="margin-top:1.5rem;">
+            <div class="tier-label">Milestone Medals</div>
+            <div class="shelf-trophies-row">
+                @foreach (var trophy in AllTrophies.Skip(6))
+                {
+                    @RenderTrophySlot(trophy)
+                }
+            </div>
+            <!-- Heavy Wooden Plank Plank -->
+            <div class="wooden-plank"></div>
+        </div>
+    </div>
+
+    <!-- Trophy Inspection & Fanfare Modal -->
+    @if (selectedTrophy != null)
+    {
+        <div class="trophy-inspect-overlay" @onclick="() => selectedTrophy = null">
+            <div class="storybook-card trophy-modal-card" @onclick:stopPropagation="true">
+                <!-- Golden Particle Burst -->
+                <div class="trophy-huge-icon">
+                    <span class="huge-emoji">@selectedTrophy.Emoji</span>
+                </div>
+
+                <h3 style="font-size:1.8rem; margin:0.4rem 0 0.25rem 0; color:var(--color-storybook-ink);">
+                    @selectedTrophy.Title
+                </h3>
+
+                <div class="pill" style="background:var(--color-sunny-yellow); font-size:1rem; margin-bottom:0.75rem;">
+                    @selectedTrophy.RibbonTier Award
+                </div>
+
+                <p style="font-size:1.05rem; color:#4B5563; line-height:1.5; margin-bottom:1.5rem;">
+                    @selectedTrophy.Description
+                </p>
+
+                <div style="background:#FEF3C7; border:2px dashed #D97706; border-radius:14px; padding:0.6rem; margin-bottom:1.25rem; font-size:0.9rem; font-weight:700;">
+                    📜 Criterion: @selectedTrophy.Requirement
+                </div>
+
+                <button class="btn-story btn-story-mint" type="button" @onclick="() => selectedTrophy = null">
+                    <span>Back to Shelf ➔</span>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .trophy-shelf-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        max-width: 960px;
+        margin: 0 auto;
+        padding-bottom: 2rem;
+    }
+
+    .trophy-header-card {
+        background: #FFFDF7;
+    }
+
+    /* Wooden Bookcase */
+    .wooden-bookcase {
+        background: #FEF3C7;
+        border: 5px solid var(--color-storybook-ink);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .shelf-tier {
+        position: relative;
+    }
+
+    .tier-label {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #78350F;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+    }
+
+    .shelf-trophies-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        min-height: 140px;
+        padding: 0.5rem 1rem 0 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .wooden-plank {
+        height: 20px;
+        background: #B45309;
+        border: 3.5px solid var(--color-storybook-ink);
+        border-radius: 6px;
+        margin-top: 0.4rem;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    /* Trophy Slot */
+    .trophy-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        width: 140px;
+    }
+
+    .trophy-slot:hover {
+        transform: translateY(-6px) scale(1.06);
+    }
+
+    .trophy-pedestal {
+        width: 72px;
+        height: 22px;
+        background: #D97706;
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: 6px;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        margin-top: 0.2rem;
+    }
+
+    .trophy-unlocked .trophy-icon-wrapper {
+        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.15));
+        animation: subtle-hover 3s ease-in-out infinite alternate;
+    }
+
+    .trophy-locked {
+        opacity: 0.55;
+    }
+
+    .trophy-locked .trophy-icon-wrapper {
+        filter: grayscale(100%) opacity(40%);
+    }
+
+    .trophy-title-tag {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+        margin-top: 0.35rem;
+        text-align: center;
+    }
+
+    /* Inspection Modal */
+    .trophy-inspect-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 45, 66, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .trophy-modal-card {
+        background: white;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+        padding: 2.2rem 1.75rem;
+        border: 5px solid var(--color-storybook-ink);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        animation: scale-up-trophy 0.4s var(--spring-bounce);
+    }
+
+    .trophy-huge-icon {
+        font-size: 5.5rem;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        animation: trophy-shine 1s ease-in-out infinite alternate;
+    }
+
+    @@keyframes subtle-hover {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-4px); }
+    }
+
+    @@keyframes trophy-shine {
+        0% { transform: scale(0.96) rotate(-2deg); }
+        100% { transform: scale(1.04) rotate(2deg); }
+    }
+
+    @@keyframes scale-up-trophy {
+        0% { transform: scale(0.4) rotate(-10deg); opacity: 0; }
+        100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+</style>
+
+@code {
+    private TrophyItem? selectedTrophy;
+
+    private int UserStars => ProgressService.ActiveProfile?.TotalStars ?? 0;
+    private int UnlockedTrophyCount => AllTrophies.Count(t => IsTrophyUnlocked(t));
+
+    private record TrophyItem(
+        string Id, 
+        string Title, 
+        string Emoji, 
+        string RibbonTier, 
+        int RequiredStars, 
+        string Requirement, 
+        string Description
+    );
+
+    private static readonly List<TrophyItem> AllTrophies = new()
+    {
+        // Tier 1: Grand Champions
+        new("t_grand", "Grand Explorer Crown", "👑", "Gold Diamond", 40, "Earn 40 total stars across all games", "Worn by true speech masters who conquer every realm with courage!"),
+        new("t_superstar", "Galaxy Superstar", "🌟", "Platinum", 30, "Earn 30 total stars", "Shining like the brightest star in the cosmos!"),
+        new("t_gardener", "Golden Thumb Urn", "🌸", "Emerald", 25, "Earn 25 stars & bloom garden plants", "Nurturing beautiful knowledge with patience and love!"),
+
+        // Tier 2: Game Realm Honors
+        new("t_rocket", "Star Blaster Trophy", "🚀", "Gold", 10, "Play Letter Rocket & earn 10 stars", "Launched letter rockets into the stratosphere with perfect sounds!"),
+        new("t_frog", "Pond Champion Cup", "🐸", "Gold", 10, "Play Number Jump & solve sums", "Hopped effortlessly across lily pads with swift spoken sums!"),
+        new("t_safari", "Safari Ranger Crest", "🦁", "Gold", 10, "Rescue animals in Animal Safari", "Heard the calls of the wild and guided the whole caravan safely home!"),
+
+        // Tier 3: Skill Medals
+        new("t_painter", "Master Painter Medal", "🎨", "Silver", 8, "Play Color Splash & splash paints", "Splashed vibrant radiant colors across black-and-white worlds!"),
+        new("t_builder", "Architect of Words", "🧱", "Silver", 8, "Assemble words in Word Builder", "Snapped chunky letter blocks together into wonderful surprises!")
+    };
+
+    private bool IsTrophyUnlocked(TrophyItem trophy)
+    {
+        return UserStars >= trophy.RequiredStars;
+    }
+
+    private async Task OpenTrophy(TrophyItem trophy)
+    {
+        if (!IsTrophyUnlocked(trophy))
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Click);
+            return;
+        }
+
+        selectedTrophy = trophy;
+        await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+        StateHasChanged();
+    }
+
+    private RenderFragment RenderTrophySlot(TrophyItem trophy) => builder =>
+    {
+        var unlocked = IsTrophyUnlocked(trophy);
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"trophy-slot {(unlocked ? "trophy-unlocked" : "trophy-locked")}");
+        builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => OpenTrophy(trophy)));
+
+        // Icon
+        builder.OpenElement(3, "div");
+        builder.AddAttribute(4, "class", "trophy-icon-wrapper");
+        builder.OpenElement(5, "span");
+        builder.AddAttribute(6, "style", "font-size: 3.5rem; line-height: 1;");
+        builder.AddContent(7, trophy.Emoji);
+        builder.CloseElement();
+        builder.CloseElement();
+
+        // Pedestal
+        builder.OpenElement(8, "div");
+        builder.AddAttribute(9, "class", "trophy-pedestal");
+        builder.CloseElement();
+
+        // Title Tag
+        builder.OpenElement(10, "div");
+        builder.AddAttribute(11, "class", "trophy-title-tag");
+        builder.AddContent(12, unlocked ? trophy.Title : $"🔒 {trophy.RequiredStars} Stars");
+        builder.CloseElement();
+
+        builder.CloseElement();
+    };
+}

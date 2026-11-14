@@ -1,0 +1,449 @@
+/* VOXIE QUEST - Hand-drawn Children's Storybook Design System */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;900&display=swap');
+
+:root {
+    --color-sunny-yellow: #FFD166;
+    --color-sky-blue: #4EA8DE;
+    --color-coral: #EF476F;
+    --color-mint: #06D6A0;
+    --color-soft-orange: #F78C6B;
+    --color-cream-paper: #FFFDF7;
+    --color-storybook-ink: #2B2D42;
+    --color-purple-dream: #8338EC;
+    --color-cloud-white: #FFFFFF;
+
+    --font-heading: 'Fredoka', cursive, system-ui, sans-serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
+
+    --border-storybook: 4px solid var(--color-storybook-ink);
+    --border-radius-lg: 24px;
+    --border-radius-md: 18px;
+    --border-radius-full: 9999px;
+
+    --shadow-chunky: 0 6px 0 var(--color-storybook-ink);
+    --shadow-chunky-lg: 0 10px 0 var(--color-storybook-ink);
+    --shadow-chunky-pressed: 0 2px 0 var(--color-storybook-ink);
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #F8F9FA;
+    background-image: 
+        radial-gradient(#E2E8F0 2px, transparent 2px),
+        radial-gradient(#E2E8F0 2px, #FFFDF7 2px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    font-family: var(--font-body);
+    color: var(--color-storybook-ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+    color: var(--color-storybook-ink);
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+/* Master Layout & Header */
+.storybook-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.storybook-header {
+    background: var(--color-sunny-yellow);
+    border-bottom: var(--border-storybook);
+    box-shadow: 0 4px 0 rgba(43, 45, 66, 0.15);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--color-storybook-ink);
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.brand-badge:hover {
+    color: var(--color-storybook-ink);
+}
+
+.header-status-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pill {
+    background: var(--color-cloud-white);
+    border: 3px solid var(--color-storybook-ink);
+    border-radius: var(--border-radius-full);
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 3px 0 var(--color-storybook-ink);
+    color: var(--color-storybook-ink);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.pill:hover {
+    transform: translateY(-2px);
+    color: var(--color-storybook-ink);
+}
+
+.pill:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-storybook-ink);
+}
+
+/* Storybook Card Elements */
+.storybook-card {
+    background: var(--color-cream-paper);
+    border: var(--border-storybook);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-chunky);
+    padding: 1.5rem;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.storybook-card.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-chunky-lg);
+}
+
+/* Interactive Story Buttons */
+.btn-story {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.8rem 1.6rem;
+    border: var(--border-storybook);
+    border-radius: var(--border-radius-full);
+    box-shadow: var(--shadow-chunky);
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.1s ease;
+}
+
+.btn-story:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 var(--color-storybook-ink);
+}
+
+.btn-story:active {
+    transform: translateY(4px);
+    box-shadow: var(--shadow-chunky-pressed);
+}
+
+.btn-story-yellow { background-color: var(--color-sunny-yellow); color: var(--color-storybook-ink); }
+.btn-story-blue   { background-color: var(--color-sky-blue); color: var(--color-cloud-white); }
+.btn-story-coral  { background-color: var(--color-coral); color: var(--color-cloud-white); }
+.btn-story-mint   { background-color: var(--color-mint); color: var(--color-storybook-ink); }
+.btn-story-orange { background-color: var(--color-soft-orange); color: var(--color-cloud-white); }
+.btn-story-purple { background-color: var(--color-purple-dream); color: var(--color-cloud-white); }
+
+/* Microphone Button with Pulsing Wave */
+.mic-button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.mic-orb {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: var(--border-storybook);
+    box-shadow: var(--shadow-chunky);
+    background: var(--color-coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.mic-orb:hover {
+    transform: scale(1.05);
+}
+
+.mic-orb.listening {
+    background: var(--color-mint);
+    animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(6, 214, 160, 0.7), var(--shadow-chunky);
+    }
+    70% {
+        box-shadow: 0 0 0 24px rgba(6, 214, 160, 0), var(--shadow-chunky);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(6, 214, 160, 0), var(--shadow-chunky);
+    }
+}
+
+/* Mascot SVG Container & Speech Bubble */
+.mascot-stage {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.speech-bubble {
+    background: var(--color-cloud-white);
+    border: var(--border-storybook);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-chunky);
+    padding: 1.25rem 1.75rem;
+    position: relative;
+    flex: 1;
+    font-size: 1.3rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.speech-bubble::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-right: 16px solid var(--color-storybook-ink);
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-right: 12px solid var(--color-cloud-white);
+}
+
+/* Star Counter & Badges */
+.star-badge {
+    background: var(--color-sunny-yellow);
+    border: 3px solid var(--color-storybook-ink);
+    border-radius: var(--border-radius-full);
+    padding: 0.3rem 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 700;
+}
+
+.badge-item {
+    background: var(--color-cloud-white);
+    border: 3px solid var(--color-storybook-ink);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 0 var(--color-storybook-ink);
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+.badge-icon {
+    font-size: 2.5rem;
+}
+
+/* Floating animation */
+.floating {
+    animation: gentle-float 3s ease-in-out infinite;
+}
+
+@keyframes gentle-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Bottom Navigation Bar for Kids */
+.storybook-nav {
+    background: var(--color-cloud-white);
+    border-top: var(--border-storybook);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-around;
+    position: sticky;
+    bottom: 0;
+    z-index: 99;
+}
+
+.nav-kid-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-storybook-ink);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.4rem 1rem;
+    border-radius: var(--border-radius-md);
+    transition: all 0.15s ease;
+}
+
+.nav-kid-link:hover, .nav-kid-link.active {
+    background: var(--color-sunny-yellow);
+    box-shadow: 0 3px 0 var(--color-storybook-ink);
+}
+
+.nav-kid-icon {
+    font-size: 1.5rem;
+}
+
+/* ------------------------------------------------------------------------
+   Accessibility Modes: Dyslexia Typography & High-Contrast Colorblind Mode
+   ------------------------------------------------------------------------ */
+.dyslexia-font,
+.dyslexia-font body,
+.dyslexia-font button,
+.dyslexia-font input,
+.dyslexia-font .speech-bubble,
+.dyslexia-font h1,
+.dyslexia-font h2,
+.dyslexia-font h3,
+.dyslexia-font h4,
+.dyslexia-font p,
+.dyslexia-font span {
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif !important;
+    letter-spacing: 0.06em !important;
+    word-spacing: 0.16em !important;
+    line-height: 1.65 !important;
+}
+
+.colorblind-mode {
+    --color-storybook-ink: #0F172A;
+}
+
+.colorblind-mode .storybook-card,
+.colorblind-mode .btn-story,
+.colorblind-mode .pill,
+.colorblind-mode .star-badge {
+    border-width: 4px !important;
+    box-shadow: 0 6px 0 #0F172A !important;
+}
+
+.colorblind-mode .pill {
+    font-weight: 800 !important;
+}
+
+/* ------------------------------------------------------------------------
+   Responsive Layout: Laptop (>960px), Tablet (600px-960px), Phone (<600px)
+   ------------------------------------------------------------------------ */
+@media (max-width: 860px) {
+    .storybook-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .header-status-pills {
+        gap: 0.35rem;
+    }
+
+    .brand-badge {
+        font-size: 1.25rem;
+    }
+
+    .storybook-nav {
+        padding: 0.35rem 0.5rem;
+    }
+
+    .nav-kid-link {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .storybook-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .header-status-pills {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-kid-text {
+        font-size: 0.72rem;
+    }
+
+    .nav-kid-link {
+        padding: 0.25rem 0.25rem;
+    }
+
+    .nav-kid-icon {
+        font-size: 1.25rem;
+    }
+
+    .mascot-stage {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .speech-bubble::before,
+    .speech-bubble::after {
+        display: none;
+    }
+
+    .garden-plots-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,91 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="mascot-container @MoodClass" title="Voxie the Chameleon">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Chameleon Body -->
+        <path d="M20 70C20 45 42 32 65 32C88 32 105 45 105 70C105 92 88 102 65 102C42 102 20 92 20 70Z" fill="@BodyColor" stroke="#2B2D42" stroke-width="4" stroke-linejoin="round"/>
+        
+        <!-- Curled Tail -->
+        <path d="M22 80C14 80 8 72 8 62C8 50 18 42 26 46C30 48 30 56 24 56C19 56 16 62 20 66" stroke="#2B2D42" stroke-width="4" stroke-linecap="round" fill="none"/>
+        
+        <!-- Spiky Crest -->
+        <path d="M45 32L50 20L58 32L65 18L72 32L80 20L85 32" stroke="#2B2D42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="#FFD166"/>
+
+        <!-- Chameleon Big Googly Eye -->
+        <circle cx="78" cy="52" r="16" fill="#FFFDF7" stroke="#2B2D42" stroke-width="4"/>
+        
+        @if (Mood == MascotMood.Listening)
+        {
+            <!-- Big attentive pupil looking up -->
+            <circle cx="78" cy="46" r="8" fill="#2B2D42"/>
+            <circle cx="81" cy="44" r="2.5" fill="white"/>
+            <!-- Sparkles near ear -->
+            <path d="M96 38L98 42L102 44L98 46L96 50L94 46L90 44L94 42Z" fill="#FFD166"/>
+        }
+        else if (Mood == MascotMood.Celebrating)
+        {
+            <!-- Joyful squint eye -->
+            <path d="M70 52C74 46 82 46 86 52" stroke="#2B2D42" stroke-width="4" stroke-linecap="round"/>
+            <!-- Rosy Cheek -->
+            <circle cx="62" cy="68" r="6" fill="#EF476F" opacity="0.6"/>
+        }
+        else if (Mood == MascotMood.Thinking)
+        {
+            <!-- Eye looking sideways thoughtfully -->
+            <circle cx="72" cy="52" r="7" fill="#2B2D42"/>
+            <circle cx="74" cy="50" r="2" fill="white"/>
+            <circle cx="62" cy="68" r="5" fill="#EF476F" opacity="0.4"/>
+        }
+        else
+        {
+            <!-- Friendly standard happy eye -->
+            <circle cx="80" cy="52" r="7" fill="#2B2D42"/>
+            <circle cx="82" cy="50" r="2.5" fill="white"/>
+            <!-- Rosy Cheek -->
+            <circle cx="62" cy="68" r="6" fill="#EF476F" opacity="0.5"/>
+        }
+
+        <!-- Happy Smile or Expression -->
+        @if (Mood == MascotMood.Celebrating)
+        {
+            <path d="M72 74C76 84 88 84 94 74" stroke="#2B2D42" stroke-width="4" stroke-linecap="round" fill="#EF476F"/>
+        }
+        else if (Mood == MascotMood.Listening)
+        {
+            <!-- Little 'O' shape mouth as it listens closely -->
+            <circle cx="84" cy="74" r="4" fill="#2B2D42"/>
+        }
+        else
+        {
+            <path d="M72 72C78 78 86 78 90 72" stroke="#2B2D42" stroke-width="4" stroke-linecap="round"/>
+        }
+
+        <!-- Cute Little Feet -->
+        <ellipse cx="45" cy="100" rx="9" ry="5" fill="#FFD166" stroke="#2B2D42" stroke-width="3"/>
+        <ellipse cx="85" cy="100" rx="9" ry="5" fill="#FFD166" stroke="#2B2D42" stroke-width="3"/>
+    </svg>
+</div>
+
+@code {
+    /// <summary>
+    /// Current expressive mood of the Voxie mascot.
+    /// </summary>
+    [Parameter]
+    public MascotMood Mood { get; set; } = MascotMood.Idle;
+
+    private string MoodClass => Mood switch
+    {
+        MascotMood.Listening => "mascot-listening",
+        MascotMood.Celebrating => "mascot-celebrating",
+        MascotMood.Thinking => "mascot-thinking",
+        _ => "mascot-idle"
+    };
+
+    private string BodyColor => Mood switch
+    {
+        MascotMood.Listening => "#4EA8DE",   // Sky blue while tuning ears
+        MascotMood.Celebrating => "#06D6A0", // Mint green on victory
+        MascotMood.Thinking => "#F78C6B",    // Soft orange when processing
+        _ => "#06D6A0"                      // Cheerful mint green default
+    };
+}

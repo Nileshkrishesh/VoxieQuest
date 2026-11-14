@@ -1,0 +1,157 @@
+@inject ISessionTimerService SessionTimer
+@inject IAudioService AudioService
+
+@if (SessionTimer.IsBreakDue || IsForcedVisible)
+{
+    <div class="sleepy-break-overlay">
+        <div class="storybook-card sleepy-card">
+            <!-- Night Sky & Sleepy Voxie Scene -->
+            <div class="sleepy-voxie-scene">
+                <svg width="240" height="180" viewBox="0 0 240 180" fill="none">
+                    <!-- Cozy Crescent Moon -->
+                    <path d="M190 25C175 25 160 38 160 55C160 72 175 85 190 85C195 85 200 83 205 80C195 90 180 95 165 95C140 95 120 75 120 50C120 28 135 10 155 5C145 10 140 20 140 30C140 45 152 58 168 58C176 58 184 54 190 48Z" fill="#FFD166" stroke="#2B2D42" stroke-width="3"/>
+                    
+                    <!-- Floating Soft Clouds -->
+                    <path d="M30 140C30 125 45 115 60 115C68 100 85 95 100 102C112 90 130 92 140 105C155 102 170 112 170 128C185 128 195 140 195 152C195 165 180 172 165 172H45C32 172 20 160 20 148C20 144 24 140 30 140Z" fill="#E0F2FE" stroke="#2B2D42" stroke-width="4"/>
+
+                    <!-- Curled up Sleeping Voxie -->
+                    <g transform="translate(65, 80)">
+                        <!-- Fluffy Tail curled over paws -->
+                        <path d="M10 50C-5 45 -12 25 -5 12C2 0 18 -2 28 5C22 15 18 35 30 45Z" fill="#F78C6B" stroke="#2B2D42" stroke-width="3.5"/>
+                        <path d="M-5 12C2 0 18 -2 28 5C22 12 15 18 10 22C4 20 -1 16 -5 12Z" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2"/>
+
+                        <!-- Body curled up -->
+                        <ellipse cx="48" cy="45" rx="35" ry="24" fill="#F78C6B" stroke="#2B2D42" stroke-width="4"/>
+                        <ellipse cx="48" cy="50" rx="24" ry="14" fill="#FFFDF7"/>
+
+                        <!-- Sleeping Head -->
+                        <circle cx="70" cy="30" r="22" fill="#F78C6B" stroke="#2B2D42" stroke-width="4"/>
+                        <circle cx="70" cy="34" r="14" fill="#FFFDF7"/>
+
+                        <!-- Drooping Ears with Nightcap -->
+                        <path d="M55 15L48 -2L62 8Z" fill="#F78C6B" stroke="#2B2D42" stroke-width="3"/>
+                        <path d="M78 12L90 -5L86 12Z" fill="#F78C6B" stroke="#2B2D42" stroke-width="3"/>
+
+                        <!-- Cozy Purple Nightcap -->
+                        <path d="M56 18C56 6 82 4 84 18L95 0C85 -10 60 -10 50 0Z" fill="#8B5CF6" stroke="#2B2D42" stroke-width="3"/>
+                        <circle cx="96" cy="0" r="6" fill="#FFD166" stroke="#2B2D42" stroke-width="2.5"/>
+
+                        <!-- Sleeping Closed Eyes (curved smile lines) -->
+                        <path d="M64 30C66 33 70 33 72 30" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M76 28C78 31 82 31 84 28" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+
+                        <!-- Little Fox Nose -->
+                        <ellipse cx="74" cy="38" rx="3" ry="2.2" fill="#2B2D42"/>
+
+                        <!-- Floating Animated Zzz's -->
+                        <g class="zzz-group">
+                            <text x="85" y="10" font-family="var(--font-heading)" font-size="16" font-weight="800" fill="#8B5CF6" class="zzz-1">Z</text>
+                            <text x="96" y="-5" font-family="var(--font-heading)" font-size="22" font-weight="800" fill="#8B5CF6" class="zzz-2">z</text>
+                            <text x="110" y="-22" font-family="var(--font-heading)" font-size="28" font-weight="800" fill="#8B5CF6" class="zzz-3">z</text>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+
+            <h2 style="font-size:2rem; color:var(--color-storybook-ink); margin-bottom:0.4rem;">
+                🌙 Voxie is Sleepy!
+            </h2>
+            <p style="font-size:1.15rem; font-weight:700; color:#4B5563; max-width:440px; margin:0 auto 1.25rem auto;">
+                Time to rest your eyes, do a big stretch, and drink some yummy water! 💧
+            </p>
+
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+                <!-- Child Rest Complete Button -->
+                <button class="btn-story btn-story-yellow" style="font-size:1.15rem; padding:0.6rem 1.6rem;" type="button" @onclick="HandleBreakFinished">
+                    <span>I Took a Rest! ☀️</span>
+                </button>
+
+                <!-- Grown-Ups Extension -->
+                <button class="pill" style="background:#EDE9FE; color:#6D28D9; border-color:#8B5CF6; font-size:1rem;" type="button" @onclick="() => showParentGate = true">
+                    <span>🛡️ Grown-Ups: Add Time</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Parent Gate Modal for Time Extension -->
+<ParentGate IsVisible="@showParentGate" 
+            Title="Grown-Ups Time Extension" 
+            OnVerified="HandleParentVerified" 
+            OnCancel="() => showParentGate = false" />
+
+<style>
+    .sleepy-break-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 45, 66, 0.88);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        animation: fade-in-break 0.4s ease-out;
+    }
+
+    .sleepy-card {
+        background: #FFFDF7;
+        max-width: 520px;
+        width: 100%;
+        text-align: center;
+        padding: 2rem 1.5rem;
+        border: 5px solid var(--color-storybook-ink);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        animation: scale-up-sleepy 0.5s var(--spring-bounce);
+    }
+
+    .sleepy-voxie-scene {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .zzz-1 { animation: zzz-float 2.2s infinite ease-in-out; }
+    .zzz-2 { animation: zzz-float 2.2s infinite ease-in-out 0.4s; }
+    .zzz-3 { animation: zzz-float 2.2s infinite ease-in-out 0.8s; }
+
+    @@keyframes zzz-float {
+        0% { opacity: 0; transform: translateY(8px) scale(0.7); }
+        50% { opacity: 1; transform: translateY(-10px) scale(1.05); }
+        100% { opacity: 0; transform: translateY(-28px) scale(1.2); }
+    }
+
+    @@keyframes fade-in-break {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes scale-up-sleepy {
+        0% { transform: scale(0.6); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsForcedVisible { get; set; } = false;
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    private bool showParentGate = false;
+
+    private async Task HandleBreakFinished()
+    {
+        SessionTimer.ResetBreak();
+        await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        await OnDismiss.InvokeAsync();
+    }
+
+    private void HandleParentVerified(bool success)
+    {
+        if (success)
+        {
+            showParentGate = false;
+            SessionTimer.ExtendSession(15); // Adds 15 minutes
+        }
+    }
+}

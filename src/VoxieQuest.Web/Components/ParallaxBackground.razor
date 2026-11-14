@@ -1,0 +1,186 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="parallax-backdrop parallax-theme-@Theme.ToString().ToLowerInvariant()" aria-hidden="true">
+    @if (Theme == ParallaxTheme.Clouds)
+    {
+        <!-- CLOUDS THEME -->
+        <div class="parallax-layer layer-clouds-back">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Distant Sun -->
+                <circle cx="950" cy="90" r="50" fill="#FFD166" opacity="0.85"/>
+                <!-- Distant Clouds -->
+                <path d="M100 120C120 90 170 90 190 120C210 100 250 100 270 120C290 110 320 120 330 140H90C80 130 90 120 100 120Z" fill="#FFFFFF" opacity="0.6"/>
+                <path d="M700 80C720 50 770 50 790 80C810 60 850 60 870 80C890 70 920 80 930 100H690C680 90 690 80 700 80Z" fill="#FFFFFF" opacity="0.6"/>
+            </svg>
+        </div>
+
+        <div class="parallax-layer layer-clouds-mid anim-drift-slow">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <path d="M400 140C430 100 500 100 530 140C560 115 620 115 650 140C680 125 720 140 730 170H380C365 155 380 140 400 140Z" fill="#FFFFFF" opacity="0.85"/>
+                <path d="M1000 120C1030 80 1100 80 1130 120C1160 95 1220 95 1250 120H980C970 110 985 120 1000 120Z" fill="#FFFFFF" opacity="0.85"/>
+            </svg>
+        </div>
+    }
+    else if (Theme == ParallaxTheme.Hills)
+    {
+        <!-- ROLLING HILLS THEME -->
+        <div class="parallax-layer layer-hills-distant">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Distant Blue Hills -->
+                <path d="M0 220C300 150 600 260 900 170C1050 120 1150 190 1200 210V400H0V220Z" fill="#CBD5E1" opacity="0.5"/>
+            </svg>
+        </div>
+
+        <div class="parallax-layer layer-hills-mid">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Midground Pastel Mint Hills -->
+                <path d="M0 260C250 200 550 300 800 220C1000 160 1150 240 1200 250V400H0V260Z" fill="#A7F3D0" opacity="0.7"/>
+            </svg>
+        </div>
+
+        <div class="parallax-layer layer-hills-front">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Foreground Soft Green Meadow -->
+                <path d="M0 310C350 270 700 340 1200 290V400H0V310Z" fill="#6EE7B7" opacity="0.85"/>
+            </svg>
+        </div>
+    }
+    else if (Theme == ParallaxTheme.Jungle)
+    {
+        <!-- JUNGLE FOREST THEME -->
+        <div class="parallax-layer layer-jungle-back">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Distant Rainforest Canopy -->
+                <path d="M0 180C200 150 400 210 600 160C800 210 1000 150 1200 180V400H0V180Z" fill="#065F46" opacity="0.4"/>
+            </svg>
+        </div>
+
+        <div class="parallax-layer layer-jungle-mid">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Midground Palms and Giant Leaves -->
+                <path d="M0 230C150 180 300 240 500 200C750 250 950 190 1200 240V400H0V230Z" fill="#047857" opacity="0.6"/>
+            </svg>
+        </div>
+
+        <!-- Glowing Fireflies -->
+        <div class="jungle-firefly firefly-1"></div>
+        <div class="jungle-firefly firefly-2"></div>
+        <div class="jungle-firefly firefly-3"></div>
+    }
+    else if (Theme == ParallaxTheme.Space)
+    {
+        <!-- COSMIC SPACE THEME -->
+        <div class="parallax-layer layer-space-stars">
+            <svg viewBox="0 0 1200 400" preserveAspectRatio="none" class="parallax-svg">
+                <!-- Twinkling Star Clusters -->
+                <circle cx="120" cy="60" r="3" fill="#FFD166" class="star-twinkle-1"/>
+                <circle cx="280" cy="110" r="2" fill="#FFFFFF" class="star-twinkle-2"/>
+                <circle cx="450" cy="40" r="3.5" fill="#FFD166" class="star-twinkle-3"/>
+                <circle cx="680" cy="90" r="2.5" fill="#FFFFFF" class="star-twinkle-1"/>
+                <circle cx="850" cy="50" r="3" fill="#06D6A0" class="star-twinkle-2"/>
+                <circle cx="1020" cy="80" r="2" fill="#FFD166" class="star-twinkle-3"/>
+                <circle cx="1140" cy="40" r="3" fill="#FFFFFF" class="star-twinkle-1"/>
+
+                <!-- Cartoon Ringed Planet -->
+                <circle cx="980" cy="160" r="36" fill="#F78C6B"/>
+                <ellipse cx="980" cy="160" rx="55" ry="12" fill="none" stroke="#FFD166" stroke-width="4.5" transform="rotate(-18 980 160)"/>
+            </svg>
+        </div>
+    }
+</div>
+
+<style>
+    .parallax-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .parallax-layer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .parallax-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Themes Background Tints */
+    .parallax-theme-clouds {
+        background: linear-gradient(180deg, #E0F2FE 0%, #FFFDF7 100%);
+    }
+
+    .parallax-theme-hills {
+        background: linear-gradient(180deg, #FEF3C7 0%, #ECFDF5 60%, #FFFDF7 100%);
+    }
+
+    .parallax-theme-jungle {
+        background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 50%, #FFFDF7 100%);
+    }
+
+    .parallax-theme-space {
+        background: linear-gradient(180deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+    }
+
+    /* Gentle Drift Animations */
+    .anim-drift-slow {
+        animation: drift-horizontal 35s linear infinite;
+    }
+
+    @@keyframes drift-horizontal {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-40px); }
+        100% { transform: translateX(0); }
+    }
+
+    /* Fireflies in Jungle */
+    .jungle-firefly {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #FFD166;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #FFD166;
+        opacity: 0.8;
+    }
+    .firefly-1 { top: 25%; left: 20%; animation: firefly-float 4s ease-in-out infinite; }
+    .firefly-2 { top: 40%; left: 75%; animation: firefly-float 5s ease-in-out infinite 1s; }
+    .firefly-3 { top: 30%; left: 50%; animation: firefly-float 4.5s ease-in-out infinite 2s; }
+
+    @@keyframes firefly-float {
+        0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+        50% { transform: translate(15px, -20px); opacity: 1; }
+    }
+
+    /* Stars Twinkle */
+    .star-twinkle-1 { animation: star-blink 2s ease-in-out infinite; }
+    .star-twinkle-2 { animation: star-blink 2.6s ease-in-out infinite 0.7s; }
+    .star-twinkle-3 { animation: star-blink 3.2s ease-in-out infinite 1.4s; }
+
+    @@keyframes star-blink {
+        0%, 100% { opacity: 0.3; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.3); }
+    }
+</style>
+
+@code {
+    public enum ParallaxTheme
+    {
+        Clouds,
+        Hills,
+        Jungle,
+        Space
+    }
+
+    [Parameter]
+    public ParallaxTheme Theme { get; set; } = ParallaxTheme.Clouds;
+}

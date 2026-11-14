@@ -1,0 +1,58 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="mic-button-container">
+    <button class="mic-orb @(IsListening ? "listening" : "")" 
+            style="transform: scale(@(1.0f + (VolumeLevel * 0.35f))); transition: transform 0.08s ease-out;"
+            @onclick="HandleClick" 
+            type="button" 
+            aria-label="Microphone">
+        @if (IsListening)
+        {
+            <span>🎙️</span>
+        }
+        else
+        {
+            <span>🎤</span>
+        }
+    </button>
+
+    <div style="font-family:var(--font-heading); font-weight:700; font-size:1.1rem; color:var(--color-storybook-ink);">
+        @if (IsListening)
+        {
+            @if (VolumeLevel > 0.15f)
+            {
+                <span style="color:#06D6A0;">🌟 Voxie hears your voice!</span>
+            }
+            else
+            {
+                <span style="color:#06D6A0;">Voxie is listening... Speak clearly!</span>
+            }
+        }
+        else
+        {
+            <span>@(IsPushToTalk ? "Tap to speak!" : "Tap mic to wake up Voxie")</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsListening { get; set; }
+
+    [Parameter]
+    public float VolumeLevel { get; set; } = 0.0f;
+
+    [Parameter]
+    public bool IsPushToTalk { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnToggleListening { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (OnToggleListening.HasDelegate)
+        {
+            await OnToggleListening.InvokeAsync();
+        }
+    }
+}

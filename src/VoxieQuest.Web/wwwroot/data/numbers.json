@@ -1,0 +1,74 @@
+[
+  {
+    "id": "num_three",
+    "category": 2,
+    "difficulty": 1,
+    "prompt": "Count the blooming flowers aloud: 🌸 🌸 🌸. How many?",
+    "targetAnswer": "three",
+    "acceptedAnswers": ["three", "3", "three flowers"],
+    "hint": "One, two...",
+    "phoneticSpelling": "TH - R - IY",
+    "iconSvg": "flower",
+    "rewardStars": 1
+  },
+  {
+    "id": "num_five",
+    "category": 2,
+    "difficulty": 1,
+    "prompt": "Count the fingers on one hand: ✋ How many fingers?",
+    "targetAnswer": "five",
+    "acceptedAnswers": ["five", "5", "five fingers"],
+    "hint": "Count them: 1, 2, 3, 4, 5!",
+    "phoneticSpelling": "F - AY - V",
+    "iconSvg": "hand",
+    "rewardStars": 1
+  },
+  {
+    "id": "num_eight",
+    "category": 2,
+    "difficulty": 2,
+    "prompt": "How many friendly legs does an octopus have? 🐙",
+    "targetAnswer": "eight",
+    "acceptedAnswers": ["eight", "8", "eight legs"],
+    "hint": "Octo- means eight!",
+    "phoneticSpelling": "EY - T",
+    "iconSvg": "octopus",
+    "rewardStars": 2
+  },
+  {
+    "id": "num_ten",
+    "category": 2,
+    "difficulty": 2,
+    "prompt": "What is five plus five? 5 + 5 = ?",
+    "targetAnswer": "ten",
+    "acceptedAnswers": ["ten", "10", "it is ten"],
+    "hint": "Count both hands together!",
+    "phoneticSpelling": "T - EH - N",
+    "iconSvg": "number10",
+    "rewardStars": 2
+  },
+  {
+    "id": "num_fifteen",
+    "category": 2,
+    "difficulty": 3,
+    "prompt": "If you have 10 yellow stars and collect 5 blue stars, how many in total?",
+    "targetAnswer": "fifteen",
+    "acceptedAnswers": ["fifteen", "15"],
+    "hint": "Ten plus five is fifteen!",
+    "phoneticSpelling": "F - IH - F - T - IY - N",
+    "iconSvg": "stars",
+    "rewardStars": 3
+  },
+  {
+    "id": "num_twenty",
+    "category": 2,
+    "difficulty": 3,
+    "prompt": "What is ten multiplied by two? Double ten!",
+    "targetAnswer": "twenty",
+    "acceptedAnswers": ["twenty", "20"],
+    "hint": "Ten and ten make twenty!",
+    "phoneticSpelling": "T - W - EH - N - T - IY",
+    "iconSvg": "double",
+    "rewardStars": 3
+  }
+]

@@ -1,0 +1,203 @@
+@page "/calibrate"
+@page "/voice-setup"
+@inject VoiceManager VoiceManager
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<div style="display:flex; flex-direction:column; gap:1.5rem; max-width:680px; margin:0 auto; text-align:center;">
+    <!-- Calibration Header -->
+    <div class="storybook-card" style="background:var(--color-sunny-yellow);">
+        <h2 style="font-size:2.2rem; margin-bottom:0.3rem;">🎙️ Voice & Microphone Setup</h2>
+        <p style="font-size:1.15rem; font-weight:700; margin:0;">
+            Let's tune Voxie's ears so he can hear your magical answers!
+        </p>
+    </div>
+
+    <!-- Step 1: Permission & Live Mic Test -->
+    <div class="storybook-card">
+        <h3 style="font-size:1.4rem; margin-bottom:1rem;">Step 1: Test Your Voice</h3>
+
+        <!-- Wobbling Microphone Character -->
+        <div style="margin-bottom:1.25rem;">
+            <WobblyMicCharacter VolumeLevel="@currentVolume" IsListening="@VoiceManager.IsListening" />
+        </div>
+
+        <div style="min-height:48px; margin-bottom:1rem;">
+            @if (hasPermission == true)
+            {
+                <div class="pill" style="background:var(--color-mint); color:var(--color-storybook-ink); font-size:1.05rem;">
+                    ✓ Microphone Connected! Say "Hello Voxie!"
+                </div>
+            }
+            else if (hasPermission == false)
+            {
+                <div class="pill" style="background:var(--color-coral); color:white; font-size:1.05rem;">
+                    ⚠️ Microphone Blocked or Denied
+                </div>
+            }
+            else
+            {
+                <button class="btn-story btn-story-mint" type="button" @onclick="RequestPermission">
+                    <span>Allow Microphone 🎤</span>
+                </button>
+            }
+        </div>
+
+        <!-- Live Transcribed Sample -->
+        @if (!string.IsNullOrWhiteSpace(sampleTranscript))
+        {
+            <div style="display:inline-block; padding:0.6rem 1.4rem; border:3px solid var(--color-storybook-ink); border-radius:var(--border-radius-full); background:#E8FBF4; font-family:var(--font-heading); font-size:1.2rem; font-weight:700; margin-bottom:1rem;">
+                🎉 Voxie heard: "@sampleTranscript"
+            </div>
+        }
+
+        <div style="display:flex; justify-content:center; gap:0.75rem;">
+            <button class="pill" @onclick="ToggleMicTest" type="button">
+                <span>@(VoiceManager.IsListening ? "Stop Test ⏹️" : "Start Voice Test ▶️")</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 2: Choose Playing Mode -->
+    <div class="storybook-card">
+        <h3 style="font-size:1.4rem; margin-bottom:1rem;">Step 2: How Do You Want To Play?</h3>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem;">
+            <!-- Auto-Listen Mode -->
+            <div class="storybook-card card-hover" 
+                 style="cursor:pointer; background:@(VoiceManager.Mode == VoiceMode.AutoListen ? "var(--color-mint)" : "white"); text-align:center; padding:1rem;"
+                 @onclick="() => SetMode(VoiceMode.AutoListen)">
+                <div style="font-size:2.5rem; margin-bottom:0.3rem;">🔄</div>
+                <h4 style="font-size:1.15rem; margin-bottom:0.25rem;">Auto-Listen</h4>
+                <p style="font-size:0.85rem; margin:0;">Voxie listens automatically for each question!</p>
+            </div>
+
+            <!-- Push-To-Talk Mode -->
+            <div class="storybook-card card-hover" 
+                 style="cursor:pointer; background:@(VoiceManager.Mode == VoiceMode.PushToTalk ? "var(--color-sunny-yellow)" : "white"); text-align:center; padding:1rem;"
+                 @onclick="() => SetMode(VoiceMode.PushToTalk)">
+                <div style="font-size:2.5rem; margin-bottom:0.3rem;">🔘</div>
+                <h4 style="font-size:1.15rem; margin-bottom:0.25rem;">Push-To-Talk</h4>
+                <p style="font-size:0.85rem; margin:0;">Tap the microphone button when you are ready to speak.</p>
+            </div>
+
+            <!-- Practice Mode -->
+            <div class="storybook-card card-hover" 
+                 style="cursor:pointer; background:@(VoiceManager.Mode == VoiceMode.PracticeButtons ? "#CAF0F8" : "white"); text-align:center; padding:1rem;"
+                 @onclick="() => SetMode(VoiceMode.PracticeButtons)">
+                <div style="font-size:2.5rem; margin-bottom:0.3rem;">🎮</div>
+                <h4 style="font-size:1.15rem; margin-bottom:0.25rem;">Practice Mode</h4>
+                <p style="font-size:0.85rem; margin:0;">Play with big on-screen buttons & keyboard! No mic needed.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Engine Selector (Advanced / Fallback) -->
+    <div class="storybook-card" style="background:#FFFDF7;">
+        <h4 style="font-size:1.1rem; margin-bottom:0.5rem;">⚙️ Recognition Engine</h4>
+        <div style="display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+            <button class="pill" 
+                    style="background:@(VoiceManager.CurrentEngine == VoiceEngineType.BrowserWebSpeech ? "var(--color-mint)" : "white"); font-size:0.85rem;"
+                    @onclick="() => VoiceManager.SetEngine(VoiceEngineType.BrowserWebSpeech)">
+                🌐 Browser Speech (Default)
+            </button>
+            <button class="pill" 
+                    style="background:@(VoiceManager.CurrentEngine == VoiceEngineType.OfflineVosk ? "var(--color-mint)" : "white"); font-size:0.85rem;"
+                    @onclick="() => VoiceManager.SetEngine(VoiceEngineType.OfflineVosk)">
+                📦 Offline WASM (Vosk)
+            </button>
+            <button class="pill" 
+                    style="background:@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual ? "var(--color-mint)" : "white"); font-size:0.85rem;"
+                    @onclick="() => VoiceManager.SetEngine(VoiceEngineType.PracticeManual)">
+                🎮 Manual / Buttons
+            </button>
+        </div>
+    </div>
+
+    <!-- Ready Button -->
+    <div>
+        <button class="btn-story btn-story-mint" style="font-size:1.4rem; padding:1rem 2.5rem;" @onclick="FinishCalibration" type="button">
+            <span>Ready To Play! 🚀</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    private float currentVolume = 0.0f;
+    private bool? hasPermission = null;
+    private string sampleTranscript = "";
+
+    protected override void OnInitialized()
+    {
+        VoiceManager.OnVolumeChanged += HandleVolume;
+        VoiceManager.OnResult += HandleResult;
+    }
+
+    private async Task RequestPermission()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        hasPermission = await VoiceManager.RequestPermissionAsync();
+        if (hasPermission == true)
+        {
+            await VoiceManager.StartListeningAsync();
+        }
+        else
+        {
+            VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
+            VoiceManager.Mode = VoiceMode.PracticeButtons;
+        }
+    }
+
+    private async Task ToggleMicTest()
+    {
+        if (VoiceManager.IsListening)
+        {
+            await VoiceManager.StopListeningAsync();
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+            await VoiceManager.StartListeningAsync();
+        }
+    }
+
+    private void SetMode(VoiceMode mode)
+    {
+        VoiceManager.Mode = mode;
+        if (mode == VoiceMode.PracticeButtons)
+        {
+            VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
+        }
+        else if (VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)
+        {
+            VoiceManager.SetEngine(VoiceEngineType.BrowserWebSpeech);
+        }
+    }
+
+    private void HandleVolume(float vol)
+    {
+        currentVolume = vol;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleResult(SpeechResult res)
+    {
+        sampleTranscript = res.Transcript;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task FinishCalibration()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        await VoiceManager.StopListeningAsync();
+        Navigation.NavigateTo("games");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        VoiceManager.OnVolumeChanged -= HandleVolume;
+        VoiceManager.OnResult -= HandleResult;
+        await VoiceManager.StopListeningAsync();
+    }
+}

@@ -1,0 +1,201 @@
+/* ==========================================================================
+   VOXIE QUEST - Storybook Design System & Design Tokens
+   Hand-drawn Children's Picture Book Aesthetic (100% Offline)
+   ========================================================================== */
+
+/* 1. Local Offline Google Fonts */
+@font-face {
+    font-family: 'Fredoka';
+    src: url('../fonts/Fredoka.ttf') format('truetype');
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Nunito';
+    src: url('../fonts/Nunito.ttf') format('truetype');
+    font-weight: 300 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 2. Color Palette & Storybook Design Tokens */
+:root {
+    /* Primary Storybook Palette */
+    --color-sunny-yellow: #FFD166;
+    --color-sky-blue: #4EA8DE;
+    --color-coral: #EF476F;
+    --color-mint: #06D6A0;
+    --color-soft-orange: #F78C6B;
+    --color-purple-dream: #8338EC;
+    --color-cream-paper: #FFFDF7;
+    --color-storybook-ink: #2B2D42;
+    --color-cloud-white: #FFFFFF;
+
+    /* Tonal Backgrounds */
+    --color-bg-meadow: #E8FBF4;
+    --color-bg-warmth: #FFF9DB;
+    --color-bg-sky: #E7F5FF;
+    --color-bg-peach: #FFE8D6;
+
+    /* Typography */
+    --font-heading: 'Fredoka', cursive, 'Comic Sans MS', sans-serif;
+    --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+
+    /* Thick Storybook Outlines & Rounded Borders */
+    --border-ink-thin: 3px solid var(--color-storybook-ink);
+    --border-ink-thick: 4px solid var(--color-storybook-ink);
+    --border-ink-heavy: 5px solid var(--color-storybook-ink);
+    --border-radius-sm: 14px;
+    --border-radius-md: 20px;
+    --border-radius-lg: 28px;
+    --border-radius-pill: 9999px;
+
+    /* Chunky Tactile Shadows */
+    --shadow-chunky-sm: 0 4px 0 var(--color-storybook-ink);
+    --shadow-chunky-md: 0 6px 0 var(--color-storybook-ink);
+    --shadow-chunky-lg: 0 10px 0 var(--color-storybook-ink);
+    --shadow-chunky-pressed: 0 2px 0 var(--color-storybook-ink);
+
+    /* Squishy Button Spring Timing */
+    --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 3. Base Elements & Paper Canvas Texture */
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--color-storybook-ink);
+    background-color: var(--color-cream-paper);
+}
+
+/* Subtle hand-made paper fiber & crayon grain overlay using CSS */
+body {
+    background-color: #FFFDF7;
+    background-image: 
+        radial-gradient(#E2E8F0 1.5px, transparent 1.5px),
+        radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, #FFFDF7 1.5px);
+    background-size: 32px 32px;
+    background-position: 0 0, 16px 16px;
+    position: relative;
+}
+
+/* Crayon Grain Overlay */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 0.035;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, h4, h5, .font-heading {
+    font-family: var(--font-heading);
+    color: var(--color-storybook-ink);
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* 4. Storybook Card Container */
+.storybook-card {
+    background: var(--color-cream-paper);
+    border: var(--border-ink-thick);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-chunky-md);
+    padding: 1.5rem;
+    position: relative;
+    transition: transform 0.15s var(--spring-bounce), box-shadow 0.15s var(--spring-bounce);
+}
+
+.storybook-card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--shadow-chunky-lg);
+}
+
+/* 5. Cloud Wipe Page Transition */
+.cloud-wipe-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.cloud-wipe-active {
+    animation: cloud-wipe-animation 0.9s var(--spring-bounce) forwards;
+}
+
+@keyframes cloud-wipe-animation {
+    0% {
+        clip-path: circle(0% at 50% 50%);
+        opacity: 0.95;
+    }
+    45% {
+        clip-path: circle(120% at 50% 50%);
+        opacity: 1;
+    }
+    55% {
+        clip-path: circle(120% at 50% 50%);
+        opacity: 1;
+    }
+    100% {
+        clip-path: circle(0% at 50% 50%);
+        opacity: 0;
+    }
+}
+
+/* 6. General Playful Animations */
+@keyframes gentle-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+
+@keyframes ear-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+
+@keyframes tail-wag {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(15deg); }
+}
+
+@keyframes soft-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.anim-bob {
+    animation: gentle-bob 3s ease-in-out infinite;
+}
+
+.anim-wiggle {
+    animation: ear-wiggle 0.6s ease-in-out infinite;
+}
+
+.anim-wag {
+    animation: tail-wag 0.4s ease-in-out infinite;
+}

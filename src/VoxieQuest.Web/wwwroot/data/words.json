@@ -1,0 +1,74 @@
+[
+  {
+    "id": "w_apple",
+    "category": 1,
+    "difficulty": 1,
+    "prompt": "Say the name of this juicy red fruit that grows on trees!",
+    "targetAnswer": "apple",
+    "acceptedAnswers": ["apple", "an apple", "red apple"],
+    "hint": "A is for apple! Crunchy and sweet.",
+    "phoneticSpelling": "AE - P - AH - L",
+    "iconSvg": "apple",
+    "rewardStars": 1
+  },
+  {
+    "id": "w_tree",
+    "category": 1,
+    "difficulty": 1,
+    "prompt": "What tall plant has green leaves, branches, and brown bark?",
+    "targetAnswer": "tree",
+    "acceptedAnswers": ["tree", "a tree", "big tree"],
+    "hint": "Birds build nests in it! T - R - E - E.",
+    "phoneticSpelling": "T - R - IY",
+    "iconSvg": "tree",
+    "rewardStars": 1
+  },
+  {
+    "id": "w_rainbow",
+    "category": 1,
+    "difficulty": 2,
+    "prompt": "What arch of seven colors appears in the sky after rain?",
+    "targetAnswer": "rainbow",
+    "acceptedAnswers": ["rainbow", "a rainbow", "the rainbow"],
+    "hint": "Rain + Bow = Rainbow!",
+    "phoneticSpelling": "R - EY - N - B - OW",
+    "iconSvg": "rainbow",
+    "rewardStars": 2
+  },
+  {
+    "id": "w_butterfly",
+    "category": 1,
+    "difficulty": 2,
+    "prompt": "What colorful insect with gentle wings flutters from flower to flower?",
+    "targetAnswer": "butterfly",
+    "acceptedAnswers": ["butterfly", "a butterfly", "butterflies"],
+    "hint": "It used to be a caterpillar!",
+    "phoneticSpelling": "B - AH - T - ER - F - L - AY",
+    "iconSvg": "butterfly",
+    "rewardStars": 2
+  },
+  {
+    "id": "w_telescope",
+    "category": 1,
+    "difficulty": 3,
+    "prompt": "What science tool allows astronomers to gaze at far away galaxies and planets?",
+    "targetAnswer": "telescope",
+    "acceptedAnswers": ["telescope", "a telescope"],
+    "hint": "Tele- means far away. Scope means to look!",
+    "phoneticSpelling": "T - EH - L - AH - S - K - OW - P",
+    "iconSvg": "telescope",
+    "rewardStars": 3
+  },
+  {
+    "id": "w_adventure",
+    "category": 1,
+    "difficulty": 3,
+    "prompt": "What word means an exciting, daring, and wonderful journey?",
+    "targetAnswer": "adventure",
+    "acceptedAnswers": ["adventure", "an adventure"],
+    "hint": "Like our Voxie Quest journey!",
+    "phoneticSpelling": "AE - D - V - EH - N - CH - ER",
+    "iconSvg": "adventure",
+    "rewardStars": 3
+  }
+]

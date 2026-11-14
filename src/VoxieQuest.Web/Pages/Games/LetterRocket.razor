@@ -1,0 +1,351 @@
+@page "/game/letter-rocket"
+@page "/game/rocket"
+@inherits BaseGameComponent
+
+<div class="game-viewport">
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Space" />
+
+    <!-- Top HUD: Round 1 to 10 Progress Bar & Star Counter -->
+    <div class="storybook-card game-hud-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button class="pill" @onclick="ReturnToMapAsync" type="button">
+                <span>◀ Map</span>
+            </button>
+            <h3 style="margin:0; font-size:1.4rem; color:var(--color-sunny-yellow);">
+                🚀 @GameTitle
+            </h3>
+            <div class="star-badge">
+                <span>⭐</span>
+                <span>@SessionStars</span>
+            </div>
+        </div>
+
+        <!-- 10 Round Indicator Stars -->
+        <div class="round-stepper">
+            @for (int r = 1; r <= TotalRounds; r++)
+            {
+                var isCompleted = r < CurrentRound;
+                var isCurrent = r == CurrentRound;
+                <div class="round-dot @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")" title="Round @r">
+                    @(isCompleted ? "★" : r.ToString())
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ActiveChallenge != null)
+    {
+        <!-- Main Launchpad Stage -->
+        <div class="storybook-card launchpad-stage">
+            <!-- Mascot and Speech Prompt -->
+            <div class="mascot-stage" style="justify-content:center; position:relative; margin-bottom:1rem;">
+                <Mascot State="@MascotState" Width="120" Height="120" />
+                <StarBurst IsActive="@ShowStarBurst" />
+                
+                <div class="speech-bubble" style="max-width:440px;">
+                    <span style="font-size:1.3rem;">@ActiveChallenge.Prompt</span>
+                    <div style="margin-top:0.4rem; display:flex; gap:0.5rem;">
+                        <button class="pill" @onclick="RepeatPromptAloudAsync" type="button" style="font-size:0.85rem;">
+                            <span>🔊 Read Aloud</span>
+                        </button>
+                        @if (AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))
+                        {
+                            <span class="pill" style="background:#FFE5EC; color:var(--color-coral); border-color:var(--color-coral); font-size:0.85rem;">
+                                💡 @ActiveChallenge.Hint
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- SVG Rocket Launch Arena -->
+            <div class="rocket-arena">
+                <!-- SVG Rocket Launchpad -->
+                <div class="rocket-ship-wrapper @(isBlastingOff ? "rocket-launching" : "rocket-docked")">
+                    <svg width="180" height="260" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Exhaust Flames (when launching) -->
+                        <g class="exhaust-flames @(isBlastingOff ? "flames-active" : "flames-idle")">
+                            <path d="M70 200C60 230 75 255 90 260C105 255 120 230 110 200Z" fill="#FFD166"/>
+                            <path d="M78 200C72 220 82 245 90 250C98 245 108 220 102 200Z" fill="#EF476F"/>
+                        </g>
+
+                        <!-- Rocket Fins -->
+                        <path d="M45 175C30 185 20 205 22 215C38 212 55 195 58 185Z" fill="#EF476F" stroke="#2B2D42" stroke-width="4.5" stroke-linejoin="round"/>
+                        <path d="M135 175C150 185 160 205 158 215C142 212 125 195 122 185Z" fill="#EF476F" stroke="#2B2D42" stroke-width="4.5" stroke-linejoin="round"/>
+
+                        <!-- Rocket Main Fuselage -->
+                        <path d="M90 20C65 50 55 110 55 195H125C125 110 115 50 90 20Z" fill="#FFFDF7" stroke="#2B2D42" stroke-width="5" stroke-linejoin="round"/>
+                        
+                        <!-- Rocket Nose Cone -->
+                        <path d="M90 20C80 38 72 65 70 80H110C108 65 100 38 90 20Z" fill="#EF476F" stroke="#2B2D42" stroke-width="5" stroke-linejoin="round"/>
+
+                        <!-- Center Letter Porthole Window -->
+                        <circle cx="90" cy="120" r="32" fill="#4EA8DE" stroke="#2B2D42" stroke-width="5"/>
+                        <circle cx="90" cy="120" r="26" fill="#E7F5FF"/>
+
+                        <!-- Target Letter / Word displayed proudly in the window -->
+                        <text x="90" y="132" font-family="var(--font-heading)" font-size="36" font-weight="700" fill="#2B2D42" text-anchor="middle">
+                            @ActiveChallenge.DisplayItem
+                        </text>
+
+                        <!-- Engine Nozzle -->
+                        <path d="M68 195H112L106 208H74L68 195Z" fill="#2B2D42"/>
+                    </svg>
+                </div>
+
+                <!-- Ground Launchpad Gantry -->
+                <div class="launchpad-base">
+                    <svg width="280" height="40" viewBox="0 0 280 40" fill="none">
+                        <rect x="20" y="10" width="240" height="20" rx="6" fill="#94A3B8" stroke="#2B2D42" stroke-width="4"/>
+                        <line x1="60" y1="10" x2="60" y2="30" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="140" y1="10" x2="140" y2="30" stroke="#2B2D42" stroke-width="3"/>
+                        <line x1="220" y1="10" x2="220" y2="30" stroke="#2B2D42" stroke-width="3"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Speech Feedback Area (Never 'Wrong'!) -->
+            <div style="min-height:48px; margin: 0.5rem 0;">
+                @if (!string.IsNullOrWhiteSpace(LastTranscript))
+                {
+                    <div class="pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)"); font-size:1.15rem;">
+                        @(LastAnswerSuccess ? "🌟 Blast Off! You said: " : "👂 You said: ") "@LastTranscript"
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(AttemptState.FeedbackMessage))
+                {
+                    <div style="color:var(--color-coral); font-family:var(--font-heading); font-weight:700; font-size:1.1rem; margin-top:0.3rem;">
+                        @AttemptState.FeedbackMessage
+                    </div>
+                }
+            </div>
+
+            <!-- Voice Mic Character or Practice Mode Fallback -->
+            @if (VoiceManager.Mode == VoiceMode.PracticeButtons || VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)
+            {
+                <PracticeInputPanel Question="@(new QuestionItem { TargetAnswer = ActiveChallenge.TargetAnswer, Category = GameCategory })" 
+                                    OnAnswerSelected="SubmitManualAnswerAsync" />
+            }
+            else
+            {
+                <div style="margin: 0.5rem 0;">
+                    <MicCharacter VolumeLevel="@CurrentVolume" IsListening="@VoiceManager.IsListening" OnClick="ToggleListeningAsync" />
+                </div>
+            }
+
+            <div style="margin-top:1rem; display:flex; justify-content:center; gap:0.75rem;">
+                <button class="pill" @onclick="SkipRoundAsync" type="button" style="opacity:0.8;">
+                    <span>Next Rocket ➔</span>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Celebratory Confetti & 10-Round Reward Modal -->
+<Confetti IsActive="@IsRewardScreenOpen" />
+<CelebrationModal IsVisible="@IsRewardScreenOpen" 
+                  StarsEarned="@SessionStars" 
+                  OnPlayAgain="StartGameSessionAsync" 
+                  OnReturnHome="ReturnToMapAsync" />
+
+<style>
+    .game-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        max-width: 760px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .game-hud-card {
+        padding: 0.85rem 1.4rem;
+        background: rgba(255, 253, 247, 0.95);
+    }
+
+    .round-stepper {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+    }
+
+    .round-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2.5px solid var(--color-storybook-ink);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--color-storybook-ink);
+    }
+
+    .round-dot.completed {
+        background: var(--color-mint);
+        color: var(--color-storybook-ink);
+    }
+
+    .round-dot.current {
+        background: var(--color-sunny-yellow);
+        transform: scale(1.15);
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+    }
+
+    .launchpad-stage {
+        text-align: center;
+        background: var(--color-cream-paper);
+        overflow: hidden;
+    }
+
+    .rocket-arena {
+        position: relative;
+        height: 270px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .rocket-ship-wrapper {
+        position: absolute;
+        bottom: 25px;
+        transition: transform 0.2s ease;
+    }
+
+    .rocket-docked {
+        animation: rocket-idle-hover 2.5s ease-in-out infinite alternate;
+    }
+
+    .rocket-launching {
+        animation: rocket-blastoff 1.8s var(--spring-bounce) forwards;
+    }
+
+    .flames-idle {
+        opacity: 0;
+    }
+
+    .flames-active {
+        opacity: 1;
+        animation: flames-flicker 0.15s ease-in-out infinite alternate;
+    }
+
+    @@keyframes rocket-idle-hover {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-6px); }
+    }
+
+    @@keyframes flames-flicker {
+        0% { transform: scaleY(0.85) scaleX(0.95); }
+        100% { transform: scaleY(1.2) scaleX(1.05); }
+    }
+
+    @@keyframes rocket-blastoff {
+        0% { transform: translateY(0) scale(1); }
+        25% { transform: translateY(4px) scale(0.98); }
+        45% { transform: translateY(-40px) scale(1.05); }
+        100% { transform: translateY(-380px) scale(0.6); opacity: 0; }
+    }
+</style>
+
+@code {
+    protected override SkillCategory GameCategory => SkillCategory.Letters;
+    protected override string GameTitle => "Letter Rocket";
+
+    private bool isBlastingOff = false;
+
+    private static readonly (string Letter, string Sound, string Word)[] EasyLetters = new[]
+    {
+        ("A", "AA", "apple"), ("B", "B", "ball"), ("M", "M", "moon"),
+        ("S", "S", "sun"), ("T", "T", "tree"), ("R", "R", "rocket"),
+        ("D", "D", "dog"), ("P", "P", "star"), ("F", "F", "frog"), ("C", "K", "cat")
+    };
+
+    private static readonly (string Blend, string Sound, string Clue)[] MediumBlends = new[]
+    {
+        ("SH", "SH", "ship"), ("CH", "CH", "chime"), ("TH", "TH", "three"),
+        ("OO", "UW", "moon"), ("EE", "IY", "tree"), ("ST", "ST", "star"),
+        ("BL", "BL", "blue"), ("FL", "FL", "fly"), ("SP", "SP", "space"), ("CL", "CL", "cloud")
+    };
+
+    private static readonly (string Word, string Rhyme, string Clue)[] HardWords = new[]
+    {
+        ("STAR", "car", "Twinkles at night"), ("MOON", "spoon", "Orbits our Earth"),
+        ("SUN", "run", "Shines golden and bright"), ("ROCKET", "pocket", "Shoots to space"),
+        ("CAT", "bat", "Fluffy pet"), ("FROG", "log", "Green hopper"),
+        ("SHIP", "trip", "Sails on water"), ("GLOW", "blow", "Full of bright light"),
+        ("PLAY", "day", "Have lots of fun"), ("ZOOM", "boom", "Flying super fast")
+    };
+
+    protected override Task<GameChallenge> GenerateChallengeAsync(int round, DifficultyLevel difficulty)
+    {
+        var index = (round - 1) % 10;
+        GameChallenge challenge;
+
+        if (difficulty == DifficultyLevel.Hard)
+        {
+            var item = HardWords[index];
+            challenge = new GameChallenge
+            {
+                Id = $"rocket_h_{index}",
+                Category = SkillCategory.Phonics,
+                Difficulty = DifficultyLevel.Hard,
+                Prompt = $"Say the word {item.Word}! Rhymes with {item.Rhyme}!",
+                TargetAnswer = item.Word.ToLowerInvariant(),
+                AcceptedAnswers = new() { item.Word.ToLowerInvariant(), $"letter {item.Word.ToLowerInvariant()}" },
+                DisplayItem = item.Word,
+                Hint = item.Clue,
+                RewardStars = 2
+            };
+        }
+        else if (difficulty == DifficultyLevel.Medium)
+        {
+            var item = MediumBlends[index];
+            challenge = new GameChallenge
+            {
+                Id = $"rocket_m_{index}",
+                Category = SkillCategory.Phonics,
+                Difficulty = DifficultyLevel.Medium,
+                Prompt = $"Speak the sound: {item.Blend}! Like in {item.Clue}!",
+                TargetAnswer = item.Blend.ToLowerInvariant(),
+                AcceptedAnswers = new() { item.Blend.ToLowerInvariant(), item.Clue },
+                DisplayItem = item.Blend,
+                Hint = $"Starts with {item.Blend} as in {item.Clue}!",
+                RewardStars = 2
+            };
+        }
+        else
+        {
+            var item = EasyLetters[index];
+            challenge = new GameChallenge
+            {
+                Id = $"rocket_e_{index}",
+                Category = SkillCategory.Phonics,
+                Difficulty = DifficultyLevel.Easy,
+                Prompt = $"Say the letter: {item.Letter}! {item.Letter} is for {item.Word}!",
+                TargetAnswer = item.Letter.ToLowerInvariant(),
+                AcceptedAnswers = new() { item.Letter.ToLowerInvariant(), item.Word, $"letter {item.Letter.ToLowerInvariant()}" },
+                DisplayItem = item.Letter,
+                Hint = $"{item.Letter} as in {item.Word}!",
+                RewardStars = 1
+            };
+        }
+
+        return Task.FromResult(challenge);
+    }
+
+    protected override async Task OnChallengeSolvedAsync(GameChallenge challenge)
+    {
+        // Ignite engine & trigger launch animation
+        isBlastingOff = true;
+        StateHasChanged();
+
+        await Task.Delay(1600);
+        isBlastingOff = false;
+    }
+}

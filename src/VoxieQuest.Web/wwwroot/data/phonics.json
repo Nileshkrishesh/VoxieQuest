@@ -1,0 +1,86 @@
+[
+  {
+    "id": "p_cat",
+    "category": 0,
+    "difficulty": 1,
+    "prompt": "What fluffy pet says meow and rhymes with BAT?",
+    "targetAnswer": "cat",
+    "acceptedAnswers": ["cat", "kitty", "a cat", "the cat"],
+    "hint": "It starts with C: C - A - T!",
+    "phoneticSpelling": "K - AA - T",
+    "iconSvg": "cat",
+    "rewardStars": 1
+  },
+  {
+    "id": "p_dog",
+    "category": 0,
+    "difficulty": 1,
+    "prompt": "What pet wags its tail and rhymes with FROG?",
+    "targetAnswer": "dog",
+    "acceptedAnswers": ["dog", "puppy", "a dog", "the dog"],
+    "hint": "It starts with D: D - O - G!",
+    "phoneticSpelling": "D - AW - G",
+    "iconSvg": "dog",
+    "rewardStars": 1
+  },
+  {
+    "id": "p_sun",
+    "category": 0,
+    "difficulty": 1,
+    "prompt": "What shines brightly in the sky and rhymes with RUN?",
+    "targetAnswer": "sun",
+    "acceptedAnswers": ["sun", "the sun", "sunny"],
+    "hint": "S - U - N shines high!",
+    "phoneticSpelling": "S - AH - N",
+    "iconSvg": "sun",
+    "rewardStars": 1
+  },
+  {
+    "id": "p_frog",
+    "category": 0,
+    "difficulty": 2,
+    "prompt": "What green animal says 'ribbit' and rhymes with LOG?",
+    "targetAnswer": "frog",
+    "acceptedAnswers": ["frog", "toad", "a frog", "the frog"],
+    "hint": "F - R - O - G hops on water lilies!",
+    "phoneticSpelling": "F - R - AA - G",
+    "iconSvg": "frog",
+    "rewardStars": 2
+  },
+  {
+    "id": "p_star",
+    "category": 0,
+    "difficulty": 2,
+    "prompt": "What twinkles at night and rhymes with CAR?",
+    "targetAnswer": "star",
+    "acceptedAnswers": ["star", "a star", "the star", "stars"],
+    "hint": "S - T - A - R twinkles bright!",
+    "phoneticSpelling": "S - T - AA - R",
+    "iconSvg": "star",
+    "rewardStars": 2
+  },
+  {
+    "id": "p_splash",
+    "category": 0,
+    "difficulty": 3,
+    "prompt": "What sound does jumping in puddles make? Rhymes with FLASH!",
+    "targetAnswer": "splash",
+    "acceptedAnswers": ["splash", "splashing", "a splash"],
+    "hint": "S - P - L - A - S - H!",
+    "phoneticSpelling": "S - P - L - AE - SH",
+    "iconSvg": "water",
+    "rewardStars": 3
+  },
+  {
+    "id": "p_bright",
+    "category": 0,
+    "difficulty": 3,
+    "prompt": "What word means full of light and rhymes with NIGHT?",
+    "targetAnswer": "bright",
+    "acceptedAnswers": ["bright", "shine bright"],
+    "hint": "B - R - I - G - H - T!",
+    "phoneticSpelling": "B - R - AY - T",
+    "iconSvg": "sparkle",
+    "rewardStars": 3
+  }
+]

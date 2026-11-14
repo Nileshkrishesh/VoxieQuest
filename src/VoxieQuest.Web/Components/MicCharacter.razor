@@ -1,0 +1,129 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="mic-character-root" @onclick="HandleClick" style="display:inline-flex; flex-direction:column; align-items:center; cursor:pointer;">
+    <div class="mic-character-body" 
+         style="transform: scale(@(1.0f + (VolumeLevel * 0.38f))) rotate(@(GetWobbleDegrees())deg); transition: transform 0.05s ease-out;">
+        <svg width="@Size" height="@Size" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="micBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="@GetCapsuleTopColor()" />
+                    <stop offset="100%" stop-color="@GetCapsuleBottomColor()" />
+                </linearGradient>
+
+                <linearGradient id="metalGrilleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#E2E8F0" />
+                    <stop offset="100%" stop-color="#CBD5E1" />
+                </linearGradient>
+            </defs>
+
+            <!-- Sound Wave Rings when child speaks -->
+            @if (VolumeLevel > 0.08f)
+            {
+                <circle cx="80" cy="65" r="@(52 + (VolumeLevel * 25))" stroke="#06D6A0" stroke-width="4.5" stroke-dasharray="8 8" opacity="@(0.4f + (VolumeLevel * 0.6f))"/>
+            }
+            @if (VolumeLevel > 0.30f)
+            {
+                <circle cx="80" cy="65" r="@(66 + (VolumeLevel * 28))" stroke="#FFD166" stroke-width="3.5" opacity="0.6"/>
+            }
+
+            <!-- Metal Stand and Heavy Horseshoe Arc -->
+            <path d="M50 145H110" stroke="#2B2D42" stroke-width="7" stroke-linecap="round"/>
+            <path d="M80 120V145" stroke="#2B2D42" stroke-width="7" stroke-linecap="round"/>
+            <path d="M42 70C42 95 56 118 80 118C104 118 118 95 118 70" stroke="#2B2D42" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+
+            <!-- Main Microphone Capsule -->
+            <rect x="52" y="24" width="56" height="74" rx="28" fill="url(#micBodyGrad)" stroke="#2B2D42" stroke-width="5.5"/>
+
+            <!-- Metallic Top Grille Mesh -->
+            <rect x="54" y="26" width="52" height="34" rx="26" fill="url(#metalGrilleGrad)" opacity="0.45"/>
+            <line x1="62" y1="40" x2="98" y2="40" stroke="#2B2D42" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+            <line x1="60" y1="48" x2="100" y2="48" stroke="#2B2D42" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+            <line x1="64" y1="56" x2="96" y2="56" stroke="#2B2D42" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+            <!-- Cute Googly Eyes -->
+            <circle cx="68" cy="72" r="7.5" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2.5"/>
+            <circle cx="@(70 + (VolumeLevel * 2))" cy="@(71 - (VolumeLevel * 3))" r="3.8" fill="#2B2D42"/>
+            <circle cx="@(72 + (VolumeLevel * 2))" cy="@(69 - (VolumeLevel * 3))" r="1.5" fill="#FFFDF7"/>
+
+            <circle cx="92" cy="72" r="7.5" fill="#FFFDF7" stroke="#2B2D42" stroke-width="2.5"/>
+            <circle cx="@(94 + (VolumeLevel * 2))" cy="@(71 - (VolumeLevel * 3))" r="3.8" fill="#2B2D42"/>
+            <circle cx="@(96 + (VolumeLevel * 2))" cy="@(69 - (VolumeLevel * 3))" r="1.5" fill="#FFFDF7"/>
+
+            <!-- Rosy Cheeks -->
+            <ellipse cx="60" cy="80" rx="4.5" ry="3" fill="#EF476F" opacity="0.7"/>
+            <ellipse cx="100" cy="80" rx="4.5" ry="3" fill="#EF476F" opacity="0.7"/>
+
+            <!-- Expressive Mouth (Morphs with Volume) -->
+            @if (VolumeLevel > 0.40f)
+            {
+                <!-- Wide Open Singing Mouth -->
+                <ellipse cx="80" cy="84" rx="7" ry="9" fill="#EF476F" stroke="#2B2D42" stroke-width="2.5"/>
+                <ellipse cx="80" cy="88" rx="4" ry="3.5" fill="#FFFDF7"/>
+            }
+            else if (VolumeLevel > 0.12f)
+            {
+                <!-- Open Speaking "O" Mouth -->
+                <ellipse cx="80" cy="83" rx="5" ry="6" fill="#2B2D42"/>
+            }
+            else
+            {
+                <!-- Gentle Happy Smile -->
+                <path d="M74 81C77 86 83 86 86 81" stroke="#2B2D42" stroke-width="3.5" stroke-linecap="round"/>
+            }
+        </svg>
+    </div>
+
+    @if (ShowVolumeBar)
+    {
+        <!-- Live Color-Shift Sound Meter Capsule -->
+        <div style="width:130px; height:10px; background:#E2E8F0; border:2.5px solid #2B2D42; border-radius:999px; overflow:hidden; margin-top:0.4rem;">
+            <div style="height:100%; width:@(Math.Min(100, (int)(VolumeLevel * 100)))%; background:linear-gradient(90deg, #06D6A0 0%, #FFD166 60%, #EF476F 100%); transition:width 0.05s linear;"></div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public float VolumeLevel { get; set; } = 0.0f;
+
+    [Parameter]
+    public bool IsListening { get; set; } = false;
+
+    [Parameter]
+    public int Size { get; set; } = 140;
+
+    [Parameter]
+    public bool ShowVolumeBar { get; set; } = true;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private float GetWobbleDegrees()
+    {
+        if (VolumeLevel < 0.05f) return 0.0f;
+        var wobblePhase = (float)Math.Sin(Environment.TickCount / 70.0);
+        return wobblePhase * (VolumeLevel * 18.0f);
+    }
+
+    private string GetCapsuleTopColor()
+    {
+        if (VolumeLevel > 0.25f) return "#FFD166"; // Glow sunny yellow when receiving voice
+        if (IsListening) return "#06D6A0";        // Mint green when listening
+        return "#4EA8DE";                         // Sky blue when idle
+    }
+
+    private string GetCapsuleBottomColor()
+    {
+        if (VolumeLevel > 0.25f) return "#F78C6B";
+        if (IsListening) return "#05B284";
+        return "#118AB2";
+    }
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}

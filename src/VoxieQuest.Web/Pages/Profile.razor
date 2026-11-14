@@ -1,0 +1,201 @@
+@page "/profile"
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+
+<div style="display:flex; flex-direction:column; gap:1.5rem;">
+    <!-- Profile Page Header -->
+    <div class="storybook-card" style="background:var(--color-sunny-yellow); text-align:center;">
+        <h2 style="font-size:2rem; margin-bottom:0.25rem;">👤 Adventurer Profiles</h2>
+        <p style="font-size:1.1rem; font-weight:700; margin:0;">
+            Choose who is playing or create a new profile! (Up to 4 adventurers)
+        </p>
+    </div>
+
+    <!-- 4 Profile Slots Grid -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+        @foreach (var profile in ProgressService.Profiles)
+        {
+            var isActive = profile.Id == ProgressService.ActiveProfile?.Id;
+            <div class="storybook-card card-hover" 
+                 style="text-align:center; cursor:pointer; border-color:@(isActive ? "var(--color-mint)" : "var(--color-storybook-ink)"); background:@(isActive ? "#E8FBF4" : "var(--color-cream-paper)");"
+                 @onclick="() => SelectProfile(profile.Id)">
+                <div style="font-size:3.5rem; margin-bottom:0.5rem;">
+                    @GetAvatarEmoji(profile.Avatar)
+                </div>
+                <h3 style="font-size:1.3rem; margin-bottom:0.25rem;">@profile.Name</h3>
+                <div style="font-weight:700; color:var(--color-coral); margin-bottom:0.5rem;">
+                    Age @profile.Age • ⭐ @profile.TotalStars Stars
+                </div>
+                <div style="font-size:0.9rem; color:var(--color-storybook-ink); opacity:0.8; margin-bottom:0.75rem;">
+                    ⏱️ Played: @profile.FormattedPlayTime
+                </div>
+
+                @if (isActive)
+                {
+                    <span class="pill" style="background:var(--color-mint); color:var(--color-storybook-ink); border-color:var(--color-storybook-ink);">
+                        ✓ Playing Now!
+                    </span>
+                }
+                else
+                {
+                    <span class="pill" style="background:white;">
+                        Tap to Switch
+                    </span>
+                }
+            </div>
+        }
+
+        <!-- Add Profile Slot (if < 4) -->
+        @if (ProgressService.Profiles.Count < 4)
+        {
+            <div class="storybook-card" 
+                 style="border-style:dashed; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; min-height:220px;"
+                 @onclick="ToggleNewProfileForm">
+                <div style="font-size:3rem; color:var(--color-sky-blue);">➕</div>
+                <h3 style="font-size:1.2rem; color:var(--color-sky-blue);">Add Adventurer</h3>
+                <p style="font-size:0.9rem; margin:0;">@(4 - ProgressService.Profiles.Count) slots remaining</p>
+            </div>
+        }
+    </div>
+
+    <!-- Create Profile Card (Visible when toggled) -->
+    @if (showNewForm && ProgressService.Profiles.Count < 4)
+    {
+        <div class="storybook-card" style="background:#FFF3B0;">
+            <h3 style="font-size:1.4rem; margin-bottom:1rem;">🌟 Create New Adventurer</h3>
+            <div style="display:flex; flex-direction:column; gap:1rem; max-width:440px;">
+                <div>
+                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Child's Name:</label>
+                    <input type="text" class="storybook-card" style="width:100%; padding:0.6rem 1rem; font-size:1.1rem; border-width:3px;" @bind="newName" placeholder="e.g. Leo, Maya, Sam" />
+                </div>
+
+                <div>
+                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Choose Companion Avatar:</label>
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                        @foreach (var avatar in Enum.GetValues<AvatarType>())
+                        {
+                            <button type="button" 
+                                    class="pill" 
+                                    style="font-size:1.2rem; background:@(newAvatar == avatar ? "var(--color-mint)" : "white");"
+                                    @onclick="() => newAvatar = avatar">
+                                <span>@GetAvatarEmoji(avatar)</span>
+                                <span style="font-size:0.9rem;">@avatar.ToString().Replace("Chameleon","").Replace("Lion","").Replace("Penguin","").Replace("Monkey","")</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Age: @newAge years old</label>
+                    <input type="range" min="5" max="10" step="1" @bind="newAge" style="width:100%;" />
+                </div>
+
+                <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+                    <button class="btn-story btn-story-mint" type="button" @onclick="CreateProfile">
+                        <span>Save Adventurer ✨</span>
+                    </button>
+                    <button class="btn-story btn-story-coral" type="button" @onclick="ToggleNewProfileForm">
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Active Profile Badges Showcase -->
+    @if (ProgressService.ActiveProfile != null)
+    {
+        <div class="storybook-card">
+            <h3 style="font-size:1.4rem; margin-bottom:1rem;">
+                🏆 @ProgressService.ActiveProfile.Name's Badges (@ProgressService.ActiveProfile.Badges.Count unlocked)
+            </h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:1rem;">
+                <div class="badge-item">
+                    <span class="badge-icon">🌟</span>
+                    <span>First Step</span>
+                </div>
+                @if (ProgressService.ActiveProfile.Badges.Contains("star_collector_10"))
+                {
+                    <div class="badge-item" style="background:#FFF3B0;">
+                        <span class="badge-icon">⭐</span>
+                        <span>10 Stars</span>
+                    </div>
+                }
+                @if (ProgressService.ActiveProfile.Badges.Contains("star_champion_50"))
+                {
+                    <div class="badge-item" style="background:#FFF3B0;">
+                        <span class="badge-icon">👑</span>
+                        <span>50 Stars</span>
+                    </div>
+                }
+                @if (ProgressService.ActiveProfile.Badges.Contains("phonics_star"))
+                {
+                    <div class="badge-item" style="background:#D8F3DC;">
+                        <span class="badge-icon">🏝️</span>
+                        <span>Phonics Star</span>
+                    </div>
+                }
+                @if (ProgressService.ActiveProfile.Badges.Contains("word_wizard"))
+                {
+                    <div class="badge-item" style="background:#E0AAFF;">
+                        <span class="badge-icon">🌲</span>
+                        <span>Word Wizard</span>
+                    </div>
+                }
+                @if (ProgressService.ActiveProfile.Badges.Contains("number_ninja"))
+                {
+                    <div class="badge-item" style="background:#CAF0F8;">
+                        <span class="badge-icon">🔢</span>
+                        <span>Number Whiz</span>
+                    </div>
+                }
+                @if (ProgressService.ActiveProfile.Badges.Contains("story_teller"))
+                {
+                    <div class="badge-item" style="background:#FFD6A5;">
+                        <span class="badge-icon">🏰</span>
+                        <span>Story Teller</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool showNewForm = false;
+    private string newName = "";
+    private AvatarType newAvatar = AvatarType.VoxieChameleon;
+    private int newAge = 6;
+
+    private void ToggleNewProfileForm()
+    {
+        showNewForm = !showNewForm;
+    }
+
+    private async Task SelectProfile(string profileId)
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        await ProgressService.SelectProfileAsync(profileId);
+    }
+
+    private async Task CreateProfile()
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            newName = "Adventurer " + (ProgressService.Profiles.Count + 1);
+        }
+
+        await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        await ProgressService.CreateProfileAsync(newName, newAvatar, newAge);
+        newName = "";
+        showNewForm = false;
+    }
+
+    private static string GetAvatarEmoji(AvatarType avatar) => avatar switch
+    {
+        AvatarType.LeoLion => "🦁",
+        AvatarType.PipPenguin => "🐧",
+        AvatarType.MiaMonkey => "🐵",
+        _ => "🦎"
+    };
+}

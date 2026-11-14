@@ -1,0 +1,113 @@
+@namespace VoxieQuest.Web.Components
+
+<div class="storybook-card" style="background:#FFFDF7; text-align:center; padding:1.25rem; margin-top:1rem;">
+    <div style="font-family:var(--font-heading); font-weight:700; color:var(--color-sky-blue); font-size:1.1rem; margin-bottom:0.75rem;">
+        🎮 Practice Mode: Tap your answer or type below!
+    </div>
+
+    <!-- Big Visual Choice Cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.75rem; margin-bottom:1rem;">
+        @foreach (var choice in choices)
+        {
+            <button class="btn-story btn-story-yellow" 
+                    style="font-size:1.2rem; padding:0.9rem; text-transform:capitalize;"
+                    @onclick="() => ChooseAnswer(choice)" 
+                    type="button">
+                <span>@choice</span>
+            </button>
+        }
+    </div>
+
+    <!-- Keyboard Input Box -->
+    <div style="display:flex; justify-content:center; gap:0.5rem; max-width:400px; margin:0 auto;">
+        <input type="text" 
+               class="storybook-card" 
+               style="flex:1; padding:0.6rem 1rem; font-size:1.15rem; border-width:3px; text-align:center;" 
+               placeholder="Or type answer here..." 
+               @bind="keyboardInput" 
+               @bind:event="oninput" 
+               @onkeydown="HandleKeyDown" />
+        <button class="btn-story btn-story-mint" 
+                style="padding:0.6rem 1.2rem; font-size:1.1rem;" 
+                @onclick="SubmitKeyboardAnswer" 
+                type="button">
+            <span>OK ✓</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public QuestionItem? Question { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAnswerSelected { get; set; }
+
+    private List<string> choices = new();
+    private string keyboardInput = "";
+
+    protected override void OnParametersSet()
+    {
+        GenerateChoices();
+    }
+
+    private void GenerateChoices()
+    {
+        if (Question == null || string.IsNullOrWhiteSpace(Question.TargetAnswer)) return;
+
+        var pool = GetDistractorPool(Question.Category);
+        var random = new Random();
+
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            Question.TargetAnswer
+        };
+
+        // Add 2 or 3 distractors
+        foreach (var item in pool.OrderBy(_ => random.Next()))
+        {
+            if (set.Count >= 3) break;
+            if (!set.Contains(item)) set.Add(item);
+        }
+
+        choices = set.OrderBy(_ => random.Next()).ToList();
+    }
+
+    private static List<string> GetDistractorPool(SkillCategory cat) => cat switch
+    {
+        SkillCategory.Phonics => new() { "bat", "hat", "rat", "sun", "log", "frog", "car", "star" },
+        SkillCategory.Vocabulary => new() { "banana", "orange", "flower", "leaf", "bird", "apple", "tree" },
+        SkillCategory.Numbers => new() { "two", "three", "four", "five", "six", "seven", "eight", "ten" },
+        SkillCategory.Storytelling => new() { "open", "wait", "cross", "swim", "lantern", "compass", "help" },
+        _ => new() { "cat", "dog", "sun", "star" }
+    };
+
+    private async Task ChooseAnswer(string ans)
+    {
+        if (OnAnswerSelected.HasDelegate)
+        {
+            await OnAnswerSelected.InvokeAsync(ans);
+        }
+    }
+
+    private async Task SubmitKeyboardAnswer()
+    {
+        if (!string.IsNullOrWhiteSpace(keyboardInput))
+        {
+            var text = keyboardInput;
+            keyboardInput = "";
+            if (OnAnswerSelected.HasDelegate)
+            {
+                await OnAnswerSelected.InvokeAsync(text);
+            }
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SubmitKeyboardAnswer();
+        }
+    }
+}

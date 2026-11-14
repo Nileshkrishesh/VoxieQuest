@@ -1,0 +1,313 @@
+@inject IAudioService AudioService
+
+@if (IsVisible)
+{
+    <div class="parent-gate-overlay">
+        <div class="storybook-card gate-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:2rem;">🔒</span>
+                    <h3 style="margin:0; font-size:1.4rem; color:var(--color-storybook-ink);">@Title</h3>
+                </div>
+                <button class="pill" type="button" @onclick="HandleCancel">✕</button>
+            </div>
+
+            <!-- Tab Switcher: Hold 3 Seconds vs Math Question -->
+            <div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1.25rem;">
+                <button class="pill @(activeTab == GateTab.Hold ? "active-tab" : "")" 
+                        type="button" 
+                        @onclick="() => activeTab = GateTab.Hold">
+                    <span>⏱️ Hold 3 Seconds</span>
+                </button>
+                <button class="pill @(activeTab == GateTab.Math ? "active-tab" : "")" 
+                        type="button" 
+                        @onclick="() => activeTab = GateTab.Math">
+                    <span>➕ Math Question</span>
+                </button>
+            </div>
+
+            @if (activeTab == GateTab.Hold)
+            {
+                <!-- Hold for 3 Seconds Mode -->
+                <div class="hold-zone">
+                    <p style="font-size:1rem; font-weight:700; color:#4B5563; margin-bottom:1rem;">
+                        Press and hold the golden button below for <strong>3 seconds</strong> to unlock:
+                    </p>
+
+                    <div class="hold-button-container"
+                         @onmousedown="StartHolding" 
+                         @onmouseup="StopHolding" 
+                         @onmouseleave="StopHolding"
+                         @ontouchstart="StartHolding" 
+                         @ontouchend="StopHolding">
+
+                        <!-- Circular SVG Progress Meter -->
+                        <svg width="140" height="140" viewBox="0 0 140 140" class="hold-progress-svg">
+                            <circle cx="70" cy="70" r="58" stroke="#E2E8F0" stroke-width="8" fill="none" />
+                            <circle cx="70" cy="70" r="58" 
+                                    stroke="var(--color-mint)" 
+                                    stroke-width="8" 
+                                    fill="none" 
+                                    stroke-dasharray="364.4" 
+                                    stroke-dashoffset="@(364.4 - (364.4 * (_holdProgress / 100.0)))" 
+                                    stroke-linecap="round"
+                                    transform="rotate(-90 70 70)" />
+                        </svg>
+
+                        <!-- Central Button -->
+                        <div class="hold-central-btn @(isHolding ? "holding-down" : "")">
+                            <span style="font-size:2.2rem;">🔓</span>
+                            <span style="font-size:0.85rem; font-weight:800;">
+                                @(isHolding ? $"{Math.Max(1, 3 - (int)(_holdProgress / 33.3))}s" : "HOLD")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Math Challenge Mode (Grown-Ups only) -->
+                <div class="math-zone">
+                    <p style="font-size:1rem; font-weight:700; color:#4B5563; margin-bottom:0.75rem;">
+                        Solve the grown-ups arithmetic question:
+                    </p>
+
+                    <div class="math-problem-box">
+                        <span style="font-family:var(--font-heading); font-size:1.8rem; font-weight:800; color:var(--color-storybook-ink);">
+                            @mathNum1 @mathOperator @mathNum2 = ?
+                        </span>
+                    </div>
+
+                    <div style="display:flex; gap:0.5rem; justify-content:center; margin:1rem 0;">
+                        <input type="number" 
+                               class="storybook-card math-input" 
+                               placeholder="Answer"
+                               @bind="userMathAnswer" 
+                               @onkeydown="HandleKeyDown" />
+                        <button class="btn-story btn-story-mint" type="button" @onclick="VerifyMathAnswer">
+                            <span>Check ➔</span>
+                        </button>
+                    </div>
+
+                    @if (hasMathError)
+                    {
+                        <div style="color:var(--color-coral); font-weight:700; font-size:0.95rem;">
+                            Incorrect answer. Please try again!
+                        </div>
+                    }
+                </div>
+            }
+
+            <div style="margin-top:1.25rem; font-size:0.85rem; color:#6B7280; font-style:italic;">
+                🛡️ This barrier ensures children stay in safe game realms.
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .parent-gate-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 45, 66, 0.75);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .gate-card {
+        background: #FFFDF7;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+        padding: 1.75rem;
+        border: 4px solid var(--color-storybook-ink);
+        box-shadow: 0 10px 0 var(--color-storybook-ink);
+    }
+
+    .active-tab {
+        background: var(--color-sunny-yellow) !important;
+        transform: scale(1.05);
+    }
+
+    /* Hold Zone */
+    .hold-button-container {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .hold-progress-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .hold-central-btn {
+        position: absolute;
+        inset: 12px;
+        border-radius: 50%;
+        background: #FFD166;
+        border: 3.5px solid var(--color-storybook-ink);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+        transition: transform 0.1s ease;
+    }
+
+    .hold-central-btn.holding-down {
+        transform: scale(0.94);
+        background: #06D6A0;
+    }
+
+    /* Math Zone */
+    .math-problem-box {
+        background: #F1F5F9;
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: 16px;
+        padding: 0.75rem 1.5rem;
+        display: inline-block;
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+    }
+
+    .math-input {
+        width: 120px;
+        font-size: 1.4rem;
+        font-weight: 800;
+        text-align: center;
+        padding: 0.4rem;
+    }
+</style>
+
+@code {
+    private enum GateTab { Hold, Math }
+    private GateTab activeTab = GateTab.Hold;
+
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Grown-Ups Verification";
+    [Parameter] public EventCallback<bool> OnVerified { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private bool isHolding = false;
+    private double _holdProgress = 0.0;
+    private System.Threading.Timer? _holdTimer;
+
+    private int mathNum1 = 14;
+    private int mathNum2 = 18;
+    private string mathOperator = "+";
+    private int expectedAnswer = 32;
+    private int? userMathAnswer;
+    private bool hasMathError = false;
+
+    protected override void OnInitialized()
+    {
+        GenerateMathChallenge();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            _holdProgress = 0.0;
+            isHolding = false;
+            hasMathError = false;
+            userMathAnswer = null;
+            GenerateMathChallenge();
+        }
+    }
+
+    private void GenerateMathChallenge()
+    {
+        var rand = new Random();
+        if (rand.Next(2) == 0)
+        {
+            // Addition: two double digits (e.g. 17 + 28)
+            mathNum1 = rand.Next(12, 35);
+            mathNum2 = rand.Next(11, 35);
+            mathOperator = "+";
+            expectedAnswer = mathNum1 + mathNum2;
+        }
+        else
+        {
+            // Multiplication: e.g. 7 x 8
+            mathNum1 = rand.Next(6, 10);
+            mathNum2 = rand.Next(6, 10);
+            mathOperator = "×";
+            expectedAnswer = mathNum1 * mathNum2;
+        }
+    }
+
+    private void StartHolding()
+    {
+        isHolding = true;
+        _holdProgress = 0.0;
+
+        _holdTimer?.Dispose();
+        _holdTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(async () =>
+            {
+                if (!isHolding) return;
+                _holdProgress += 3.33; // 100% in ~30 ticks (approx 3.0s with 100ms interval)
+
+                if (_holdProgress >= 100.0)
+                {
+                    _holdProgress = 100.0;
+                    StopHolding();
+                    await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+                    await OnVerified.InvokeAsync(true);
+                }
+                StateHasChanged();
+            });
+        }, null, 0, 100);
+    }
+
+    private void StopHolding()
+    {
+        isHolding = false;
+        _holdTimer?.Dispose();
+        _holdTimer = null;
+        if (_holdProgress < 100.0)
+        {
+            _holdProgress = 0.0;
+        }
+        StateHasChanged();
+    }
+
+    private async Task VerifyMathAnswer()
+    {
+        if (userMathAnswer == expectedAnswer)
+        {
+            hasMathError = false;
+            await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+            await OnVerified.InvokeAsync(true);
+        }
+        else
+        {
+            hasMathError = true;
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await VerifyMathAnswer();
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        StopHolding();
+        await OnCancel.InvokeAsync();
+    }
+}

@@ -1,0 +1,264 @@
+@page "/games"
+@page "/game-select"
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+
+<div class="games-select-container">
+    <!-- Header Card -->
+    <div class="storybook-card games-header-banner">
+        <div style="font-size:3.5rem; animation: gentle-float 2.5s infinite ease-in-out;">🗺️ ✨</div>
+        <h1 class="games-header-title">Choose Your Quest!</h1>
+        <p class="games-header-subtitle">
+            Which magical voice game do you want to play, <strong>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</strong>?
+        </p>
+    </div>
+
+    <!-- 5 Featured Voice Games - Big Touch-Friendly Cards -->
+    <div class="quest-games-list">
+        <!-- 1. Letter Rocket -->
+        <div class="quest-card quest-card-rocket" @onclick='() => LaunchGame("game/letter-rocket")'>
+            <div class="quest-left-icon">🚀</div>
+            <div class="quest-info">
+                <div class="quest-badge-row">
+                    <span class="quest-pill pill-space">✨ Letters &amp; Phonics</span>
+                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+                </div>
+                <h2 class="quest-title">Letter Rocket</h2>
+                <p class="quest-desc">Look at the letter and say it aloud! Watch your rocket blast into outer space with fiery smoke and glowing stars!</p>
+            </div>
+            <div class="quest-action">
+                <button class="btn-story btn-story-blue quest-play-btn" type="button">
+                    <span>Blast Off! ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Number Jump -->
+        <div class="quest-card quest-card-frog" @onclick='() => LaunchGame("game/number-jump")'>
+            <div class="quest-left-icon">🐸</div>
+            <div class="quest-info">
+                <div class="quest-badge-row">
+                    <span class="quest-pill pill-pond">🌊 Counting &amp; Math</span>
+                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+                </div>
+                <h2 class="quest-title">Number Jump</h2>
+                <p class="quest-desc">Solve the simple sum and shout the number! Help the friendly green froggy hop across water lilies without splashing in!</p>
+            </div>
+            <div class="quest-action">
+                <button class="btn-story btn-story-mint quest-play-btn" type="button">
+                    <span>Hop Along! ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Color Splash -->
+        <div class="quest-card quest-card-paint" @onclick='() => LaunchGame("game/color-splash")'>
+            <div class="quest-left-icon">🎨</div>
+            <div class="quest-info">
+                <div class="quest-badge-row">
+                    <span class="quest-pill pill-paint">🌈 Rainbow Colors</span>
+                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+                </div>
+                <h2 class="quest-title">Color Splash</h2>
+                <p class="quest-desc">Say the color name loud and clear! Splash big buckets of vibrant paint onto black-and-white drawings to bring them alive!</p>
+            </div>
+            <div class="quest-action">
+                <button class="btn-story btn-story-yellow quest-play-btn" type="button">
+                    <span>Splash! ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. Animal Safari -->
+        <div class="quest-card quest-card-safari" @onclick='() => LaunchGame("game/animal-safari")'>
+            <div class="quest-left-icon">🦁</div>
+            <div class="quest-info">
+                <div class="quest-badge-row">
+                    <span class="quest-pill pill-safari">🐾 Animals &amp; Sounds</span>
+                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+                </div>
+                <h2 class="quest-title">Animal Safari</h2>
+                <p class="quest-desc">Listen to real animal calls! Roar or say the animal's name to invite lions, elephants, and monkeys onto your safari caravan!</p>
+            </div>
+            <div class="quest-action">
+                <button class="btn-story btn-story-coral quest-play-btn" type="button">
+                    <span>Safari Ride! ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. Word Builder -->
+        <div class="quest-card quest-card-blocks" @onclick='() => LaunchGame("game/word-builder")'>
+            <div class="quest-left-icon">🧱</div>
+            <div class="quest-info">
+                <div class="quest-badge-row">
+                    <span class="quest-pill pill-blocks">🎁 Spelling &amp; Toys</span>
+                    <span class="quest-rounds-tag">⭐ 10 Rounds</span>
+                </div>
+                <h2 class="quest-title">Word Builder</h2>
+                <p class="quest-desc">Pronounce the secret word to snap colorful puzzle blocks into place and unlock a joyful animated surprise gift!</p>
+            </div>
+            <div class="quest-action">
+                <button class="btn-story btn-story-orange quest-play-btn" type="button">
+                    <span>Build Toy! ➔</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .games-select-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .games-header-banner {
+        background: linear-gradient(135deg, #4EA8DE 0%, #06D6A0 100%);
+        border: 4px solid var(--color-storybook-ink);
+        border-radius: 28px;
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        text-align: center;
+        padding: 1.5rem 1rem;
+        color: white;
+    }
+
+    .games-header-title {
+        font-family: var(--font-heading);
+        font-size: 2.3rem;
+        margin: 0.25rem 0;
+        color: white;
+        text-shadow: 2px 3px 0 var(--color-storybook-ink);
+    }
+
+    .games-header-subtitle {
+        font-family: var(--font-body);
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: 0;
+        opacity: 0.95;
+    }
+
+    /* Quest Games List */
+    .quest-games-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .quest-card {
+        border: 4px solid var(--color-storybook-ink);
+        border-radius: 26px;
+        box-shadow: 0 7px 0 var(--color-storybook-ink);
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+    }
+
+    .quest-card:hover {
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+    }
+
+    .quest-card:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .quest-card-rocket { background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); }
+    .quest-card-frog   { background: linear-gradient(135deg, #DCFCE7 0%, #A7F3D0 100%); }
+    .quest-card-paint  { background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); }
+    .quest-card-safari { background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%); }
+    .quest-card-blocks { background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%); }
+
+    .quest-left-icon {
+        font-size: 4.5rem;
+        filter: drop-shadow(0 3px 0 rgba(43, 45, 66, 0.2));
+        animation: gentle-bob 3s ease-in-out infinite;
+    }
+
+    .quest-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .quest-badge-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .quest-pill {
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        background: #FFFFFF;
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .quest-rounds-tag {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+    }
+
+    .quest-title {
+        font-family: var(--font-heading);
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+        margin: 0;
+    }
+
+    .quest-desc {
+        font-family: var(--font-body);
+        font-size: 1.02rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 0;
+        line-height: 1.45;
+    }
+
+    .quest-play-btn {
+        font-size: 1.15rem !important;
+        padding: 0.75rem 1.5rem !important;
+        white-space: nowrap;
+    }
+
+    @@media (max-width: 768px) {
+        .quest-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.25rem 1rem;
+        }
+
+        .quest-badge-row {
+            justify-content: center;
+        }
+
+        .quest-play-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+@code {
+    private async Task LaunchGame(string gameUrl)
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        Navigation.NavigateTo(gameUrl);
+    }
+}

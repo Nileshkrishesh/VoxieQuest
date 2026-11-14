@@ -1,0 +1,87 @@
+@namespace VoxieQuest.Web.Components
+
+@if (IsActive)
+{
+    <div class="starburst-container" aria-hidden="true">
+        @foreach (var s in stars)
+        {
+            <div class="star-particle" 
+                 style="--angle: @(s.Angle)deg; 
+                        --dist: @(s.Distance)px; 
+                        --color: @(s.Color); 
+                        --size: @(s.Size)px;
+                        animation-delay: @(s.Delay)s;">
+                <svg width="@(s.Size)" height="@(s.Size)" viewBox="0 0 24 24" fill="@s.Color" stroke="#2B2D42" stroke-width="1.5">
+                    <path d="M12 2L14.8 8.6L22 9.2L16.5 13.8L18.2 21L12 17.2L5.8 21L7.5 13.8L2 9.2L9.2 8.6L12 2Z"/>
+                </svg>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .starburst-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 1000;
+        width: 1px;
+        height: 1px;
+    }
+
+    .star-particle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -50%) rotate(0deg);
+        animation: star-burst-radiate 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @@keyframes star-burst-radiate {
+        0% {
+            transform: translate(-50%, -50%) rotate(0deg) scale(0);
+            opacity: 1;
+        }
+        50% {
+            opacity: 1;
+            transform: translate(
+                calc(-50% + cos(var(--angle)) * var(--dist)),
+                calc(-50% + sin(var(--angle)) * var(--dist))
+            ) rotate(180deg) scale(1.2);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(
+                calc(-50% + cos(var(--angle)) * (var(--dist) * 1.3)),
+                calc(-50% + sin(var(--angle)) * (var(--dist) * 1.3))
+            ) rotate(360deg) scale(0.6);
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public bool IsActive { get; set; } = false;
+
+    private record StarParticle(int Angle, int Distance, string Color, int Size, double Delay);
+    private List<StarParticle> stars = new();
+
+    protected override void OnInitialized()
+    {
+        var random = new Random(7);
+        var colors = new[] { "#FFD166", "#06D6A0", "#EF476F", "#4EA8DE", "#F78C6B" };
+
+        for (int i = 0; i < 14; i++)
+        {
+            stars.Add(new StarParticle(
+                Angle: i * (360 / 14),
+                Distance: random.Next(70, 130),
+                Color: colors[random.Next(colors.Length)],
+                Size: random.Next(20, 32),
+                Delay: Math.Round(random.NextDouble() * 0.15, 2)
+            ));
+        }
+    }
+}

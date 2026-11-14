@@ -1,0 +1,389 @@
+@page "/stickers"
+@page "/sticker-book"
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+
+<div class="sticker-book-viewport">
+    <!-- Album Header Card -->
+    <div class="storybook-card album-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h2 style="font-size:2.2rem; color:var(--color-sunny-yellow); text-shadow:0 1px 0 var(--color-storybook-ink); margin:0 0 0.25rem 0;">
+                    📒 @(ProgressService.ActiveProfile?.Name ?? "Explorer")'s Sticker Book
+                </h2>
+                <p style="font-size:1.05rem; font-weight:700; color:#374151; margin:0;">
+                    Collect shiny stickers by earning stars in voice games! Tap stickers to peel and bounce!
+                </p>
+            </div>
+
+            <!-- Sticker Counter Pill -->
+            <div class="star-badge" style="font-size:1.15rem; padding:0.5rem 1.25rem;">
+                <span>⭐</span>
+                <span>@TotalUnlockedCount / @AllStickers.Count Stickers</span>
+            </div>
+        </div>
+
+        <!-- Album Page Tabs & Trophy Quick Switch -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:0.75rem;">
+            <div class="album-tabs-row" style="margin:0;">
+                @foreach (var category in Enum.GetValues<StickerTheme>())
+                {
+                    <button class="pill @(activeTheme == category ? "active-theme-pill" : "")" 
+                            type="button" 
+                            @onclick="() => SelectTheme(category)">
+                        <span>@GetThemeEmoji(category) @category</span>
+                    </button>
+                }
+            </div>
+            <a href="trophies" class="pill" style="background:var(--color-sunny-yellow); font-weight:800;" title="View trophies">
+                <span>🏆 Trophy Shelf ➔</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Spiral Album Page -->
+    <div class="storybook-card album-sheet-card">
+        <!-- Spiral Binding Visual Rings -->
+        <div class="spiral-binding-bar">
+            @for (int s = 0; s < 12; s++)
+            {
+                <div class="spiral-ring"></div>
+            }
+        </div>
+
+        <div class="stickers-grid">
+            @foreach (var sticker in CurrentThemeStickers)
+            {
+                var isUnlocked = UserStars >= sticker.RequiredStars;
+
+                <div class="sticker-slot @(isUnlocked ? "slot-unlocked" : "slot-locked") @(peeledStickerId == sticker.Id ? "sticker-peeling" : "")"
+                     @onclick="() => InspectOrPeelSticker(sticker, isUnlocked)">
+
+                    @if (isUnlocked)
+                    {
+                        <!-- Shiny Colorful Unlocked Sticker -->
+                        <div class="sticker-body">
+                            <span class="sticker-emoji">@sticker.Emoji</span>
+                            <span class="sticker-name">@sticker.Name</span>
+                        </div>
+                        <div class="peel-corner"></div>
+                    }
+                    else
+                    {
+                        <!-- Mystery Silhouette with Star Goal -->
+                        <div class="sticker-silhouette">
+                            <span class="silhouette-emoji">❓</span>
+                            <div class="unlock-requirement">
+                                <span>⭐ @sticker.RequiredStars Stars</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Active Sticker Peeling / Floating Celebration Modal -->
+    @if (selectedSticker != null)
+    {
+        <div class="sticker-inspect-overlay" @onclick="() => selectedSticker = null">
+            <div class="storybook-card sticker-showcase-card" @onclick:stopPropagation="true">
+                <div style="font-size:5rem; margin-bottom:0.5rem;" class="sticker-huge-bounce">
+                    @selectedSticker.Emoji
+                </div>
+                <h3 style="font-size:1.6rem; margin:0 0 0.35rem 0;">@selectedSticker.Name</h3>
+                <span class="pill" style="background:var(--color-sunny-yellow); font-size:0.95rem; margin-bottom:0.75rem;">
+                    @selectedSticker.Theme Companion
+                </span>
+                <p style="font-size:1rem; color:#4B5563; line-height:1.45; margin-bottom:1.25rem;">
+                    @selectedSticker.Description
+                </p>
+                <button class="btn-story btn-story-mint" type="button" @onclick="() => selectedSticker = null">
+                    <span>Stick It Back! ✨</span>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .sticker-book-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        max-width: 960px;
+        margin: 0 auto;
+        padding-bottom: 2rem;
+    }
+
+    .album-header {
+        background: #FFFDF7;
+    }
+
+    .album-tabs-row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .active-theme-pill {
+        background: var(--color-mint) !important;
+        transform: scale(1.06);
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+    }
+
+    /* Spiral Album Sheet */
+    .album-sheet-card {
+        background: #FAF8F5;
+        border: 4px solid var(--color-storybook-ink);
+        box-shadow: 0 10px 0 var(--color-storybook-ink);
+        padding: 2.2rem 1.5rem 1.75rem 1.5rem;
+        position: relative;
+        min-height: 420px;
+    }
+
+    .spiral-binding-bar {
+        position: absolute;
+        top: -14px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-around;
+        pointer-events: none;
+    }
+
+    .spiral-ring {
+        width: 16px;
+        height: 28px;
+        background: #94A3B8;
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: 8px;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* Stickers Grid */
+    .stickers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        gap: 1.25rem;
+        padding-top: 0.5rem;
+    }
+
+    .sticker-slot {
+        height: 140px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .slot-unlocked {
+        background: white;
+        border: 3.5px solid var(--color-storybook-ink);
+        box-shadow: 0 6px 0 var(--color-storybook-ink);
+    }
+
+    .slot-unlocked:hover {
+        transform: translateY(-5px) rotate(-2deg) scale(1.05);
+    }
+
+    .slot-locked {
+        background: #F1F5F9;
+        border: 3.5px dashed #94A3B8;
+        opacity: 0.75;
+    }
+
+    .sticker-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .sticker-emoji {
+        font-size: 3.2rem;
+        line-height: 1;
+        filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
+    }
+
+    .sticker-name {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+        margin-top: 0.35rem;
+    }
+
+    .peel-corner {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 18px 18px 0;
+        border-color: transparent var(--color-cream-paper) transparent transparent;
+        filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.2));
+    }
+
+    .sticker-silhouette {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .silhouette-emoji {
+        font-size: 2.5rem;
+        color: #94A3B8;
+        margin-bottom: 0.25rem;
+    }
+
+    .unlock-requirement {
+        font-size: 0.8rem;
+        font-weight: 800;
+        font-family: var(--font-heading);
+        color: #64748B;
+        background: white;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        border: 1.5px solid #CBD5E1;
+    }
+
+    .sticker-peeling {
+        animation: sticker-peel-bounce 0.6s var(--spring-bounce);
+    }
+
+    /* Inspect Modal */
+    .sticker-inspect-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 45, 66, 0.75);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .sticker-showcase-card {
+        background: white;
+        max-width: 380px;
+        width: 100%;
+        text-align: center;
+        padding: 2rem 1.5rem;
+        border: 5px solid var(--color-storybook-ink);
+        box-shadow: 0 12px 0 var(--color-storybook-ink);
+    }
+
+    .sticker-huge-bounce {
+        animation: huge-pop 0.6s var(--spring-bounce);
+    }
+
+    @@keyframes sticker-peel-bounce {
+        0% { transform: scale(1) rotate(0); }
+        40% { transform: scale(1.15) rotate(6deg) translateY(-8px); }
+        100% { transform: scale(1) rotate(0); }
+    }
+
+    @@keyframes huge-pop {
+        0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+        60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0); }
+    }
+</style>
+
+@code {
+    public enum StickerTheme { Safari, Cosmic, Garden, Champions }
+    private StickerTheme activeTheme = StickerTheme.Safari;
+
+    private string? peeledStickerId;
+    private StickerItem? selectedSticker;
+
+    private int UserStars => ProgressService.ActiveProfile?.TotalStars ?? 0;
+    private int TotalUnlockedCount => AllStickers.Count(s => UserStars >= s.RequiredStars);
+    private IEnumerable<StickerItem> CurrentThemeStickers => AllStickers.Where(s => s.Theme == activeTheme);
+
+    private record StickerItem(
+        string Id, 
+        string Name, 
+        string Emoji, 
+        StickerTheme Theme, 
+        int RequiredStars, 
+        string Description
+    );
+
+    private static readonly List<StickerItem> AllStickers = new()
+    {
+        // Safari Theme
+        new("s_lion", "Mighty Lion", "🦁", StickerTheme.Safari, 3, "The golden king of the grassy savanna!"),
+        new("s_elephant", "Trumpet Elephant", "🐘", StickerTheme.Safari, 6, "Sprays cool water and remembers everything!"),
+        new("s_fox", "Voxie the Fox", "🦊", StickerTheme.Safari, 10, "Your faithful guide with ears that listen!"),
+        new("s_monkey", "Jungle Monkey", "🐵", StickerTheme.Safari, 14, "Swings high on vines looking for bananas!"),
+        new("s_owl", "Nighttime Owl", "🦉", StickerTheme.Safari, 18, "Hoot hoot! Watching over starry nights!"),
+        new("s_frog", "Pond Hopper", "🐸", StickerTheme.Safari, 24, "Ribbit! Leaping across fresh lily pads!"),
+
+        // Cosmic Theme
+        new("c_rocket", "Star Rocket", "🚀", StickerTheme.Cosmic, 5, "Blasting off into galaxies with fiery power!"),
+        new("c_star", "Shooting Star", "⭐", StickerTheme.Cosmic, 12, "Twinkles high with a magical golden wish!"),
+        new("c_moon", "Silver Moon", "🌙", StickerTheme.Cosmic, 16, "Glows gently in the dark starry sky!"),
+        new("c_saturn", "Ring Planet", "🪐", StickerTheme.Cosmic, 22, "Surrounded by cosmic ice rings!"),
+        new("c_ufo", "Friendly UFO", "🛸", StickerTheme.Cosmic, 30, "A friendly visitor from outer space!"),
+        new("c_astro", "Astro Voxie", "👨‍🚀", StickerTheme.Cosmic, 40, "Floating among nebulae in a space suit!"),
+
+        // Garden Theme
+        new("g_sunflower", "Sunny Bloom", "🌻", StickerTheme.Garden, 4, "Always smiles toward the bright sun!"),
+        new("g_tulip", "Number Tulip", "🌷", StickerTheme.Garden, 8, "Drinks fresh raindrops in the morning!"),
+        new("g_paint", "Splash Bucket", "🎨", StickerTheme.Garden, 15, "Full of sunny yellow and coral paints!"),
+        new("g_palette", "Artist Palette", "🖌️", StickerTheme.Garden, 20, "Ready to paint pictures with your voice!"),
+        new("g_butterfly", "Rainbow Wings", "🦋", StickerTheme.Garden, 28, "Flutters softly over blooming petals!"),
+        new("g_honeybee", "Busy Bee", "🐝", StickerTheme.Garden, 35, "Bzzzz! Making delicious golden honey!"),
+
+        // Champions Theme
+        new("ch_star", "Super Star", "🌟", StickerTheme.Champions, 2, "Awarded to courageous young learners!"),
+        new("ch_crown", "Explorer Crown", "👑", StickerTheme.Champions, 20, "Worn by champions of speech realms!"),
+        new("ch_block", "Word Block", "🧱", StickerTheme.Champions, 25, "Snaps together to build magic words!"),
+        new("ch_wand", "Star Wand", "🪄", StickerTheme.Champions, 32, "Sparks with learning wonder!"),
+        new("ch_chest", "Treasure Chest", "🪙", StickerTheme.Champions, 45, "Packed with shiny golden learning stars!"),
+        new("ch_trophy", "Grand Champion Cup", "🏆", StickerTheme.Champions, 60, "The highest honor in Voxie Quest!")
+    };
+
+    private void SelectTheme(StickerTheme theme)
+    {
+        activeTheme = theme;
+    }
+
+    private async Task InspectOrPeelSticker(StickerItem sticker, bool isUnlocked)
+    {
+        if (!isUnlocked)
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Click);
+            return;
+        }
+
+        peeledStickerId = sticker.Id;
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        await Task.Delay(250);
+
+        selectedSticker = sticker;
+        peeledStickerId = null;
+        StateHasChanged();
+    }
+
+    private static string GetThemeEmoji(StickerTheme theme) => theme switch
+    {
+        StickerTheme.Safari => "🦁",
+        StickerTheme.Cosmic => "🚀",
+        StickerTheme.Garden => "🌸",
+        _ => "🏆"
+    };
+}

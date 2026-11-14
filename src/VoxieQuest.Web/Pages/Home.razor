@@ -1,0 +1,528 @@
+﻿@page "/"
+@page "/home"
+@inject IProgressService ProgressService
+@inject IVoiceService VoiceService
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="home-container">
+    <!-- Top Welcome Hero Card -->
+    <div class="storybook-card hero-welcome-card">
+        <div class="hero-flex">
+            <!-- Animated Voxie Mascot -->
+            <div class="mascot-interactive" @onclick="HearVoxieWelcome" title="Tap Voxie to hear a greeting!">
+                <Mascot State="@mascotState" Width="135" Height="135" />
+                <span class="tap-hint-pill">👆 Tap Voxie!</span>
+            </div>
+
+            <!-- Welcoming Speech Bubble -->
+            <div class="hero-speech">
+                <div class="hero-bubble-text">
+                    "Hi <strong>@(ProgressService.ActiveProfile?.Name ?? "Explorer")</strong>! Are you ready to speak, play, and win stars? 🌟"
+                </div>
+
+                <div class="hero-action-buttons">
+                    <button class="btn-story btn-story-yellow hero-voice-btn" @onclick="HearVoxieWelcome" type="button">
+                        <span>🔊 Hear Voxie Speak!</span>
+                    </button>
+                    <button class="btn-story btn-story-coral hero-play-btn" @onclick='() => NavigateTo("game/letter-rocket")' type="button">
+                        <span>🚀 Quick Play!</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Wobbly Mic Buddy Widget -->
+            <div class="mic-live-widget" @onclick="ToggleMicTest" title="Tap to test your voice!">
+                <MicCharacter VolumeLevel="@currentVolume" IsListening="@isTestingMic" Size="110" ShowVolumeBar="true" />
+                <span class="mic-status-label">
+                    @(isTestingMic ? "🎙️ I'm listening! Speak!" : "🎙️ Tap to test your voice!")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Heading: Pick a Game -->
+    <div class="section-title-bar">
+        <h2 class="title-fun">🎮 Pick a Game &amp; Speak!</h2>
+        <span class="title-sub">Tap any game card below to blast off!</span>
+    </div>
+
+    <!-- 5 Super-Fun Voice Games Grid -->
+    <div class="games-grid">
+        <!-- Game 1: Letter Rocket -->
+        <div class="game-card game-card-space" @onclick='() => NavigateTo("game/letter-rocket")'>
+            <div class="card-badge">✨ Letters &amp; Phonics</div>
+            <div class="card-icon-stage anim-float-slow">🚀</div>
+            <h3 class="card-title">Letter Rocket</h3>
+            <p class="card-desc">Shout the letter to blast the rocket into the starry galaxy!</p>
+            <div class="card-footer">
+                <span class="card-rounds">⭐ 10 Rounds</span>
+                <button class="btn-story btn-story-blue card-btn" type="button">
+                    <span>Play ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game 2: Number Jump -->
+        <div class="game-card game-card-pond" @onclick='() => NavigateTo("game/number-jump")'>
+            <div class="card-badge">🌊 Counting &amp; Math</div>
+            <div class="card-icon-stage anim-float-mid">🐸</div>
+            <h3 class="card-title">Number Jump</h3>
+            <p class="card-desc">Say the magic sum number to help froggy leap across lily pads!</p>
+            <div class="card-footer">
+                <span class="card-rounds">⭐ 10 Rounds</span>
+                <button class="btn-story btn-story-mint card-btn" type="button">
+                    <span>Hop ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game 3: Color Splash -->
+        <div class="game-card game-card-paint" @onclick='() => NavigateTo("game/color-splash")'>
+            <div class="card-badge">🎨 Rainbow Colors</div>
+            <div class="card-icon-stage anim-float-slow">🎨</div>
+            <h3 class="card-title">Color Splash</h3>
+            <p class="card-desc">Speak the color name to splash magical paint onto cartoon pictures!</p>
+            <div class="card-footer">
+                <span class="card-rounds">⭐ 10 Rounds</span>
+                <button class="btn-story btn-story-yellow card-btn" type="button">
+                    <span>Splash ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game 4: Animal Safari -->
+        <div class="game-card game-card-safari" @onclick='() => NavigateTo("game/animal-safari")'>
+            <div class="card-badge">🐾 Animals &amp; Sounds</div>
+            <div class="card-icon-stage anim-float-mid">🦁</div>
+            <h3 class="card-title">Animal Safari</h3>
+            <p class="card-desc">Hear the animal sound &amp; call their name to invite them on the bus!</p>
+            <div class="card-footer">
+                <span class="card-rounds">⭐ 10 Rounds</span>
+                <button class="btn-story btn-story-coral card-btn" type="button">
+                    <span>Safari ➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game 5: Word Builder -->
+        <div class="game-card game-card-blocks" @onclick='() => NavigateTo("game/word-builder")'>
+            <div class="card-badge">🧱 Spelling &amp; Vocabulary</div>
+            <div class="card-icon-stage anim-float-slow">🎁</div>
+            <h3 class="card-title">Word Builder</h3>
+            <p class="card-desc">Say the word to snap blocks together and unlock surprise animated toys!</p>
+            <div class="card-footer">
+                <span class="card-rounds">⭐ 10 Rounds</span>
+                <button class="btn-story btn-story-orange card-btn" type="button">
+                    <span>Build ➔</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Rewards Strip -->
+    <div class="rewards-strip">
+        <div class="reward-strip-card" @onclick='() => NavigateTo("garden")'>
+            <span class="strip-icon">🌸</span>
+            <div>
+                <h4 class="strip-title">Skill Garden</h4>
+                <p class="strip-desc">Water your growing flowers with stars!</p>
+            </div>
+            <span class="strip-arrow">➔</span>
+        </div>
+
+        <div class="reward-strip-card" @onclick='() => NavigateTo("stickers")'>
+            <span class="strip-icon">📒</span>
+            <div>
+                <h4 class="strip-title">Sticker Album</h4>
+                <p class="strip-desc">Peel and stick your shiny badges!</p>
+            </div>
+            <span class="strip-arrow">➔</span>
+        </div>
+
+        <div class="reward-strip-card" @onclick='() => NavigateTo("trophies")'>
+            <span class="strip-icon">🏆</span>
+            <div>
+                <h4 class="strip-title">Trophy Shelf</h4>
+                <p class="strip-desc">Admire your gold explorer cups!</p>
+            </div>
+            <span class="strip-arrow">➔</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .home-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    /* Hero Card */
+    .hero-welcome-card {
+        background: linear-gradient(135deg, #FFFDF7 0%, #FFF3B0 60%, #FFE5EC 100%);
+        border: 4px solid var(--color-storybook-ink);
+        border-radius: 28px;
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        padding: 1.5rem 2rem;
+    }
+
+    .hero-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .mascot-interactive {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .mascot-interactive:hover {
+        transform: scale(1.08) rotate(-2deg);
+    }
+
+    .tap-hint-pill {
+        background: var(--color-sunny-yellow);
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.2rem 0.6rem;
+        font-family: var(--font-heading);
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .hero-speech {
+        flex: 1;
+        min-width: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .hero-bubble-text {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        color: var(--color-storybook-ink);
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .hero-action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-voice-btn {
+        font-size: 1.1rem !important;
+        padding: 0.65rem 1.25rem !important;
+    }
+
+    .hero-play-btn {
+        font-size: 1.1rem !important;
+        padding: 0.65rem 1.25rem !important;
+    }
+
+    .mic-live-widget {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #FFFFFF;
+        border: 3.5px solid var(--color-storybook-ink);
+        border-radius: 24px;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 5px 0 var(--color-storybook-ink);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .mic-live-widget:hover {
+        transform: translateY(-3px);
+    }
+
+    .mic-status-label {
+        font-family: var(--font-heading);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin-top: 0.35rem;
+        text-align: center;
+    }
+
+    /* Section Heading */
+    .section-title-bar {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    .title-fun {
+        font-size: 2.1rem;
+        font-family: var(--font-heading);
+        color: var(--color-storybook-ink);
+        margin: 0;
+        text-shadow: 2px 2px 0 #FFF9DB;
+    }
+
+    .title-sub {
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #64748B;
+    }
+
+    /* Games Grid */
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .game-card {
+        border: 4px solid var(--color-storybook-ink);
+        border-radius: 26px;
+        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    }
+
+    .game-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 14px 0 var(--color-storybook-ink);
+    }
+
+    .game-card:active {
+        transform: translateY(2px);
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+    }
+
+    .game-card-space  { background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%); }
+    .game-card-pond   { background: linear-gradient(135deg, #DCFCE7 0%, #A7F3D0 100%); }
+    .game-card-paint  { background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); }
+    .game-card-safari { background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%); }
+    .game-card-blocks { background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%); }
+
+    .card-badge {
+        position: absolute;
+        top: -14px;
+        background: #FFFFFF;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.25rem 0.8rem;
+        font-family: var(--font-heading);
+        font-size: 0.82rem;
+        font-weight: 700;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+    }
+
+    .card-icon-stage {
+        font-size: 4.2rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+        font-family: var(--font-heading);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        margin: 0 0 0.4rem 0;
+    }
+
+    .card-desc {
+        font-family: var(--font-body);
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #334155;
+        line-height: 1.4;
+        margin: 0 0 1.25rem 0;
+        flex: 1;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: auto;
+    }
+
+    .card-rounds {
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        background: rgba(255, 255, 255, 0.7);
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.25rem 0.65rem;
+    }
+
+    .card-btn {
+        font-size: 1rem !important;
+        padding: 0.5rem 1.25rem !important;
+    }
+
+    /* Rewards Quick Strip */
+    .rewards-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .reward-strip-card {
+        background: #FFFFFF;
+        border: 3.5px solid var(--color-storybook-ink);
+        border-radius: 20px;
+        box-shadow: 0 5px 0 var(--color-storybook-ink);
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .reward-strip-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .strip-icon {
+        font-size: 2.2rem;
+    }
+
+    .strip-title {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        margin: 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .strip-desc {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #64748B;
+        margin: 0;
+    }
+
+    .strip-arrow {
+        margin-left: auto;
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+    }
+
+    /* Animations */
+    .anim-float-slow {
+        animation: floatSlow 3s ease-in-out infinite;
+    }
+
+    .anim-float-mid {
+        animation: floatMid 2.4s ease-in-out infinite;
+    }
+
+    @@keyframes floatSlow {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @@keyframes floatMid {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    @@media (max-width: 768px) {
+        .hero-flex {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hero-action-buttons {
+            justify-content: center;
+        }
+
+        .hero-speech {
+            text-align: center;
+        }
+    }
+</style>
+
+@code {
+    private Mascot.MascotState mascotState = Mascot.MascotState.Idle;
+    private float currentVolume = 0.0f;
+    private bool isTestingMic = false;
+
+    protected override void OnInitialized()
+    {
+        VoiceService.OnVolumeChanged += HandleVolumeChanged;
+    }
+
+    private void HandleVolumeChanged(float vol)
+    {
+        currentVolume = vol;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HearVoxieWelcome()
+    {
+        mascotState = Mascot.MascotState.Happy;
+        await AudioService.PlaySoundAsync(SoundEffect.Pop);
+        await VoiceService.SpeakAsync($"Hi {ProgressService.ActiveProfile?.Name ?? "Explorer"}! Tap any game card to start playing!");
+        await Task.Delay(1800);
+        mascotState = Mascot.MascotState.Idle;
+    }
+
+    private async Task ToggleMicTest()
+    {
+        if (isTestingMic)
+        {
+            isTestingMic = false;
+            await VoiceService.StopListeningAsync();
+            currentVolume = 0.0f;
+        }
+        else
+        {
+            isTestingMic = true;
+            await AudioService.PlaySoundAsync(SoundEffect.Click);
+            await VoiceService.StartListeningAsync();
+            mascotState = Mascot.MascotState.Listening;
+        }
+    }
+
+    private async Task NavigateTo(string page)
+    {
+        if (isTestingMic)
+        {
+            await VoiceService.StopListeningAsync();
+            isTestingMic = false;
+        }
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        Navigation.NavigateTo(page);
+    }
+
+    public void Dispose()
+    {
+        VoiceService.OnVolumeChanged -= HandleVolumeChanged;
+        if (isTestingMic)
+        {
+            _ = VoiceService.StopListeningAsync();
+        }
+    }
+}

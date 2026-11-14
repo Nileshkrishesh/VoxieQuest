@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VoxieQuest.Web/VoxieQuest.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VoxieQuest.Tests/VoxieQuest.Tests.csproj" />
+  </Folder>
+</Solution>

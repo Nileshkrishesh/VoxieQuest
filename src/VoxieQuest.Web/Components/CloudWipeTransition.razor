@@ -1,0 +1,59 @@
+@namespace VoxieQuest.Web.Components
+@inject NavigationManager Navigation
+@implements IDisposable
+
+@if (isTransitioning)
+{
+    <div class="cloud-wipe-overlay cloud-wipe-active" aria-hidden="true">
+        <!-- Storybook SVG Cloud Wipe Shapes -->
+        <svg viewBox="0 0 1000 600" preserveAspectRatio="none" style="width:100%; height:100%;">
+            <!-- Big Fluffy Storybook Clouds expanding from center -->
+            <path d="M0 0H1000V600H0Z" fill="#FFFDF7" opacity="0.95"/>
+            <circle cx="200" cy="200" r="180" fill="#E7F5FF"/>
+            <circle cx="500" cy="250" r="230" fill="#FFF9DB"/>
+            <circle cx="800" cy="220" r="200" fill="#E8FBF4"/>
+            <circle cx="350" cy="400" r="190" fill="#FFF9DB"/>
+            <circle cx="650" cy="380" r="210" fill="#E7F5FF"/>
+
+            <!-- Tiny floating magical star sparkles in the cloud wipe -->
+            <path d="M500 280L504 290L514 292L506 300L508 310L500 305L492 310L494 300L486 292L496 290Z" fill="#FFD166" stroke="#2B2D42" stroke-width="2"/>
+            <path d="M220 180L223 187L230 188L225 194L226 201L220 197L214 201L215 194L210 188L217 187Z" fill="#EF476F" stroke="#2B2D42" stroke-width="2"/>
+            <path d="M780 200L783 207L790 208L785 214L786 221L780 217L774 221L775 214L770 208L777 207Z" fill="#06D6A0" stroke="#2B2D42" stroke-width="2"/>
+        </svg>
+    </div>
+}
+
+@code {
+    private bool isTransitioning = false;
+    private CancellationTokenSource? cts;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        cts?.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        isTransitioning = true;
+        InvokeAsync(StateHasChanged);
+
+        Task.Delay(850, token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+            {
+                isTransitioning = false;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+        cts?.Cancel();
+    }
+}

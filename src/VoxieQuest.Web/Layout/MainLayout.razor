@@ -1,0 +1,305 @@
+﻿@inherits LayoutComponentBase
+@inject IProgressService ProgressService
+@inject IAudioService AudioService
+@inject IAccessibilityService Accessibility
+@inject ISessionTimerService SessionTimer
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="storybook-app @(Accessibility.IsDyslexiaFont ? "dyslexia-font" : "") @(Accessibility.IsColorblindMode ? "colorblind-mode" : "")">
+    <!-- Cloud Wipe Page Transition Overlay -->
+    <CloudWipeTransition />
+
+    <!-- Atmospheric Parallax Backdrop -->
+    <ParallaxBackground Theme="ParallaxBackground.ParallaxTheme.Hills" />
+
+    <!-- Screen Time Rest Break Modal -->
+    <BreakScreenModal />
+
+    <!-- Clean, Colorful Storybook Header -->
+    <header class="storybook-header">
+        <a href="" class="brand-badge" title="Voxie Quest Home">
+            <span class="brand-mascot-emoji">🦊</span>
+            <span class="brand-title-text">VOXIE QUEST</span>
+        </a>
+
+        <div class="header-status-pills">
+            <!-- Total Stars Display -->
+            <div class="star-pill-badge" title="Total Stars Collected!">
+                <span class="star-icon-glow">⭐</span>
+                <span class="star-count-num">@(ProgressService.ActiveProfile?.TotalStars ?? 0)</span>
+            </div>
+
+            <!-- Active Profile Pill -->
+            <a href="profile" class="pill kid-profile-pill" title="Change explorer profile">
+                <span class="avatar-emoji">@GetAvatarEmoji(ProgressService.ActiveProfile?.Avatar)</span>
+                <span class="profile-name">@(ProgressService.ActiveProfile?.Name ?? "Explorer")</span>
+            </a>
+
+            <!-- Audio Mute Toggle Button -->
+            <button class="pill icon-pill" @onclick="ToggleMute" type="button" title="Sound toggle">
+                <span>@(AudioService.IsMuted ? "🔇" : "🔊")</span>
+            </button>
+
+            <!-- Grown-Ups & Settings Gate -->
+            <a href="parent" class="pill icon-pill grownup-pill" title="Parent Dashboard & Settings">
+                <span>🛡️</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Game Page Body -->
+    <main class="storybook-main-body">
+        @Body
+    </main>
+
+    <!-- Simple, Chunky 4-Tab Bottom Navigation for Kids -->
+    <nav class="storybook-nav-kids" aria-label="Game navigation">
+        <NavLink href="" Match="NavLinkMatch.All" class="nav-kid-big-tab">
+            <span class="nav-kid-emoji">🏠</span>
+            <span class="nav-kid-label">Home</span>
+        </NavLink>
+        <NavLink href="games" class="nav-kid-big-tab">
+            <span class="nav-kid-emoji">🎮</span>
+            <span class="nav-kid-label">Games</span>
+        </NavLink>
+        <NavLink href="garden" class="nav-kid-big-tab">
+            <span class="nav-kid-emoji">🌸</span>
+            <span class="nav-kid-label">Garden</span>
+        </NavLink>
+        <NavLink href="stickers" class="nav-kid-big-tab">
+            <span class="nav-kid-emoji">🏆</span>
+            <span class="nav-kid-label">Rewards</span>
+        </NavLink>
+    </nav>
+</div>
+
+<style>
+    .storybook-app {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background: #FFFDF7;
+    }
+
+    .storybook-header {
+        background: var(--color-sunny-yellow);
+        border-bottom: 4px solid var(--color-storybook-ink);
+        box-shadow: 0 4px 0 rgba(43, 45, 66, 0.15);
+        padding: 0.65rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .brand-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--color-storybook-ink);
+        transition: transform 0.15s ease;
+    }
+
+    .brand-badge:hover {
+        transform: scale(1.04);
+        color: var(--color-storybook-ink);
+    }
+
+    .brand-mascot-emoji {
+        font-size: 2.2rem;
+        filter: drop-shadow(0 2px 0 rgba(43, 45, 66, 0.3));
+    }
+
+    .brand-title-text {
+        font-family: var(--font-heading);
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-shadow: 2px 2px 0 #FFFFFF;
+    }
+
+    .header-status-pills {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .star-pill-badge {
+        background: linear-gradient(135deg, #FFD166 0%, #FFB703 100%);
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: 999px;
+        padding: 0.35rem 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+    }
+
+    .star-icon-glow {
+        font-size: 1.35rem;
+        animation: starSpin 3s ease-in-out infinite;
+    }
+
+    .star-count-num {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+    }
+
+    .kid-profile-pill {
+        background: #FFFFFF;
+        border: 3px solid var(--color-storybook-ink);
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    .avatar-emoji {
+        font-size: 1.3rem;
+    }
+
+    .icon-pill {
+        padding: 0.4rem 0.75rem;
+        font-size: 1.15rem;
+        background: #FFFFFF;
+        border: 3px solid var(--color-storybook-ink);
+    }
+
+    .grownup-pill {
+        background: #F1F5F9;
+        font-size: 1.05rem;
+    }
+
+    .storybook-main-body {
+        flex: 1;
+        padding: 1.5rem 1rem;
+        max-width: 1040px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    /* Chunky 4-Tab Bottom Nav */
+    .storybook-nav-kids {
+        background: #FFFFFF;
+        border-top: 4px solid var(--color-storybook-ink);
+        padding: 0.5rem 1rem;
+        display: flex;
+        justify-content: space-around;
+        position: sticky;
+        bottom: 0;
+        z-index: 99;
+        box-shadow: 0 -4px 0 rgba(43, 45, 66, 0.08);
+    }
+
+    .nav-kid-big-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--color-storybook-ink);
+        padding: 0.4rem 1.6rem;
+        border-radius: 20px;
+        border: 3px solid transparent;
+        transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nav-kid-big-tab:hover {
+        transform: translateY(-3px);
+        background: #FFF9DB;
+    }
+
+    .nav-kid-big-tab.active {
+        background: var(--color-sunny-yellow);
+        border: 3px solid var(--color-storybook-ink);
+        box-shadow: 0 4px 0 var(--color-storybook-ink);
+        transform: translateY(-2px);
+    }
+
+    .nav-kid-emoji {
+        font-size: 1.85rem;
+    }
+
+    .nav-kid-label {
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin-top: 0.15rem;
+    }
+
+    @@keyframes starSpin {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.15) rotate(15deg); }
+    }
+
+    @@media (max-width: 640px) {
+        .storybook-header {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .brand-title-text {
+            font-size: 1.3rem;
+        }
+
+        .nav-kid-big-tab {
+            padding: 0.35rem 0.85rem;
+        }
+
+        .nav-kid-emoji {
+            font-size: 1.5rem;
+        }
+
+        .nav-kid-label {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        ProgressService.OnProfileChanged += HandleStateChanged;
+        Accessibility.OnSettingsChanged += HandleStateChanged;
+        SessionTimer.OnTimerTick += HandleStateChanged;
+
+        try
+        {
+            await ProgressService.InitializeAsync();
+            await Accessibility.InitializeAsync();
+            await SessionTimer.InitializeAsync();
+        }
+        catch
+        {
+            // Fallbacks safely retained
+        }
+    }
+
+    private void HandleStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleMute()
+    {
+        await AudioService.SetMutedAsync(!AudioService.IsMuted);
+    }
+
+    private static string GetAvatarEmoji(AvatarType? avatar) => avatar switch
+    {
+        AvatarType.LeoLion => "🦁",
+        AvatarType.PipPenguin => "🐧",
+        AvatarType.MiaMonkey => "🐵",
+        _ => "🦎"
+    };
+
+    public void Dispose()
+    {
+        ProgressService.OnProfileChanged -= HandleStateChanged;
+        Accessibility.OnSettingsChanged -= HandleStateChanged;
+        SessionTimer.OnTimerTick -= HandleStateChanged;
+    }
+}

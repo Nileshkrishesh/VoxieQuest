@@ -1,0 +1,484 @@
+@page "/game/{CategorySlug}"
+@page "/game/phonics"
+@page "/game/words"
+@page "/game/wordforest"
+@page "/game/numbers"
+@page "/game/numbermeadow"
+@page "/game/stories"
+@page "/game/storyquest"
+@inject IGameStateService GameStateService
+@inject IProgressService ProgressService
+@inject IQuestionService QuestionService
+@inject IAdaptiveDifficultyService DifficultyService
+@inject VoiceManager VoiceManager
+@inject ISpeechMatcher SpeechMatcher
+@inject IAudioService AudioService
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<div style="display:flex; flex-direction:column; gap:1.25rem;">
+    <!-- Top HUD Bar -->
+    <div class="storybook-card" style="padding:0.75rem 1.25rem; display:flex; justify-content:space-between; align-items:center; background:var(--color-cream-paper);">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+            <button class="pill" @onclick="ReturnToMap" type="button" title="Back to map">
+                <span>◀ Map</span>
+            </button>
+            <h3 style="margin:0; font-size:1.3rem;">@GetRealmTitle()</h3>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+            <!-- Current Attempt Pill -->
+            <span class="pill" style="background:#FFF3B0; font-size:0.85rem;" title="3 attempts per question">
+                Attempt @Math.Min(3, attemptState.AttemptCount)/3
+            </span>
+
+            <!-- Adaptive Difficulty Badge -->
+            <span class="pill" style="background:@GetDifficultyColor(); font-size:0.85rem;" title="Adaptive difficulty calibrated to child">
+                Tier: @DifficultyService.CurrentDifficulty
+            </span>
+
+            <!-- Mode Switch / Calibrate Shortcut -->
+            <a href="calibrate" class="pill" style="font-size:0.85rem;" title="Mic settings & mode">
+                ⚙️ @VoiceManager.Mode
+            </a>
+
+            <!-- Session Stars Counter -->
+            <div class="star-badge">
+                <span>⭐</span>
+                <span>@GameStateService.SessionScore</span>
+            </div>
+
+            <!-- Pause / Resume Toggle -->
+            <button class="pill" @onclick="TogglePause" type="button" title="Pause game">
+                <span>@(GameStateService.CurrentState == GameModeState.Paused ? "▶️" : "⏸️")</span>
+            </button>
+        </div>
+    </div>
+
+    @if (GameStateService.CurrentState == GameModeState.Paused)
+    {
+        <!-- Paused Overlay Card -->
+        <div class="storybook-card" style="text-align:center; padding:3rem 1.5rem; background:#FFF3B0;">
+            <div style="font-size:3rem; margin-bottom:0.5rem;">⏸️</div>
+            <h2 style="font-size:2rem; margin-bottom:0.5rem;">Game Paused</h2>
+            <p style="font-size:1.1rem; margin-bottom:1.5rem;">Take a quick stretch! Voxie is waiting for you.</p>
+            <div style="display:flex; justify-content:center; gap:1rem;">
+                <button class="btn-story btn-story-mint" @onclick="TogglePause" type="button">
+                    <span>Resume Game ▶️</span>
+                </button>
+                <button class="btn-story btn-story-coral" @onclick="ReturnToMap" type="button">
+                    <span>Exit to Map 🗺️</span>
+                </button>
+            </div>
+        </div>
+    }
+    else if (currentQuestion != null)
+    {
+        <!-- Active Challenge Board -->
+        <div class="storybook-card" style="background:var(--color-cream-paper); text-align:center; padding:1.75rem 1.5rem;">
+            <!-- Mascot and Speech Prompt -->
+            <div class="mascot-stage" style="justify-content:center; flex-wrap:wrap; margin-bottom:1.25rem; position:relative;">
+                <Mascot State="@mascotState" Width="135" Height="135" />
+                <StarBurst IsActive="@showStarBurst" />
+                <div class="speech-bubble" style="max-width:480px; text-align:left;">
+                    <span>@currentQuestion.Prompt</span>
+                    <div style="margin-top:0.6rem; display:flex; gap:0.5rem;">
+                        <button class="pill" @onclick="SpeakPromptAloud" type="button" style="font-size:0.85rem;">
+                            <span>🔊 Read Aloud</span>
+                        </button>
+                        @if (attemptState.ShowHint && !string.IsNullOrWhiteSpace(currentQuestion.Hint))
+                        {
+                            <span class="pill" style="background:#FFE5EC; color:var(--color-coral); border-color:var(--color-coral); font-size:0.85rem;">
+                                💡 @currentQuestion.Hint
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Visual Challenge Card -->
+            <div style="background:white; border:3px solid var(--color-storybook-ink); border-radius:var(--border-radius-lg); padding:1.5rem; max-width:360px; margin:0 auto 1.25rem auto; box-shadow:0 4px 0 var(--color-storybook-ink);">
+                <div style="font-size:4rem; margin-bottom:0.5rem;" class="floating">
+                    @GetChallengeEmoji(currentQuestion)
+                </div>
+                @if (!string.IsNullOrEmpty(currentQuestion.PhoneticSpelling))
+                {
+                    <div style="font-family:var(--font-heading); font-weight:700; color:var(--color-sky-blue); font-size:1.1rem;">
+                        Sound: @currentQuestion.PhoneticSpelling
+                    </div>
+                }
+            </div>
+
+            <!-- Child Transcript Feedback & Encouragement Banner (Never 'Wrong'!) -->
+            <div style="min-height:50px; margin-bottom:0.75rem;">
+                @if (!string.IsNullOrWhiteSpace(lastTranscript))
+                {
+                    <div style="display:inline-block; padding:0.5rem 1.25rem; border-radius:var(--border-radius-full); border:3px solid var(--color-storybook-ink); background:@(lastMatchSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)"); font-family:var(--font-heading); font-size:1.2rem; font-weight:700;">
+                        @(lastMatchSuccess ? "🌟 Yes! You said: " : "👂 You said: ") "@lastTranscript"
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(attemptState.FeedbackMessage))
+                {
+                    <div style="margin-top:0.4rem; font-family:var(--font-heading); font-size:1.15rem; font-weight:700; color:var(--color-coral);">
+                        @attemptState.FeedbackMessage
+                    </div>
+                }
+            </div>
+
+            <!-- Input Controls (Voice or Practice Mode) -->
+            @if (VoiceManager.Mode == VoiceMode.PracticeButtons || VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)
+            {
+                <!-- Practice Mode Fallback: On-Screen Big Buttons and Keyboard -->
+                <PracticeInputPanel Question="@currentQuestion" OnAnswerSelected="HandleManualAnswer" />
+            }
+            else
+            {
+                <!-- Voice Mode: Friendly Microphone with Live Web Audio Wobble -->
+                <div style="margin: 1.25rem 0;">
+                    <MicCharacter VolumeLevel="@currentVolume" 
+                                  IsListening="@VoiceManager.IsListening" 
+                                  OnClick="ToggleListening" />
+                    <div style="font-family:var(--font-heading); font-weight:700; font-size:1.1rem; color:var(--color-storybook-ink); margin-top:0.5rem;">
+                        @if (VoiceManager.IsListening)
+                        {
+                            @if (currentVolume > 0.15f)
+                            {
+                                <span style="color:#06D6A0;">🌟 Voxie hears your voice!</span>
+                            }
+                            else
+                            {
+                                <span style="color:#06D6A0;">Voxie is listening... Speak clearly!</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>@(VoiceManager.Mode == VoiceMode.PushToTalk ? "Tap mic to speak!" : "Tap mic to wake up Voxie")</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Skip / Switch Mode Option -->
+            <div style="margin-top:1.2rem; display:flex; justify-content:center; gap:0.75rem;">
+                <button class="pill" @onclick="SkipQuestion" type="button" style="font-size:0.9rem; opacity:0.85;">
+                    <span>Next Riddle ➔</span>
+                </button>
+                @if (VoiceManager.Mode != VoiceMode.PracticeButtons)
+                {
+                    <button class="pill" @onclick="SwitchToPracticeMode" type="button" style="font-size:0.9rem; background:#CAF0F8;">
+                        <span>Switch to Buttons Mode 🎮</span>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Loading State -->
+        <div class="storybook-card" style="text-align:center; padding:3rem;">
+            <div style="font-size:3rem;" class="floating">🦊</div>
+            <h3 style="margin-top:1rem;">Loading your magical riddle...</h3>
+        </div>
+    }
+</div>
+
+<!-- Celebratory Confetti & Level Completion Modal -->
+<Confetti IsActive="@(GameStateService.CurrentState == GameModeState.Reward)" />
+<CelebrationModal IsVisible="@(GameStateService.CurrentState == GameModeState.Reward)" 
+                  StarsEarned="@GameStateService.SessionScore" 
+                  OnPlayAgain="PlayMoreChallenges" 
+                  OnReturnHome="ReturnToMap" />
+
+@code {
+    [Parameter]
+    public string? CategorySlug { get; set; }
+
+    private SkillCategory activeCategory = SkillCategory.Phonics;
+    private QuestionItem? currentQuestion;
+    private Mascot.MascotState mascotState = Mascot.MascotState.Idle;
+    private bool showStarBurst = false;
+    private QuestionAttemptState attemptState = new();
+    private string lastTranscript = "";
+    private bool lastMatchSuccess = false;
+    private float currentVolume = 0.0f;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        activeCategory = ParseSlugToCategory(CategorySlug);
+        await LoadNextQuestionAsync();
+    }
+
+    protected override void OnInitialized()
+    {
+        VoiceManager.OnResult += HandleSpeechRecognized;
+        VoiceManager.OnError += HandleVoiceError;
+        VoiceManager.OnVolumeChanged += HandleVolumeChanged;
+        DifficultyService.OnDifficultyChanged += HandleDifficultyChanged;
+    }
+
+    private async Task LoadNextQuestionAsync()
+    {
+        lastTranscript = "";
+        lastMatchSuccess = false;
+        mascotState = Mascot.MascotState.Idle;
+        showStarBurst = false;
+        attemptState.Reset();
+
+        currentQuestion = await QuestionService.GetNextQuestionAsync(
+            activeCategory, 
+            DifficultyService.CurrentDifficulty, 
+            currentQuestion?.Id);
+
+        if (currentQuestion != null)
+        {
+            GameStateService.StartGame(activeCategory, currentQuestion);
+            await VoiceManager.SpeakAsync(currentQuestion.Prompt);
+
+            // In Auto-Listen mode, engage microphone automatically after prompt
+            if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
+            {
+                await Task.Delay(1000);
+                await VoiceManager.StartListeningAsync();
+                mascotState = Mascot.MascotState.Listening;
+            }
+        }
+    }
+
+    private async Task ToggleListening()
+    {
+        if (VoiceManager.IsListening)
+        {
+            await VoiceManager.StopListeningAsync();
+            mascotState = Mascot.MascotState.Idle;
+        }
+        else
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+            mascotState = Mascot.MascotState.Listening;
+            await VoiceManager.StartListeningAsync();
+        }
+    }
+
+    private async Task HandleManualAnswer(string answer)
+    {
+        lastTranscript = answer;
+        await ProcessAnswer(answer, isFinal: true);
+    }
+
+    private void HandleSpeechRecognized(SpeechResult result)
+    {
+        lastTranscript = result.Transcript;
+        if (string.IsNullOrWhiteSpace(result.Transcript) || currentQuestion == null) return;
+
+        InvokeAsync(async () =>
+        {
+            await ProcessAnswer(result.Transcript, result.IsFinal);
+            StateHasChanged();
+        });
+    }
+
+    private async Task ProcessAnswer(string transcript, bool isFinal)
+    {
+        if (currentQuestion == null) return;
+
+        mascotState = Mascot.MascotState.Thinking;
+        StateHasChanged();
+
+        // Evaluate using pure C# SpeechMatcher (tolerant to kid phonetics like 'wed', 'bwue', 'lellow')
+        var evaluation = SpeechMatcher.Evaluate(transcript, currentQuestion);
+
+        if (evaluation.IsMatch)
+        {
+            // SUCCESS
+            lastMatchSuccess = true;
+            mascotState = Mascot.MascotState.Happy;
+            showStarBurst = true;
+            await VoiceManager.StopListeningAsync();
+            await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+
+            await ProgressService.RecordChallengeAttemptAsync(activeCategory, true, currentQuestion.RewardStars);
+            GameStateService.RecordAnswer(true, currentQuestion.RewardStars);
+            DifficultyService.RecordAttempt(true);
+
+            StateHasChanged();
+            await Task.Delay(1400);
+
+            if (GameStateService.SessionStreak > 0 && GameStateService.SessionStreak % 5 == 0)
+            {
+                await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+                GameStateService.FinishGameWithReward();
+            }
+            else
+            {
+                await LoadNextQuestionAsync();
+            }
+        }
+        else if (isFinal)
+        {
+            // MISS (Attempt 1, 2, or 3) - Never show "Wrong"!
+            lastMatchSuccess = false;
+            attemptState.RecordMiss(currentQuestion.TargetAnswer, currentQuestion.Hint);
+
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+            await ProgressService.RecordChallengeAttemptAsync(activeCategory, false);
+            GameStateService.RecordAnswer(false);
+            DifficultyService.RecordAttempt(false);
+
+            if (attemptState.IsExhausted)
+            {
+                // All 3 attempts exhausted: gentle supportive conclusion, awards participation star
+                mascotState = Mascot.MascotState.Happy;
+                await VoiceManager.SpeakAsync($"Great try! The answer is {currentQuestion.TargetAnswer}. Let's try another fun riddle!");
+                await Task.Delay(2000);
+                await LoadNextQuestionAsync();
+            }
+            else
+            {
+                // Ears droop gently then perk up with encouraging smile
+                mascotState = Mascot.MascotState.SadThenCheer;
+                await VoiceManager.SpeakAsync(attemptState.FeedbackMessage);
+
+                // If in Auto-Listen mode, re-arm microphone
+                if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
+                {
+                    await Task.Delay(1400);
+                    await VoiceManager.StartListeningAsync();
+                    mascotState = Mascot.MascotState.Listening;
+                }
+            }
+        }
+    }
+
+    private void HandleVolumeChanged(float vol)
+    {
+        currentVolume = vol;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleVoiceError(string err)
+    {
+        InvokeAsync(() =>
+        {
+            mascotState = Mascot.MascotState.Idle;
+            StateHasChanged();
+        });
+    }
+
+    private void HandleDifficultyChanged(DifficultyLevel newLevel, bool isPromotion)
+    {
+        InvokeAsync(async () =>
+        {
+            if (isPromotion)
+            {
+                await AudioService.PlaySoundAsync(SoundEffect.StarBurst);
+            }
+            StateHasChanged();
+        });
+    }
+
+    private async Task SpeakPromptAloud()
+    {
+        if (currentQuestion != null)
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Click);
+            await VoiceManager.SpeakAsync(currentQuestion.Prompt);
+        }
+    }
+
+    private async Task SkipQuestion()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        await LoadNextQuestionAsync();
+    }
+
+    private void SwitchToPracticeMode()
+    {
+        VoiceManager.Mode = VoiceMode.PracticeButtons;
+        VoiceManager.SetEngine(VoiceEngineType.PracticeManual);
+        StateHasChanged();
+    }
+
+    private async Task TogglePause()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        if (GameStateService.CurrentState == GameModeState.Playing)
+        {
+            await VoiceManager.StopListeningAsync();
+            GameStateService.PauseGame();
+        }
+        else
+        {
+            GameStateService.ResumeGame();
+        }
+    }
+
+    private async Task PlayMoreChallenges()
+    {
+        GameStateService.ResumeGame();
+        await LoadNextQuestionAsync();
+    }
+
+    private async Task ReturnToMap()
+    {
+        await AudioService.PlaySoundAsync(SoundEffect.Click);
+        await VoiceManager.StopListeningAsync();
+        GameStateService.ReturnToMenu();
+        Navigation.NavigateTo("games");
+    }
+
+    private SkillCategory ParseSlugToCategory(string? slug)
+    {
+        var clean = slug?.ToLowerInvariant() ?? "";
+        if (clean.Contains("word")) return SkillCategory.Vocabulary;
+        if (clean.Contains("num")) return SkillCategory.Numbers;
+        if (clean.Contains("stor")) return SkillCategory.Storytelling;
+        return SkillCategory.Phonics;
+    }
+
+    private string GetRealmTitle() => activeCategory switch
+    {
+        SkillCategory.Phonics => "🏝️ Phonics Island",
+        SkillCategory.Vocabulary => "🌲 Word Forest",
+        SkillCategory.Numbers => "🌼 Number Meadow",
+        SkillCategory.Storytelling => "🏰 Story Quest",
+        _ => "Voxie Quest"
+    };
+
+    private string GetDifficultyColor() => DifficultyService.CurrentDifficulty switch
+    {
+        DifficultyLevel.Hard => "var(--color-coral)",
+        DifficultyLevel.Medium => "var(--color-sunny-yellow)",
+        _ => "var(--color-mint)"
+    };
+
+    private static string GetChallengeEmoji(QuestionItem q) => q.IconSvg switch
+    {
+        "cat" => "🐱",
+        "dog" => "🐶",
+        "sun" => "☀️",
+        "frog" => "🐸",
+        "star" => "⭐",
+        "apple" => "🍎",
+        "tree" => "🌳",
+        "rainbow" => "🌈",
+        "butterfly" => "🦋",
+        "flower" => "🌸",
+        "hand" => "✋",
+        "octopus" => "🐙",
+        "number10" => "🔟",
+        "castle_gate" => "🏰",
+        "bridge" => "🌉",
+        "lantern" => "🏮",
+        "dragon" => "🐲",
+        _ => "✨"
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        VoiceManager.OnResult -= HandleSpeechRecognized;
+        VoiceManager.OnError -= HandleVoiceError;
+        VoiceManager.OnVolumeChanged -= HandleVolumeChanged;
+        DifficultyService.OnDifficultyChanged -= HandleDifficultyChanged;
+        await VoiceManager.StopListeningAsync();
+    }
+}

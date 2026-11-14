@@ -1,0 +1,62 @@
+[
+  {
+    "id": "st_gate",
+    "category": 3,
+    "difficulty": 1,
+    "prompt": "You stand before the Magic Story Gate. Do you say OPEN or WAIT?",
+    "targetAnswer": "open",
+    "acceptedAnswers": ["open", "please open", "open the gate", "open gate"],
+    "hint": "Say 'OPEN' to step through the glowing arches!",
+    "phoneticSpelling": "OW - P - AH - N",
+    "iconSvg": "castle_gate",
+    "rewardStars": 1
+  },
+  {
+    "id": "st_bridge",
+    "category": 3,
+    "difficulty": 1,
+    "prompt": "A sleepy river turtle asks: 'Do you want to CROSS or SWIM?'",
+    "targetAnswer": "cross",
+    "acceptedAnswers": ["cross", "cross bridge", "cross the river"],
+    "hint": "The stepping stones let us CROSS safely!",
+    "phoneticSpelling": "K - R - AO - S",
+    "iconSvg": "bridge",
+    "rewardStars": 1
+  },
+  {
+    "id": "st_lantern",
+    "category": 3,
+    "difficulty": 2,
+    "prompt": "The Whispering Cave is dark. What magic tool should we summon: LANTERN or COMPASS?",
+    "targetAnswer": "lantern",
+    "acceptedAnswers": ["lantern", "light lantern", "the lantern"],
+    "hint": "A lantern will light our path with warm golden glow!",
+    "phoneticSpelling": "L - AE - N - T - ER - N",
+    "iconSvg": "lantern",
+    "rewardStars": 2
+  },
+  {
+    "id": "st_friend",
+    "category": 3,
+    "difficulty": 2,
+    "prompt": "A baby dragon looks lost and lonely. Do you want to HELP or RUN?",
+    "targetAnswer": "help",
+    "acceptedAnswers": ["help", "help dragon", "i want to help"],
+    "hint": "Kind heroes always say HELP!",
+    "phoneticSpelling": "HH - EH - L - P",
+    "iconSvg": "dragon",
+    "rewardStars": 2
+  },
+  {
+    "id": "st_treasure",
+    "category": 3,
+    "difficulty": 3,
+    "prompt": "The Ancient Star Tree offers two gifts: WISDOM or GOLD? Which do you speak?",
+    "targetAnswer": "wisdom",
+    "acceptedAnswers": ["wisdom", "choose wisdom", "i choose wisdom"],
+    "hint": "True explorers seek WISDOM to learn and grow!",
+    "phoneticSpelling": "W - IH - Z - D - AH - M",
+    "iconSvg": "star_tree",
+    "rewardStars": 3
+  }
+]
