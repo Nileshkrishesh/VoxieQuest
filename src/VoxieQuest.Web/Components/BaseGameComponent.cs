@@ -132,10 +132,10 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             // Voxie vocalizes instruction clearly with minimal text
             await VoiceManager.SpeakAsync(ActiveChallenge.Prompt);
 
-            // Re-arm microphone if in Auto-Listen mode
+            // Re-arm microphone if in Auto-Listen mode (with clean acoustic delay after Voxie finishes speaking)
             if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
             {
-                await Task.Delay(1100);
+                await Task.Delay(250);
                 await VoiceManager.StartListeningAsync();
                 MascotState = Mascot.MascotState.Listening;
             }
@@ -145,16 +145,19 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Evaluates verbal transcripts received from speech recognition or manual practice buttons.
+    /// Evaluates speech result with all candidate alternatives against active challenge.
     /// </summary>
-    protected async Task ProcessTranscriptAsync(string transcript, bool isFinal)
+    protected async Task ProcessSpeechResultAsync(SpeechResult speechResult)
     {
-        if (ActiveChallenge == null || IsBusyAnimating || string.IsNullOrWhiteSpace(transcript))
+        if (ActiveChallenge == null || IsBusyAnimating || speechResult == null)
         {
             return;
         }
 
-        LastTranscript = transcript;
+        var candidates = speechResult.GetAllCandidates().ToList();
+        if (candidates.Count == 0) return;
+
+        LastTranscript = speechResult.Transcript;
         MascotState = Mascot.MascotState.Thinking;
         StateHasChanged();
 
@@ -165,7 +168,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             Hint = ActiveChallenge.Hint
         };
 
-        var match = SpeechMatcher.Evaluate(transcript, questionStub);
+        var match = SpeechMatcher.Evaluate(candidates, questionStub);
 
         if (match.IsMatch)
         {
@@ -209,9 +212,9 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
                 await LoadRoundAsync();
             }
         }
-        else if (isFinal)
+        else if (speechResult.IsFinal)
         {
-            // MISS (1st, 2nd, or 3rd Attempt) - Never show "Wrong"!
+            // MISS (1st, 2nd, or 3rd Attempt) - Only on FINAL recognition to prevent interim false misses
             LastAnswerSuccess = false;
             SessionStreak = 0;
             AttemptState.RecordMiss(ActiveChallenge.TargetAnswer, ActiveChallenge.Hint);
@@ -252,7 +255,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
                 if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
                 {
-                    await Task.Delay(1200);
+                    await Task.Delay(250);
                     await VoiceManager.StartListeningAsync();
                     MascotState = Mascot.MascotState.Listening;
                 }
@@ -260,6 +263,19 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
             StateHasChanged();
         }
+    }
+
+    /// <summary>
+    /// Backwards-compatible overload for string transcripts (e.g., from manual buttons or legacy callers).
+    /// </summary>
+    protected Task ProcessTranscriptAsync(string transcript, bool isFinal)
+    {
+        return ProcessSpeechResultAsync(new SpeechResult
+        {
+            Transcript = transcript,
+            Alternatives = new List<string> { transcript },
+            IsFinal = isFinal
+        });
     }
 
     /// <summary>
@@ -355,9 +371,9 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
 
     private void HandleVoiceResult(SpeechResult res)
     {
-        if (!IsBusyAnimating && !string.IsNullOrWhiteSpace(res.Transcript))
+        if (!IsBusyAnimating && res != null)
         {
-            InvokeAsync(() => ProcessTranscriptAsync(res.Transcript, res.IsFinal));
+            InvokeAsync(() => ProcessSpeechResultAsync(res));
         }
     }
 

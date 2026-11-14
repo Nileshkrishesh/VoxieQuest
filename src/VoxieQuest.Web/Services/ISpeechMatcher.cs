@@ -17,6 +17,14 @@ public interface ISpeechMatcher
     MatchEvaluation Evaluate(string spokenText, QuestionItem question);
 
     /// <summary>
+    /// Evaluates multiple candidate transcripts against the question item, returning the first successful match or best failure.
+    /// </summary>
+    /// <param name="candidates">Candidate transcript strings.</param>
+    /// <param name="question">Target question containing accepted answers and hints.</param>
+    /// <returns>Detailed match evaluation result.</returns>
+    MatchEvaluation Evaluate(IEnumerable<string> candidates, QuestionItem question);
+
+    /// <summary>
     /// Direct evaluation between a spoken phrase and target word with optional accepted variations.
     /// </summary>
     /// <param name="spokenText">Spoken text.</param>
@@ -24,6 +32,15 @@ public interface ISpeechMatcher
     /// <param name="acceptedAlternates">Optional list of accepted alternate answers.</param>
     /// <returns>Detailed match evaluation result.</returns>
     MatchEvaluation Evaluate(string spokenText, string target, IEnumerable<string>? acceptedAlternates = null);
+
+    /// <summary>
+    /// Evaluates multiple candidate transcripts against target word and accepted alternates.
+    /// </summary>
+    /// <param name="candidates">Candidate transcript strings.</param>
+    /// <param name="target">Target word.</param>
+    /// <param name="acceptedAlternates">Optional list of accepted alternate answers.</param>
+    /// <returns>Detailed match evaluation result.</returns>
+    MatchEvaluation Evaluate(IEnumerable<string> candidates, string target, IEnumerable<string>? acceptedAlternates = null);
 
     /// <summary>
     /// Generates the standard 4-character Soundex code for a word.

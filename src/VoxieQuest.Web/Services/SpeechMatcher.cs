@@ -15,22 +15,36 @@ public class SpeechMatcher : ISpeechMatcher
         "its a ", "its an ", "its the ", "its ",
         "it's a ", "it's an ", "it's the ", "it's ",
         "it is a ", "it is an ", "it is the ", "it is ",
+        "this is a ", "this is an ", "this is the ", "this is ",
         "i think its a ", "i think its ", "i think it's a ", "i think it's ", "i think ",
         "i see a ", "i see an ", "i see the ", "i see ",
-        "the answer is ", "i say ", "say ",
+        "my answer is a ", "my answer is an ", "my answer is the ", "my answer is ",
+        "the answer is a ", "the answer is an ", "the answer is the ", "the answer is ",
+        "the letter is ", "the letter ", "letter ",
+        "the number is ", "the number ", "number ",
+        "the color is ", "the color ", "color ",
+        "the word is ", "the word ", "word ",
+        "the animal is ", "the animal ", "animal ",
+        "i choose ", "i picked ", "i pick ",
+        "i say ", "say ",
         "a ", "an ", "the "
     };
 
     private static readonly string[] CarrierSuffixes = new[]
     {
-        " color", " please", " stars", " flowers", " word", " fruit", " animal"
+        " color", " please", " stars", " flowers", " word", " fruit", " animal", " letter", " number"
     };
 
     private static readonly Dictionary<string, string> NumberWordsToDigits = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["zero"] = "0", ["one"] = "1", ["two"] = "2", ["three"] = "3", ["four"] = "4",
-        ["five"] = "5", ["six"] = "6", ["seven"] = "7", ["eight"] = "8", ["nine"] = "9",
-        ["ten"] = "10", ["eleven"] = "11", ["twelve"] = "12", ["thirteen"] = "13",
+        ["zero"] = "0", ["one"] = "1", ["won"] = "1",
+        ["two"] = "2", ["to"] = "2", ["too"] = "2",
+        ["three"] = "3", ["free"] = "3", ["tree"] = "3",
+        ["four"] = "4", ["for"] = "4", ["fore"] = "4",
+        ["five"] = "5", ["six"] = "6", ["seven"] = "7",
+        ["eight"] = "8", ["ate"] = "8",
+        ["nine"] = "9", ["ten"] = "10",
+        ["eleven"] = "11", ["twelve"] = "12", ["thirteen"] = "13",
         ["fourteen"] = "14", ["fifteen"] = "15", ["twenty"] = "20"
     };
 
@@ -42,11 +56,85 @@ public class SpeechMatcher : ISpeechMatcher
         ["14"] = "fourteen", ["15"] = "fifteen", ["20"] = "twenty"
     };
 
+    private static readonly Dictionary<string, string[]> LetterPhonetics = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["a"] = new[] { "a", "ay", "eh", "hey" },
+        ["b"] = new[] { "b", "be", "bee" },
+        ["c"] = new[] { "c", "see", "sea", "si" },
+        ["d"] = new[] { "d", "dee" },
+        ["e"] = new[] { "e", "ee" },
+        ["f"] = new[] { "f", "ef", "eff" },
+        ["g"] = new[] { "g", "gee", "ji" },
+        ["h"] = new[] { "h", "aitch", "each", "etch", "he" },
+        ["i"] = new[] { "i", "eye", "aye", "ai" },
+        ["j"] = new[] { "j", "jay" },
+        ["k"] = new[] { "k", "kay" },
+        ["l"] = new[] { "l", "el", "ell" },
+        ["m"] = new[] { "m", "em" },
+        ["n"] = new[] { "n", "en", "in" },
+        ["o"] = new[] { "o", "oh" },
+        ["p"] = new[] { "p", "pea", "pee" },
+        ["q"] = new[] { "q", "cue", "queue" },
+        ["r"] = new[] { "r", "are", "our" },
+        ["s"] = new[] { "s", "es", "ess" },
+        ["t"] = new[] { "t", "tea", "tee" },
+        ["u"] = new[] { "u", "you", "yu" },
+        ["v"] = new[] { "v", "vee", "we" },
+        ["w"] = new[] { "w", "double u", "double you" },
+        ["x"] = new[] { "x", "ex", "ecs" },
+        ["y"] = new[] { "y", "why", "wai" },
+        ["z"] = new[] { "z", "zee", "zed" }
+    };
+
+    private static readonly Dictionary<string, string> CommonHomophones = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["read"] = "red",
+        ["blew"] = "blue",
+        ["won"] = "one",
+        ["to"] = "two",
+        ["too"] = "two",
+        ["for"] = "four",
+        ["fore"] = "four",
+        ["ate"] = "eight",
+        ["sun"] = "son",
+        ["sea"] = "see"
+    };
+
     /// <inheritdoc />
     public MatchEvaluation Evaluate(string spokenText, QuestionItem question)
     {
         if (question == null) return MatchEvaluation.Fail(spokenText, "NullQuestion");
         return Evaluate(spokenText, question.TargetAnswer, question.AcceptedAnswers);
+    }
+
+    /// <inheritdoc />
+    public MatchEvaluation Evaluate(IEnumerable<string> candidates, QuestionItem question)
+    {
+        if (question == null) return MatchEvaluation.Fail(string.Empty, "NullQuestion");
+        return Evaluate(candidates, question.TargetAnswer, question.AcceptedAnswers);
+    }
+
+    /// <inheritdoc />
+    public MatchEvaluation Evaluate(IEnumerable<string> candidates, string target, IEnumerable<string>? acceptedAlternates = null)
+    {
+        if (candidates == null)
+        {
+            return MatchEvaluation.Fail(string.Empty, "NullCandidates");
+        }
+
+        MatchEvaluation? bestFail = null;
+        foreach (var candidate in candidates)
+        {
+            if (string.IsNullOrWhiteSpace(candidate)) continue;
+            var evaluation = Evaluate(candidate, target, acceptedAlternates);
+            if (evaluation.IsMatch)
+            {
+                return evaluation;
+            }
+            bestFail ??= evaluation;
+        }
+
+        return bestFail ?? MatchEvaluation.Fail(string.Empty, "NoCandidateProvided");
     }
 
     /// <inheritdoc />
@@ -107,7 +195,25 @@ public class SpeechMatcher : ISpeechMatcher
             return MatchEvaluation.Success(numMatched, cleanSpoken, "NumberEquivalence", 1.0);
         }
 
-        // 5. Kid-Specific Developmental Phonology Match
+        // 5. Letter Phonetics check (e.g. Target 'C', spoken 'see'; Target 'B', spoken 'bee')
+        if (cleanTarget.Length == 1 && char.IsLetter(cleanTarget[0]))
+        {
+            if (LetterPhonetics.TryGetValue(cleanTarget, out var phonetics))
+            {
+                if (phonetics.Contains(cleanSpoken) || phonetics.Contains(strippedSpoken))
+                {
+                    return MatchEvaluation.Success(cleanTarget, cleanSpoken, "LetterPhoneticMatch", 1.0);
+                }
+            }
+        }
+
+        // 6. Common Homophones (e.g. "read" -> "red", "blew" -> "blue")
+        if (CommonHomophones.TryGetValue(strippedSpoken, out var homoTarget) && (homoTarget == cleanTarget || alternates.Contains(homoTarget)))
+        {
+            return MatchEvaluation.Success(cleanTarget, cleanSpoken, "HomophoneMatch", 1.0);
+        }
+
+        // 7. Kid-Specific Developmental Phonology Match
         // Handles: "wed" for "red", "bwue" for "blue", "lellow" or "yewwow" for "yellow",
         // "tat" for "cat", "fith" for "fish", "free" for "three", "wabbit" for "rabbit"
         foreach (var alt in alternates)
@@ -118,7 +224,7 @@ public class SpeechMatcher : ISpeechMatcher
             }
         }
 
-        // 6. Phonetic Metaphone & Soundex Matching
+        // 8. Phonetic Metaphone & Soundex Matching
         var targetMetaphone = ComputeMetaphone(cleanTarget);
         var spokenMetaphone = ComputeMetaphone(strippedSpoken);
 
@@ -321,6 +427,15 @@ public class SpeechMatcher : ISpeechMatcher
 
         // If target is word, check spoken digit
         if (DigitsToNumberWords.TryGetValue(spoken, out var word) && word == target)
+        {
+            matched = target;
+            return true;
+        }
+
+        // If both map to the same digit (e.g. spoken "to" -> "2", target "two" -> "2")
+        if (NumberWordsToDigits.TryGetValue(spoken, out var spkDigit) &&
+            NumberWordsToDigits.TryGetValue(target, out var tgtDigit) &&
+            spkDigit == tgtDigit)
         {
             matched = target;
             return true;

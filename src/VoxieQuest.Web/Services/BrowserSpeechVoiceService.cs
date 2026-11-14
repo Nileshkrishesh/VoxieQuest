@@ -137,6 +137,37 @@ public class BrowserSpeechVoiceService : IVoiceService
             IsFinal = isFinal
         };
 
+        if (!string.IsNullOrWhiteSpace(transcript))
+        {
+            result.Alternatives.Add(transcript.Trim());
+        }
+
+        OnResult?.Invoke(result);
+    }
+
+    /// <summary>
+    /// Invoked by voice.js when speech recognition yields a transcription alongside alternative candidates.
+    /// </summary>
+    [JSInvokable]
+    public void OnJsSpeechResultWithAlternatives(string transcript, string joinedAlternatives, double confidence, bool isFinal)
+    {
+        var alternatives = string.IsNullOrWhiteSpace(joinedAlternatives)
+            ? new List<string>()
+            : joinedAlternatives.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+        if (!alternatives.Contains(transcript, StringComparer.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(transcript))
+        {
+            alternatives.Insert(0, transcript.Trim());
+        }
+
+        var result = new SpeechResult
+        {
+            Transcript = transcript,
+            Alternatives = alternatives,
+            Confidence = confidence,
+            IsFinal = isFinal
+        };
+
         OnResult?.Invoke(result);
     }
 

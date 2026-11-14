@@ -47,6 +47,13 @@ public class SpeechMatcherTests
     [InlineData("open please", "open")]
     [InlineData("the answer is sunny", "sunny")]
     [InlineData("a frog", "frog")]
+    [InlineData("the letter b", "b")]
+    [InlineData("letter c", "c")]
+    [InlineData("the number 4", "4")]
+    [InlineData("number two", "2")]
+    [InlineData("the animal is a lion", "lion")]
+    [InlineData("the word is cat", "cat")]
+    [InlineData("the color red", "red")]
     public void Evaluate_CarrierPhrasesAndFillers_ShouldStripAndMatch(string spoken, string target)
     {
         var eval = _matcher.Evaluate(spoken, target);
@@ -60,11 +67,65 @@ public class SpeechMatcherTests
     [InlineData("five", "5")]
     [InlineData("ten", "10")]
     [InlineData("eight", "8")]
+    [InlineData("to", "2")]
+    [InlineData("too", "2")]
+    [InlineData("for", "4")]
+    [InlineData("fore", "4")]
+    [InlineData("ate", "8")]
+    [InlineData("won", "1")]
+    [InlineData("free", "3")]
+    [InlineData("to", "two")]
+    [InlineData("for", "four")]
     public void Evaluate_NumberWordsAndDigits_ShouldMatchEquivalently(string spoken, string target)
     {
         var eval = _matcher.Evaluate(spoken, target);
 
         Assert.True(eval.IsMatch, $"Expected number '{spoken}' to match '{target}'. Reason: {eval.MatchReason}");
+    }
+
+    [Theory]
+    [InlineData("see", "c")]
+    [InlineData("sea", "c")]
+    [InlineData("bee", "b")]
+    [InlineData("be", "b")]
+    [InlineData("tea", "t")]
+    [InlineData("tee", "t")]
+    [InlineData("why", "y")]
+    [InlineData("you", "u")]
+    [InlineData("aitch", "h")]
+    [InlineData("jay", "j")]
+    [InlineData("kay", "k")]
+    [InlineData("eye", "i")]
+    [InlineData("are", "r")]
+    [InlineData("cue", "q")]
+    [InlineData("vee", "v")]
+    [InlineData("zee", "z")]
+    [InlineData("zed", "z")]
+    public void Evaluate_LetterPhonetics_ShouldMatch(string spoken, string target)
+    {
+        var eval = _matcher.Evaluate(spoken, target);
+
+        Assert.True(eval.IsMatch, $"Expected letter phonetic '{spoken}' to match '{target}'. Reason: {eval.MatchReason}");
+    }
+
+    [Theory]
+    [InlineData("read", "red")]
+    [InlineData("blew", "blue")]
+    public void Evaluate_ColorHomophones_ShouldMatch(string spoken, string target)
+    {
+        var eval = _matcher.Evaluate(spoken, target);
+
+        Assert.True(eval.IsMatch, $"Expected homophone '{spoken}' to match '{target}'. Reason: {eval.MatchReason}");
+    }
+
+    [Fact]
+    public void Evaluate_CandidatesList_ShouldMatchIfAnyCandidateMatches()
+    {
+        var candidates = new List<string> { "unrelated noise", "to", "too" };
+        var eval = _matcher.Evaluate(candidates, "2");
+
+        Assert.True(eval.IsMatch);
+        Assert.Equal("2", eval.MatchedTarget);
     }
 
     [Fact]

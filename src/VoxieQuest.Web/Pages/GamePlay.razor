@@ -234,10 +234,10 @@
             GameStateService.StartGame(activeCategory, currentQuestion);
             await VoiceManager.SpeakAsync(currentQuestion.Prompt);
 
-            // In Auto-Listen mode, engage microphone automatically after prompt
+            // In Auto-Listen mode, engage microphone automatically after prompt (clean acoustic pause)
             if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
             {
-                await Task.Delay(1000);
+                await Task.Delay(250);
                 await VoiceManager.StartListeningAsync();
                 mascotState = Mascot.MascotState.Listening;
             }
@@ -268,24 +268,37 @@
     private void HandleSpeechRecognized(SpeechResult result)
     {
         lastTranscript = result.Transcript;
-        if (string.IsNullOrWhiteSpace(result.Transcript) || currentQuestion == null) return;
+        if (result == null || currentQuestion == null) return;
 
         InvokeAsync(async () =>
         {
-            await ProcessAnswer(result.Transcript, result.IsFinal);
+            await ProcessSpeechResult(result);
             StateHasChanged();
         });
     }
 
     private async Task ProcessAnswer(string transcript, bool isFinal)
     {
-        if (currentQuestion == null) return;
+        await ProcessSpeechResult(new SpeechResult
+        {
+            Transcript = transcript,
+            Alternatives = new List<string> { transcript },
+            IsFinal = isFinal
+        });
+    }
+
+    private async Task ProcessSpeechResult(SpeechResult result)
+    {
+        if (currentQuestion == null || result == null) return;
+
+        var candidates = result.GetAllCandidates().ToList();
+        if (candidates.Count == 0) return;
 
         mascotState = Mascot.MascotState.Thinking;
         StateHasChanged();
 
-        // Evaluate using pure C# SpeechMatcher (tolerant to kid phonetics like 'wed', 'bwue', 'lellow')
-        var evaluation = SpeechMatcher.Evaluate(transcript, currentQuestion);
+        // Evaluate using pure C# SpeechMatcher (tolerant to kid phonetics like 'wed', 'bwue', 'lellow', letters, numbers)
+        var evaluation = SpeechMatcher.Evaluate(candidates, currentQuestion);
 
         if (evaluation.IsMatch)
         {
@@ -313,9 +326,9 @@
                 await LoadNextQuestionAsync();
             }
         }
-        else if (isFinal)
+        else if (result.IsFinal)
         {
-            // MISS (Attempt 1, 2, or 3) - Never show "Wrong"!
+            // MISS (Attempt 1, 2, or 3) - Only on FINAL recognition to prevent interim false misses
             lastMatchSuccess = false;
             attemptState.RecordMiss(currentQuestion.TargetAnswer, currentQuestion.Hint);
 
@@ -341,7 +354,7 @@
                 // If in Auto-Listen mode, re-arm microphone
                 if (VoiceManager.Mode == VoiceMode.AutoListen && VoiceManager.CurrentEngine != VoiceEngineType.PracticeManual)
                 {
-                    await Task.Delay(1400);
+                    await Task.Delay(250);
                     await VoiceManager.StartListeningAsync();
                     mascotState = Mascot.MascotState.Listening;
                 }
