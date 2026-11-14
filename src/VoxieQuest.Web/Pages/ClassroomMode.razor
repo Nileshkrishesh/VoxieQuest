@@ -1,0 +1,400 @@
+@page "/classroom"
+@page "/teacher"
+@inject IClassroomService Classroom
+@inject NavigationManager Navigation
+@inject IAudioService AudioService
+
+<div class="classroom-hub-container">
+    <!-- Header Hero -->
+    <div class="storybook-card classroom-hero">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+                    <span style="font-size:2rem;">🏫</span>
+                    <h2 style="font-size:2rem; margin:0; color:var(--color-sunny-yellow);">
+                        Classroom &amp; Group Pods
+                    </h2>
+                </div>
+                <p style="font-size:1.05rem; margin:0; opacity:0.95;">
+                    Private group learning with zero accounts, zero student emails, and mnemonic room codes.
+                </p>
+            </div>
+            <a href="" class="pill" style="background:white; color:var(--color-storybook-ink); font-weight:800; text-decoration:none;">
+                <span>◀ Back to Home</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Student Quick-Join Portal (Top for Easy Child Access) -->
+    <div class="storybook-card student-join-card">
+        <div style="text-align:center; max-width:480px; margin:0 auto;">
+            <span style="font-size:2.8rem; display:block; margin-bottom:0.35rem;">🎒</span>
+            <h3 style="font-size:1.6rem; margin:0 0 0.35rem 0;">Student Room Code</h3>
+            <p style="font-size:0.95rem; color:#475569; margin-bottom:1rem;">
+                Type the 6-letter room code on your teacher's board to join your team!
+            </p>
+
+            <div class="code-entry-box">
+                <input type="text" 
+                       class="room-code-input" 
+                       placeholder="e.g. OAK-742" 
+                       maxlength="10" 
+                       @bind="studentInputCode" 
+                       @bind:event="oninput" />
+
+                <button class="storybook-btn join-btn" 
+                        type="button" 
+                        disabled="@string.IsNullOrWhiteSpace(studentInputCode)"
+                        @onclick="HandleStudentJoin">
+                    🚀 Join Team
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(joinErrorMessage))
+            {
+                <div class="join-error-pill">
+                    <span>⚠️ @joinErrorMessage</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Teacher Station Management Section -->
+    <div class="storybook-card teacher-station-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+            <div>
+                <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem;">
+                    <span>👩‍🏫</span> Teacher Station &amp; Room Creator
+                </h3>
+                <p style="margin:0; font-size:0.92rem; color:#64748B;">
+                    Generate an ephemeral session pod. All student state is in-memory and auto-destructs after 60 minutes.
+                </p>
+            </div>
+
+            @if (activeTeacherRoom == null)
+            {
+                <button class="storybook-btn create-pod-btn" type="button" @onclick="CreateNewClassroomPod">
+                    ✨ Create New Class Pod
+                </button>
+            }
+        </div>
+
+        @if (activeTeacherRoom != null)
+        {
+            <!-- Active Pod Live Dashboard -->
+            <div class="active-pod-banner">
+                <div class="pod-code-display">
+                    <span class="code-label">BOARD ROOM CODE:</span>
+                    <span class="code-value">@activeTeacherRoom.RoomCode</span>
+                </div>
+
+                <div class="pod-meta-info">
+                    <div><strong>Curriculum Focus:</strong> @activeTeacherRoom.ScenarioName</div>
+                    <div><strong>Target Game:</strong> @activeTeacherRoom.TargetGameTitle</div>
+                    <div><strong>Connected Stations:</strong> @activeTeacherRoom.ConnectedStations.Count Pairs</div>
+                </div>
+
+                <button class="pill close-pod-btn" type="button" @onclick="CloseActivePod">
+                    <span>End Class Session ✕</span>
+                </button>
+            </div>
+
+            <!-- Group Debrief Discussion Cards -->
+            <div style="margin-top:1.5rem;">
+                <h4 style="font-size:1.15rem; margin:0 0 0.75rem 0; display:flex; align-items:center; gap:0.4rem;">
+                    <span>💬</span> Class Circle Debrief Discussion Cards
+                </h4>
+                <div class="debrief-cards-grid">
+                    @foreach (var prompt in Classroom.GetDiscussionCards(activeTeacherRoom.TargetGameId))
+                    {
+                        <div class="debrief-card">
+                            <span class="card-quote-icon">“</span>
+                            <p class="card-prompt-text">@prompt</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Scenario Selector Guide -->
+            <div class="scenario-selector-grid">
+                <div class="scenario-card" @onclick='() => SetSelectedScenario("beacon-bridge", "Beacon Bridge Co-op", "Optics & Light Refraction")'>
+                    <span class="scenario-icon">🔦</span>
+                    <h4 class="scenario-title">Beacon Bridge Co-op</h4>
+                    <p class="scenario-desc">Physics &amp; Teamwork: 2-player light refraction &amp; prisms.</p>
+                </div>
+
+                <div class="scenario-card" @onclick='() => SetSelectedScenario("tumble-scale", "Tumble Scale Archipelago", "Mathematical Lever Torque & Fractions")'>
+                    <span class="scenario-icon">⚖️</span>
+                    <h4 class="scenario-title">Tumble Scale Archipelago</h4>
+                    <p class="scenario-desc">Maths: Physical balance, fractions, and lever balance.</p>
+                </div>
+
+                <div class="scenario-card" @onclick='() => SetSelectedScenario("mood-garden", "Mood Garden Sanctuary", "Emotional Self-Regulation & Breath Pacing")'>
+                    <span class="scenario-icon">🌸</span>
+                    <h4 class="scenario-title">Mood Garden Sanctuary</h4>
+                    <p class="scenario-desc">Social-Emotional: Guided somatic breath pacing &amp; empathy.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .classroom-hub-container {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1rem, 2.5vw, 1.5rem);
+        max-width: 960px;
+        margin: 0 auto;
+        padding-bottom: 2.5rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .classroom-hero {
+        background: var(--color-storybook-ink);
+        color: white;
+    }
+
+    .student-join-card {
+        background: #FFFDF7;
+        border: var(--border-ink-thick);
+    }
+
+    .code-entry-box {
+        display: flex;
+        gap: 0.6rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .room-code-input {
+        font-family: var(--font-heading);
+        font-size: 1.45rem !important;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-align: center;
+        width: 190px;
+        min-height: var(--tap-min);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-sm);
+        background: white;
+    }
+
+    .join-btn {
+        background: var(--color-mint);
+        color: white;
+        font-size: 1.1rem !important;
+    }
+
+    .join-error-pill {
+        margin-top: 0.75rem;
+        background: #FEE2E2;
+        border: 2px solid #DC2626;
+        border-radius: var(--border-radius-pill);
+        padding: 0.3rem 0.85rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #991B1B;
+        display: inline-block;
+    }
+
+    .teacher-station-card {
+        background: #FFFFFF;
+        border: var(--border-ink-thick);
+    }
+
+    .create-pod-btn {
+        background: var(--color-sunny-yellow);
+        font-size: 1rem !important;
+    }
+
+    /* Active Pod Banner */
+    .active-pod-banner {
+        background: #F0FDF4;
+        border: 3px solid #16A34A;
+        border-radius: var(--border-radius-md);
+        padding: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        box-shadow: 0 4px 0 #16A34A;
+    }
+
+    .pod-code-display {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .code-label {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #166534;
+        letter-spacing: 0.05em;
+    }
+
+    .code-value {
+        font-family: var(--font-heading);
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #15803D;
+        letter-spacing: 0.08em;
+    }
+
+    .pod-meta-info {
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: #1F2937;
+    }
+
+    .close-pod-btn {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-color: #EF4444;
+        font-weight: 800;
+    }
+
+    /* Debrief Cards */
+    .debrief-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.85rem;
+    }
+
+    .debrief-card {
+        background: #FFFDF7;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-sm);
+        padding: 0.85rem 1rem;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        position: relative;
+    }
+
+    .card-quote-icon {
+        font-family: serif;
+        font-size: 2.2rem;
+        color: var(--color-warm-gold);
+        line-height: 0.8;
+        display: block;
+    }
+
+    .card-prompt-text {
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: #334155;
+        font-weight: 700;
+        margin: 0.25rem 0 0 0;
+    }
+
+    /* Scenario Selection Cards */
+    .scenario-selector-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+
+    .scenario-card {
+        background: #F8FAFC;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-md);
+        padding: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        transition: transform 0.15s ease, background-color 0.15s ease;
+        touch-action: manipulation;
+    }
+
+    @@media (hover: hover) and (pointer: fine) {
+        .scenario-card:hover {
+            transform: translateY(-3px);
+            background: #FFF9DB;
+            box-shadow: 0 5px 0 var(--color-storybook-ink);
+        }
+    }
+
+    .scenario-icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.35rem;
+    }
+
+    .scenario-title {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        margin: 0 0 0.25rem 0;
+        color: var(--color-storybook-ink);
+    }
+
+    .scenario-desc {
+        font-size: 0.85rem;
+        color: #64748B;
+        margin: 0;
+        line-height: 1.4;
+    }
+</style>
+
+@code {
+    private string studentInputCode = string.Empty;
+    private string? joinErrorMessage;
+
+    private ClassroomRoom? activeTeacherRoom;
+    private string selectedGameId = "beacon-bridge";
+    private string selectedGameTitle = "Beacon Bridge Co-op";
+    private string selectedScenario = "Optics & Light Refraction";
+
+    private async Task SetSelectedScenario(string id, string title, string scenario)
+    {
+        selectedGameId = id;
+        selectedGameTitle = title;
+        selectedScenario = scenario;
+        await CreateNewClassroomPod();
+    }
+
+    private async Task CreateNewClassroomPod()
+    {
+        activeTeacherRoom = await Classroom.CreateRoomAsync(
+            selectedGameId, 
+            selectedGameTitle, 
+            selectedScenario, 
+            "Guided peer exploration session."
+        );
+        await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+        StateHasChanged();
+    }
+
+    private async Task CloseActivePod()
+    {
+        if (activeTeacherRoom != null)
+        {
+            await Classroom.CloseRoomAsync(activeTeacherRoom.RoomCode);
+            activeTeacherRoom = null;
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleStudentJoin()
+    {
+        joinErrorMessage = null;
+        if (string.IsNullOrWhiteSpace(studentInputCode)) return;
+
+        var room = await Classroom.GetRoomAsync(studentInputCode);
+        if (room != null)
+        {
+            await AudioService.PlaySoundAsync(SoundEffect.Fanfare);
+            // Route directly to the targeted game
+            Navigation.NavigateTo($"games/{room.TargetGameId}");
+        }
+        else
+        {
+            joinErrorMessage = $"Room code '{studentInputCode.Trim().ToUpperInvariant()}' not found or has expired. Ask your teacher!";
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+        }
+    }
+}

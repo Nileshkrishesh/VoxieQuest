@@ -257,6 +257,37 @@
                 </button>
             </div>
         </div>
+
+        <!-- Game 6: Mood Garden Sanctuary (Ages 3-5 Launch Title) -->
+        <div class="game-card game-card-mood" style="background-color: #DCFCE7;" @onclick='() => NavigateTo("game/mood-garden")'>
+            <div class="card-badge">
+                <StarIcon Size="16" FillColor="#FFD166" />
+                <span>Calm &amp; Breath</span>
+            </div>
+            
+            <div class="card-icon-stage anim-float-mid">
+                <span style="font-size: 64px; line-height: 1; display: inline-block;">🌸</span>
+            </div>
+
+            <h3 class="card-title">Mood Garden</h3>
+            <p class="card-desc">Breathe with the glowing ring to soothe storm clouds &amp; help sanctuary friends!</p>
+            
+            <div class="game-star-progress-row" title="Explorer Mastery Stars">
+                <span class="progress-label">Progress:</span>
+                <div class="stars-trio">
+                    <StarIcon Size="28" IsActive="true" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(ProgressService.ActiveProfile?.GardenState.HealthyBloomingCount >= 2)" FillColor="#FFD166" />
+                    <StarIcon Size="28" IsActive="@(ProgressService.ActiveProfile?.GardenState.HealthyBloomingCount >= 4)" FillColor="#FFD166" />
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <span class="card-rounds">5 Rounds</span>
+                <button class="btn-story btn-story-mint card-btn" type="button">
+                    <span>Soothe ➔</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Quick Rewards Strip -->

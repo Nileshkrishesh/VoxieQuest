@@ -51,6 +51,12 @@
                     <span class="btn-label-text">@(AudioService.IsMuted ? "Muted" : "Sound")</span>
                 </button>
 
+                <!-- Classroom Pods -->
+                <a href="classroom" class="pill header-action-btn classroom-btn" title="Classroom & Group Pods">
+                    <span style="font-size: 1.15rem;">🏫</span>
+                    <span class="btn-label-text">Class</span>
+                </a>
+
                 <!-- Grown-Ups and Settings Gate -->
                 <a href="parent" class="pill header-action-btn parent-btn" title="Grown-Ups Dashboard &amp; Settings">
                     <ShieldIcon Size="22" FillColor="#FFFDF7" />
@@ -83,6 +89,11 @@
                             <SpeakerIcon Size="24" IsMuted="@AudioService.IsMuted" FillColor="@(AudioService.IsMuted ? "#2B2D42" : "#FFFDF7")" />
                             <span>@(AudioService.IsMuted ? "Unmute Sound" : "Mute Sound")</span>
                         </button>
+
+                        <a href="classroom" class="popover-item classroom-popover-link" @onclick="CloseMobileMenu" style="background:#E0F2FE; color:#0369A1;">
+                            <span style="font-size: 1.25rem;">🏫</span>
+                            <span>Classroom Pods</span>
+                        </a>
 
                         <a href="parent" class="popover-item parent-popover-link" @onclick="CloseMobileMenu">
                             <ShieldIcon Size="24" FillColor="#FFFDF7" />

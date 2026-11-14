@@ -23,6 +23,7 @@ builder.Services.AddScoped<IAudioService, AudioService>();
 builder.Services.AddScoped<IAccessibilityService, AccessibilityService>();
 builder.Services.AddScoped<ISessionTimerService, SessionTimerService>();
 builder.Services.AddScoped<IStreakService, StreakService>();
+builder.Services.AddScoped<IClassroomService, ClassroomService>();
 
 // Register Voice Subsystem & Pure C# Speech Matcher
 builder.Services.AddSingleton<ISpeechMatcher, SpeechMatcher>();

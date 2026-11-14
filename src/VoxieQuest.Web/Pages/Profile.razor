@@ -61,10 +61,33 @@
     {
         <div class="storybook-card new-profile-card">
             <h3 class="new-profile-title">🌟 Create New Adventurer</h3>
+            <p style="font-size:0.85rem; color:#64748B; margin:0 0 1rem 0;">
+                🔒 Zero PII: No real names or emails required. Use a magic secret code name!
+            </p>
             <div class="new-profile-form-body">
                 <div>
-                    <label class="form-field-label">Child's Name:</label>
-                    <input type="text" class="storybook-card profile-name-input" @bind="newName" placeholder="e.g. Leo, Maya, Sam" />
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                        <label class="form-field-label" style="margin:0;">Secret Adventurer Name:</label>
+                        <button class="pill" type="button" @onclick="RollMagicName" style="background:#FFF9DB; font-size:0.82rem; font-weight:800;">
+                            <span>🎲 Roll Magic Name</span>
+                        </button>
+                    </div>
+                    <input type="text" class="storybook-card profile-name-input" @bind="newName" placeholder="e.g. Brave River Otter" />
+                </div>
+
+                <div>
+                    <label class="form-field-label">Developmental Age Band:</label>
+                    <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+                        @foreach (var band in Enum.GetValues<AgeBand>())
+                        {
+                            <button type="button" 
+                                    class="pill @(selectedAgeBand == band ? "avatar-selected" : "")" 
+                                    style="font-size:0.85rem; font-weight:700;"
+                                    @onclick="() => selectedAgeBand = band">
+                                @band.ToString().Replace("Ages","Ages ").Replace("To","-")
+                            </button>
+                        }
+                    </div>
                 </div>
 
                 <div>
@@ -85,7 +108,7 @@
 
                 <div>
                     <label class="form-field-label">Age: @newAge years old</label>
-                    <input type="range" min="5" max="10" step="1" @bind="newAge" style="width:100%; min-height:40px;" />
+                    <input type="range" min="3" max="18" step="1" @bind="newAge" style="width:100%; min-height:40px;" />
                 </div>
 
                 <div class="form-actions-row">
@@ -403,10 +426,20 @@
     private string newName = "";
     private AvatarType newAvatar = AvatarType.VoxieChameleon;
     private int newAge = 6;
+    private AgeBand selectedAgeBand = AgeBand.Ages6To8;
+
+    private void RollMagicName()
+    {
+        newName = ProceduralNameGenerator.Generate(selectedAgeBand);
+    }
 
     private void ToggleNewProfileForm()
     {
         showNewForm = !showNewForm;
+        if (showNewForm && string.IsNullOrWhiteSpace(newName))
+        {
+            RollMagicName();
+        }
     }
 
     private async Task SelectProfile(string profileId)
@@ -419,11 +452,14 @@
     {
         if (string.IsNullOrWhiteSpace(newName))
         {
-            newName = "Adventurer " + (ProgressService.Profiles.Count + 1);
+            newName = ProceduralNameGenerator.Generate(selectedAgeBand);
         }
 
         await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
-        await ProgressService.CreateProfileAsync(newName, newAvatar, newAge);
+        var created = await ProgressService.CreateProfileAsync(newName, newAvatar, newAge);
+        created.AgeBand = selectedAgeBand;
+        await ProgressService.UpdateProfileAsync(created);
+
         newName = "";
         showNewForm = false;
     }

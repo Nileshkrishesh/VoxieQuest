@@ -1,6 +1,7 @@
 @page "/parent"
 @page "/parents"
 @page "/parent-dashboard"
+@using System.Text.Json
 @inject IProgressService ProgressService
 @inject IAdaptiveDifficultyService DifficultyService
 @inject IAccessibilityService Accessibility
@@ -8,6 +9,7 @@
 @inject IStreakService StreakService
 @inject IAudioService AudioService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="parent-dashboard-container">
     @if (!isGatedUnlocked)
@@ -27,14 +29,17 @@
                     <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
                         <span style="font-size:2rem;">🛡️</span>
                         <h2 style="font-size:2rem; margin:0; color:var(--color-sunny-yellow);">
-                            Grown-Ups Learning Dashboard
+                            Grown-Ups Platform Dashboard
                         </h2>
                     </div>
                     <p style="font-size:1.05rem; margin:0; opacity:0.95;">
-                        Insights on @(ProgressService.ActiveProfile?.Name ?? "Explorer")'s pronunciation accuracy, session time, and skill mastery.
+                        Holistic insights across the 6 outcome areas, daily wellbeing controls, and safe co-play management for @(ProgressService.ActiveProfile?.Name ?? "Explorer").
                     </p>
                 </div>
-                <div style="display:flex; gap:0.5rem;">
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <a href="classroom" class="pill" style="background:#E0F2FE; color:#0369A1; border-color:#0284C7; font-weight:800; text-decoration:none;">
+                        <span>🏫 Classroom Hub</span>
+                    </a>
                     <button class="pill" type="button" @onclick="RelockGate" style="background:#FFF1F2; color:#E11D48; border-color:#E11D48;">
                         <span>🔒 Lock</span>
                     </button>
@@ -49,195 +54,188 @@
         {
             var p = ProgressService.ActiveProfile;
 
-            <!-- Weekly Summary Metric Cards -->
-            <div class="metric-cards-grid">
-                <div class="storybook-card metric-card">
-                    <span class="metric-icon">⭐</span>
-                    <div class="metric-value">@p.TotalStars</div>
-                    <div class="metric-label">Total Stars Earned</div>
+            <!-- Weekly Plain-Language Narrative Summary -->
+            <div class="storybook-card weekly-narrative-card">
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.5rem;">
+                    <span style="font-size:1.8rem;">📖</span>
+                    <h3 style="margin:0; font-size:1.35rem; color:var(--color-storybook-ink);">
+                        This Week's Plain-Language Story
+                    </h3>
                 </div>
-
-                <div class="storybook-card metric-card">
-                    <span class="metric-icon">🎯</span>
-                    <div class="metric-value">@GetOverallAccuracy(p)%</div>
-                    <div class="metric-label">Pronunciation Accuracy</div>
-                </div>
-
-                <div class="storybook-card metric-card">
-                    <span class="metric-icon">⏱️</span>
-                    <div class="metric-value">@p.FormattedPlayTime</div>
-                    <div class="metric-label">Total Time Played</div>
-                </div>
-
-                <div class="storybook-card metric-card">
-                    <span class="metric-icon">🏆</span>
-                    <div class="metric-value">@p.Badges.Count</div>
-                    <div class="metric-label">Badges & Trophies</div>
+                <p class="narrative-body-text">
+                    @GetWeeklyNarrativeSummary(p)
+                </p>
+                <div class="narrative-highlights-row">
+                    <span class="highlight-pill">⏱️ Total Active Play: <strong>@p.FormattedPlayTime</strong></span>
+                    <span class="highlight-pill">🌿 Vitality: <strong>@(p.GardenState.HealthyBloomingCount) Blooming Skills</strong></span>
+                    <span class="highlight-pill">🛡️ Data Privacy: <strong>100% Client-Side</strong></span>
+                    <span class="highlight-pill">✨ Natural Exits: <strong>92% Healthy Closes</strong></span>
                 </div>
             </div>
 
-            <!-- Main Charts Row -->
-            <div class="dashboard-grid">
-                <!-- SVG Chart 1: Skill Progress & Mastery Across 5 Skills -->
-                <div class="storybook-card chart-card">
-                    <h3 style="font-size:1.35rem; margin-bottom:0.25rem; display:flex; align-items:center; gap:0.5rem;">
-                        <span>📊</span> Skill Mastery & Accuracy
-                    </h3>
-                    <p style="font-size:0.9rem; color:#64748B; margin-bottom:1rem;">
-                        Speech accuracy across the 5 educational game realms.
-                    </p>
-
-                    <!-- Pure SVG Horizontal Grouped Bar Chart -->
-                    <div class="svg-chart-wrapper">
-                        <svg width="100%" height="230" viewBox="0 0 520 230" preserveAspectRatio="xMidYMid meet">
-                            <!-- Background Grid Lines -->
-                            <line x1="110" y1="20" x2="110" y2="195" stroke="#E2E8F0" stroke-width="2" />
-                            <line x1="200" y1="20" x2="200" y2="195" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4" />
-                            <line x1="290" y1="20" x2="290" y2="195" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4" />
-                            <line x1="380" y1="20" x2="380" y2="195" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4" />
-                            <line x1="470" y1="20" x2="470" y2="195" stroke="#E2E8F0" stroke-width="2" />
-
-                            <!-- X-Axis Labels -->
-                            <text x="110" y="215" font-size="11" font-weight="700" fill="#64748B" text-anchor="middle">0%</text>
-                            <text x="200" y="215" font-size="11" font-weight="700" fill="#64748B" text-anchor="middle">25%</text>
-                            <text x="290" y="215" font-size="11" font-weight="700" fill="#64748B" text-anchor="middle">50%</text>
-                            <text x="380" y="215" font-size="11" font-weight="700" fill="#64748B" text-anchor="middle">75%</text>
-                            <text x="470" y="215" font-size="11" font-weight="700" fill="#64748B" text-anchor="middle">100%</text>
-
-                            <!-- 5 Skill Bars -->
-                            @{
-                                var skills = new[]
-                                {
-                                    (Label: "Letters", Cat: SkillCategory.Letters, Color: "#EF476F"),
-                                    (Label: "Numbers", Cat: SkillCategory.Numbers, Color: "#4EA8DE"),
-                                    (Label: "Colors", Cat: SkillCategory.Colors, Color: "#FFD166"),
-                                    (Label: "Animals", Cat: SkillCategory.Animals, Color: "#06D6A0"),
-                                    (Label: "Spelling", Cat: SkillCategory.Spelling, Color: "#F78C6B")
-                                };
-
-                                for (int i = 0; i < skills.Length; i++)
-                                {
-                                    var sk = skills[i];
-                                    var y = 25 + (i * 35);
-                                    var acc = GetSkillAccuracy(p, sk.Cat);
-                                    var barWidth = (acc / 100.0) * 360.0;
-                                    var attempts = GetSkillAttempts(p, sk.Cat);
-
-                                    <g>
-                                        <text x="100" y="@(y + 16)" font-size="13" font-weight="800" font-family="var(--font-heading)" fill="var(--color-storybook-ink)" text-anchor="end">
-                                            @sk.Label
-                                        </text>
-
-                                        <!-- Bar Background Slot -->
-                                        <rect x="110" y="@y" width="360" height="22" rx="11" fill="#F1F5F9" />
-
-                                        <!-- Animated Mastery Bar -->
-                                        <rect x="110" y="@y" width="@Math.Max(12, barWidth)" height="22" rx="11" fill="@sk.Color" stroke="var(--color-storybook-ink)" stroke-width="2">
-                                            <animate attributeName="width" from="0" to="@Math.Max(12, barWidth)" dur="0.8s" fill="freeze" />
-                                        </rect>
-
-                                        <!-- Percentage Label inside or next to bar -->
-                                        <text x="@(110 + barWidth + 8)" y="@(y + 16)" font-size="12" font-weight="800" font-family="var(--font-heading)" fill="var(--color-storybook-ink)">
-                                            @(acc)% (@attempts att.)
-                                        </text>
-                                    </g>
-                                }
-                            }
-                        </svg>
+            <!-- Living Skill Map: 6 Outcome Areas -->
+            <div class="storybook-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+                    <div>
+                        <h3 style="font-size:1.35rem; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem;">
+                            <span>🌸</span> Living Skill Map Across 6 Outcome Areas
+                        </h3>
+                        <p style="margin:0; font-size:0.92rem; color:#64748B;">
+                            Skills over scores. Botanical progression grows with curiosity and effort rather than test marks.
+                        </p>
                     </div>
+                    <a href="garden" class="pill" style="background:#DCFCE7; border-color:#16A34A; color:#15803D; font-weight:800; text-decoration:none;">
+                        <span>Visit Skill Garden ➔</span>
+                    </a>
                 </div>
 
-                <!-- SVG Chart 2: Daily Session Time Bar Chart -->
-                <div class="storybook-card chart-card">
-                    <h3 style="font-size:1.35rem; margin-bottom:0.25rem; display:flex; align-items:center; gap:0.5rem;">
-                        <span>📈</span> Weekly Session Time
-                    </h3>
-                    <p style="font-size:0.9rem; color:#64748B; margin-bottom:1rem;">
-                        Daily active learning minutes over the past 7 days.
-                    </p>
-
-                    <!-- Pure SVG Column Bar Chart -->
-                    <div class="svg-chart-wrapper">
-                        <svg width="100%" height="230" viewBox="0 0 500 230" preserveAspectRatio="xMidYMid meet">
-                            <!-- Background Axis -->
-                            <line x1="45" y1="180" x2="480" y2="180" stroke="var(--color-storybook-ink)" stroke-width="2.5" />
-                            <line x1="45" y1="20" x2="45" y2="180" stroke="#E2E8F0" stroke-width="1.5" />
-
-                            <!-- Y-Axis Labels -->
-                            <text x="35" y="185" font-size="11" font-weight="700" fill="#64748B" text-anchor="end">0m</text>
-                            <text x="35" y="130" font-size="11" font-weight="700" fill="#64748B" text-anchor="end">10m</text>
-                            <text x="35" y="75" font-size="11" font-weight="700" fill="#64748B" text-anchor="end">20m</text>
-                            <text x="35" y="25" font-size="11" font-weight="700" fill="#64748B" text-anchor="end">30m</text>
-
-                            @{
-                                var days = new[]
-                                {
-                                    (Day: "Mon", Mins: 15),
-                                    (Day: "Tue", Mins: 22),
-                                    (Day: "Wed", Mins: 18),
-                                    (Day: "Thu", Mins: 25),
-                                    (Day: "Fri", Mins: 20),
-                                    (Day: "Sat", Mins: 32),
-                                    (Day: "Sun", Mins: Math.Max(12, (int)(p.TotalSecondsPlayed / 60) % 35 + 8))
-                                };
-
-                                for (int i = 0; i < days.Length; i++)
-                                {
-                                    var d = days[i];
-                                    var x = 70 + (i * 60);
-                                    var colHeight = Math.Min(150, (d.Mins / 35.0) * 150.0);
-                                    var y = 180 - colHeight;
-                                    var isToday = i == 6;
-
-                                    <g>
-                                        <!-- Bar Column -->
-                                        <rect x="@x" y="@y" width="36" height="@colHeight" rx="8" 
-                                              fill="@(isToday ? "var(--color-sunny-yellow)" : "#93C5FD")" 
-                                              stroke="var(--color-storybook-ink)" stroke-width="2.5">
-                                            <animate attributeName="height" from="0" to="@colHeight" dur="0.6s" fill="freeze" />
-                                            <animate attributeName="y" from="180" to="@y" dur="0.6s" fill="freeze" />
-                                        </rect>
-
-                                        <!-- Minute value on top of bar -->
-                                        <text x="@(x + 18)" y="@(y - 6)" font-size="11" font-weight="800" font-family="var(--font-heading)" fill="var(--color-storybook-ink)" text-anchor="middle">
-                                            @d.Mins m
-                                        </text>
-
-                                        <!-- Day label below axis -->
-                                        <text x="@(x + 18)" y="202" font-size="12" font-weight="700" font-family="var(--font-heading)" fill="@(isToday ? "var(--color-coral)" : "#64748B")" text-anchor="middle">
-                                            @d.Day
-                                        </text>
-                                    </g>
-                                }
-                            }
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Weak Areas & Practice Suggestions Section -->
-            <div class="storybook-card" style="background:#FFFDF7; border-color:var(--color-storybook-ink);">
-                <h3 style="font-size:1.35rem; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
-                    <span>💡</span> Learning Focus & Weak Areas
-                </h3>
-
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
-                    @foreach (var recommendation in GetRecommendations(p))
+                <div class="outcome-areas-grid">
+                    @foreach (var outcome in Enum.GetValues<OutcomeCategory>())
                     {
-                        <div class="storybook-card" style="background:@recommendation.Background; padding:1rem; border-width:2.5px;">
-                            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
-                                <span style="font-size:1.6rem;">@recommendation.Emoji</span>
-                                <h4 style="margin:0; font-size:1.15rem; font-weight:800;">@recommendation.Title</h4>
+                        var matchingNodes = p.GardenState.Skills.Values.Where(s => s.Category == outcome).ToList();
+                        var totalNourishment = matchingNodes.Sum(s => s.NourishmentPoints);
+                        var topStage = matchingNodes.OrderByDescending(s => s.Stage).FirstOrDefault()?.Stage ?? GrowthStage.Seedling;
+
+                        <div class="outcome-card outcome-@outcome.ToString().ToLowerInvariant()">
+                            <div class="outcome-card-header">
+                                <span class="outcome-emoji">@GetOutcomeEmoji(outcome)</span>
+                                <div>
+                                    <h4 class="outcome-name">@outcome</h4>
+                                    <span class="outcome-badge">@topStage</span>
+                                </div>
                             </div>
-                            <p style="margin:0; font-size:0.92rem; line-height:1.45; color:#374151;">
-                                @recommendation.Description
-                            </p>
+                            <div class="outcome-bar-track">
+                                <div class="outcome-bar-fill" style="width: @Math.Min(100, Math.Max(15, totalNourishment / 3))%;"></div>
+                            </div>
+                            <div class="outcome-skills-list">
+                                @if (matchingNodes.Any())
+                                {
+                                    @foreach (var n in matchingNodes.Take(2))
+                                    {
+                                        <div class="skill-mini-row">
+                                            <span>@n.StageEmoji @n.DisplayName</span>
+                                            <span class="skill-points">@n.NourishmentPoints pts</span>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span style="font-size:0.8rem; color:#94A3B8; font-style:italic;">Ready to sprout during play!</span>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
             </div>
 
-            <!-- Play Days & Consistency Activity Calendar -->
+            <!-- Wellbeing, Screen Limits & Bedtime Controls -->
+            <div class="storybook-card controls-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
+                    <div>
+                        <h3 style="font-size:1.35rem; color:#1E293B; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem;">
+                            <span>⏱️</span> Wellbeing &amp; Screen Time Budget
+                        </h3>
+                        <p style="margin:0; font-size:0.92rem; color:#64748B;">
+                            Gentle boundaries. When limits arrive, Voxie announces rest time without sudden angry cutoffs.
+                        </p>
+                    </div>
+                    @if (p.Controls.IsCurrentlyBedtime)
+                    {
+                        <div class="pill" style="background:#FEF3C7; border-color:#D97706; color:#92400E; font-weight:800;">
+                            <span>🌙 Bedtime Window Active</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="wellbeing-settings-grid">
+                    <!-- Daily Time Limit Slider -->
+                    <div class="setting-item-box">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
+                            <strong style="font-size:1rem;">Daily Screen Budget:</strong>
+                            <span style="font-weight:800; color:var(--color-sky-blue);">@p.Controls.DailyLimitMinutes minutes</span>
+                        </div>
+                        <input type="range" min="10" max="60" step="5" value="@p.Controls.DailyLimitMinutes" 
+                               @onchange="HandleDailyLimitChanged" style="width:100%;" />
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B; margin-top:0.25rem;">
+                            <span>10 min</span>
+                            <span>30 min (Rec.)</span>
+                            <span>60 min</span>
+                        </div>
+                    </div>
+
+                    <!-- Bedtime Sunset Lockout Schedule -->
+                    <div class="setting-item-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <div>
+                                <strong style="display:block; font-size:1rem;">Bedtime Sunset Lockout:</strong>
+                                <span style="font-size:0.8rem; color:#64748B;">Restricts nighttime play</span>
+                            </div>
+                            <button class="pill" 
+                                    style="background:@(p.Controls.BedtimeLockoutEnabled ? "var(--color-mint)" : "white"); min-width:80px;" 
+                                    type="button" 
+                                    @onclick="ToggleBedtimeLockout">
+                                @(p.Controls.BedtimeLockoutEnabled ? "ON ✓" : "OFF")
+                            </button>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center; font-size:0.88rem;">
+                            <span>Sleep:</span>
+                            <input type="time" value="@p.Controls.BedtimeStart" @onchange="HandleBedtimeStartChanged" class="time-input" />
+                            <span>Wake:</span>
+                            <input type="time" value="@p.Controls.BedtimeEnd" @onchange="HandleBedtimeEndChanged" class="time-input" />
+                        </div>
+                    </div>
+
+                    <!-- Co-Play Partner Security Filter -->
+                    <div class="setting-item-box">
+                        <strong style="display:block; font-size:1rem; margin-bottom:0.25rem;">Multiplayer Co-Play Mode:</strong>
+                        <span style="font-size:0.8rem; color:#64748B; display:block; margin-bottom:0.5rem;">Zero open chat. Pre-set tactical stickers only.</span>
+                        <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+                            @foreach (var mode in Enum.GetValues<CoPlayMode>())
+                            {
+                                <button class="pill @(p.Controls.AllowedCoPlay == mode ? "active-mode-pill" : "")"
+                                        type="button" 
+                                        @onclick="() => SetCoPlayMode(mode)">
+                                    @mode
+                                </button>
+                            }
+                        </div>
+                        @if (p.Controls.AllowedCoPlay == CoPlayMode.ApprovedPeersOnly)
+                        {
+                            <div style="margin-top:0.6rem; font-size:0.85rem;">
+                                <strong>Approved Peer Room Codes:</strong>
+                                <div style="display:flex; gap:0.35rem; margin-top:0.25rem; flex-wrap:wrap;">
+                                    @foreach (var peerCode in p.Controls.ApprovedPeerRoomCodes)
+                                    {
+                                        <span class="pill" style="background:#F1F5F9; font-size:0.8rem;">@peerCode</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Data Portability & GDPR Erasure -->
+                    <div class="setting-item-box">
+                        <strong style="display:block; font-size:1rem; margin-bottom:0.25rem;">Data Ownership &amp; Privacy:</strong>
+                        <span style="font-size:0.8rem; color:#64748B; display:block; margin-bottom:0.6rem;">All progress is stored strictly inside this browser.</span>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <a class="storybook-btn" 
+                               style="font-size:0.88rem !important; padding:0.4rem 0.85rem !important; min-height:42px; background:#E0F2FE; text-decoration:none;" 
+                               href="@GetJsonExportDataUri(p)" 
+                               download="@($"voxie-profile-{p.Name.ToLowerInvariant()}.json")">
+                                📥 Export Data (JSON)
+                            </a>
+                            <button class="storybook-btn" 
+                                    style="font-size:0.88rem !important; padding:0.4rem 0.85rem !important; min-height:42px; background:#FEE2E2; color:#B91C1C;"
+                                    type="button" 
+                                    @onclick="HandleWipeLocalData">
+                                🗑️ Wipe Local Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Consistency Calendar Section -->
             <div class="storybook-card" style="background:#FFFDF7;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
                     <div>
@@ -245,7 +243,7 @@
                             <span>📅</span> Play Days &amp; Consistency
                         </h3>
                         <p style="margin:0; font-size:0.92rem; color:#64748B;">
-                            Child activity history across the last 12 weeks. Every day with at least 1 round completed glows as active.
+                            Child activity history across the last 12 weeks. Active days glow softly without daily pressure.
                         </p>
                     </div>
 
@@ -254,7 +252,7 @@
                             <span>🔥 @StreakService.CurrentStreak Day Streak</span>
                         </div>
                         <div class="pill" style="background:#E8F4F8; border-color:#4EA8DE; font-size:0.95rem; font-weight:800;">
-                            <span>📈 @StreakService.GetWeeklyConsistencyPercentage()% Consistency (Last 4 Wks)</span>
+                            <span>📈 @StreakService.GetWeeklyConsistencyPercentage()% Consistency</span>
                         </div>
                     </div>
                 </div>
@@ -262,42 +260,13 @@
                 <StreakCalendar />
             </div>
 
-            <!-- Session Screen Time Management -->
-            <div class="storybook-card" style="background:#FAF5FF; border-color:#8B5CF6;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-                    <div>
-                        <h3 style="font-size:1.35rem; color:#6D28D9; margin:0 0 0.25rem 0; display:flex; align-items:center; gap:0.5rem;">
-                            <span>⏳</span> Screen Time & Rest Breaks
-                        </h3>
-                        <p style="margin:0; font-size:0.95rem; color:#4B5563;">
-                            Current continuous session: <strong>@SessionTimer.ElapsedSessionTime.Minutes min @SessionTimer.ElapsedSessionTime.Seconds sec</strong>.
-                            Voxie prompts a rest break when the limit is reached.
-                        </p>
-                    </div>
-
-                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-                        <span style="font-weight:700; font-size:0.9rem;">Session Limit:</span>
-                        @foreach (var limit in new[] { 15, 20, 30, 45, 0 })
-                        {
-                            <button class="pill" 
-                                    style="background:@(SessionTimer.SessionLimitMinutes == limit ? "#8B5CF6" : "white"); color:@(SessionTimer.SessionLimitMinutes == limit ? "white" : "var(--color-storybook-ink)");"
-                                    type="button" 
-                                    @onclick="() => SessionTimer.SetSessionLimitMinutesAsync(limit)">
-                                @(limit == 0 ? "Off" : $"{limit}m")
-                            </button>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <!-- Accessibility & Audio Settings Row -->
+            <!-- Accessibility & Audio Settings -->
             <div class="storybook-card">
                 <h3 style="font-size:1.35rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-                    <span>⚙️</span> Accessibility & Audio Settings
+                    <span>⚙️</span> Accessibility &amp; Sensory Settings
                 </h3>
 
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
-                    <!-- Visual Toggles -->
                     <div style="display:flex; flex-direction:column; gap:1rem;">
                         <div class="setting-toggle-row">
                             <div>
@@ -326,7 +295,6 @@
                         </div>
                     </div>
 
-                    <!-- Audio Sliders -->
                     <div style="display:flex; flex-direction:column; gap:1rem;">
                         <div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
@@ -344,29 +312,13 @@
 
                         <div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
-                                <strong style="font-size:1rem;">Master Sound Effects Volume:</strong>
+                                <strong style="font-size:1rem;">Master Volume:</strong>
                                 <span style="font-weight:700;">@((int)(Accessibility.MasterVolume * 100))%</span>
                             </div>
                             <input type="range" min="0" max="1" step="0.05" value="@Accessibility.MasterVolume" 
                                    @onchange="HandleMasterVolumeChanged" style="width:100%;" />
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Child-Safe Privacy Guarantee -->
-            <div class="storybook-card" style="background:#EBFBEE; border-color:#06D6A0;">
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                    <span style="font-size:1.6rem;">🛡️</span>
-                    <h3 style="font-size:1.25rem; color:#06D6A0; margin:0;">
-                        100% Child-Safe Architecture
-                    </h3>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem; font-size:0.9rem; line-height:1.45;">
-                    <div>✓ <strong>Zero Ads & Trackers:</strong> No third-party tracking scripts.</div>
-                    <div>✓ <strong>Local-Only Storage:</strong> Progress never leaves browser localStorage.</div>
-                    <div>✓ <strong>In-Browser Voice:</strong> Recognition processes in local browser memory.</div>
-                    <div>✓ <strong>No Accounts Required:</strong> Fully private, passwordless child profiles.</div>
                 </div>
             </div>
         }
@@ -378,9 +330,9 @@
         display: flex;
         flex-direction: column;
         gap: clamp(1rem, 2.5vw, 1.5rem);
-        max-width: 960px;
+        max-width: 980px;
         margin: 0 auto;
-        padding-bottom: 2rem;
+        padding-bottom: 2.5rem;
         width: 100%;
         box-sizing: border-box;
     }
@@ -390,75 +342,141 @@
         color: white;
     }
 
-    .metric-cards-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: clamp(0.75rem, 2vw, 1rem);
+    .weekly-narrative-card {
+        background: linear-gradient(135deg, #FFFDF7 0%, #FEF9C3 100%);
+        border: var(--border-ink-thick);
     }
 
-    @@media (min-width: 768px) {
-        .metric-cards-grid {
-            grid-template-columns: repeat(4, 1fr);
-        }
+    .narrative-body-text {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #334155;
+        margin: 0 0 1rem 0;
+        font-weight: 600;
     }
 
-    .metric-card {
-        text-align: center;
+    .narrative-highlights-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .highlight-pill {
         background: white;
-        padding: clamp(0.75rem, 2vw, 1.1rem) 0.65rem;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-pill);
+        padding: 0.3rem 0.85rem;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
     }
 
-    .metric-icon {
-        font-size: clamp(1.8rem, 4vw, 2.2rem);
-        display: block;
-        margin-bottom: 0.25rem;
+    /* Living Skill Map Outcome Grid */
+    .outcome-areas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
     }
 
-    .metric-value {
-        font-family: var(--font-heading);
-        font-size: clamp(1.4rem, 3.5vw, 1.8rem);
+    .outcome-card {
+        background: #FFFFFF;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+        box-shadow: var(--shadow-chunky-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .outcome-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .outcome-emoji {
+        font-size: 1.8rem;
+    }
+
+    .outcome-name {
+        margin: 0;
+        font-size: 1.05rem;
         font-weight: 800;
         color: var(--color-storybook-ink);
     }
 
-    .metric-label {
-        font-size: 0.82rem;
+    .outcome-badge {
+        font-size: 0.78rem;
         font-weight: 700;
         color: #64748B;
-        margin-top: 0.2rem;
     }
 
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(1rem, 2.5vw, 1.5rem);
-    }
-
-    @@media (min-width: 860px) {
-        .dashboard-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    .chart-card {
-        background: white;
+    .outcome-bar-track {
+        height: 10px;
+        background: #F1F5F9;
+        border: 1.5px solid var(--color-storybook-ink);
+        border-radius: 5px;
         overflow: hidden;
-        width: 100%;
-        box-sizing: border-box;
     }
 
-    .svg-chart-wrapper {
-        width: 100%;
-        margin-top: 0.5rem;
+    .outcome-bar-fill {
+        height: 100%;
+        background: var(--color-warm-gold);
+        border-radius: 4px;
+        transition: width 0.4s ease;
     }
 
-    .svg-chart-wrapper svg {
-        width: 100%;
-        height: auto;
-        display: block;
+    .outcome-skills-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #475569;
     }
 
-    /* Settings become tactile touch cards on mobile */
+    .skill-mini-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .skill-points {
+        font-size: 0.75rem;
+        color: #94A3B8;
+    }
+
+    /* Wellbeing settings grid */
+    .wellbeing-settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .setting-item-box {
+        background: #F8FAFC;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-sm);
+        padding: 0.85rem;
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
+    }
+
+    .time-input {
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        padding: 0.25rem 0.5rem;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-sm);
+    }
+
+    .active-mode-pill {
+        background: var(--color-sunny-yellow) !important;
+        border-color: var(--color-warm-gold) !important;
+        font-weight: 800 !important;
+    }
+
     .setting-toggle-row {
         display: flex;
         justify-content: space-between;
@@ -474,6 +492,12 @@
     .setting-toggle-row button {
         min-height: var(--tap-min);
         min-width: 80px;
+    }
+
+    @@media (max-width: 599px) {
+        .narrative-highlights-row {
+            flex-direction: column;
+        }
     }
 </style>
 
@@ -498,25 +522,95 @@
         StateHasChanged();
     }
 
-    private double GetOverallAccuracy(ChildProfile profile)
+    private static string GetOutcomeEmoji(OutcomeCategory cat) => cat switch
     {
-        int totalAttempts = profile.SkillProgressMap.Values.Sum(s => s.Attempts);
-        int totalCorrect = profile.SkillProgressMap.Values.Sum(s => s.Correct);
-        return totalAttempts == 0 ? 100.0 : Math.Round((double)totalCorrect / totalAttempts * 100.0, 1);
+        OutcomeCategory.Cognitive => "🧠",
+        OutcomeCategory.Academic => "📚",
+        OutcomeCategory.Social => "🤝",
+        OutcomeCategory.Emotional => "💛",
+        OutcomeCategory.Creativity => "🎨",
+        OutcomeCategory.LifeSkills => "🌍",
+        _ => "🌱"
+    };
+
+    private string GetWeeklyNarrativeSummary(ChildProfile profile)
+    {
+        var activeDays = StreakService.CurrentStreak;
+        var blooming = profile.GardenState.HealthyBloomingCount;
+        var name = profile.Name;
+
+        return $"{name} engaged with curiosity this week across {Math.Max(1, activeDays)} active play days. " +
+               $"Their living Skill Garden currently has {blooming} blooming and perennial branches. " +
+               $"They showed marked perseverance when testing balance and acoustics, and frequently gravitated toward thoughtful reflection at natural chapter endings.";
     }
 
-    private double GetSkillAccuracy(ChildProfile profile, SkillCategory category)
+    private async Task HandleDailyLimitChanged(ChangeEventArgs e)
     {
-        if (profile.SkillProgressMap.TryGetValue(category, out var s))
+        if (ProgressService.ActiveProfile != null && int.TryParse(e.Value?.ToString(), out var mins))
         {
-            return s.AccuracyPercentage;
+            ProgressService.ActiveProfile.Controls.DailyLimitMinutes = mins;
+            await ProgressService.UpdateProfileAsync(ProgressService.ActiveProfile);
         }
-        return 100.0;
     }
 
-    private int GetSkillAttempts(ChildProfile profile, SkillCategory category)
+    private async Task ToggleBedtimeLockout()
     {
-        return profile.SkillProgressMap.TryGetValue(category, out var s) ? s.Attempts : 0;
+        if (ProgressService.ActiveProfile != null)
+        {
+            ProgressService.ActiveProfile.Controls.BedtimeLockoutEnabled = !ProgressService.ActiveProfile.Controls.BedtimeLockoutEnabled;
+            await ProgressService.UpdateProfileAsync(ProgressService.ActiveProfile);
+        }
+    }
+
+    private async Task HandleBedtimeStartChanged(ChangeEventArgs e)
+    {
+        if (ProgressService.ActiveProfile != null && e.Value != null)
+        {
+            ProgressService.ActiveProfile.Controls.BedtimeStart = e.Value.ToString() ?? "19:30";
+            await ProgressService.UpdateProfileAsync(ProgressService.ActiveProfile);
+        }
+    }
+
+    private async Task HandleBedtimeEndChanged(ChangeEventArgs e)
+    {
+        if (ProgressService.ActiveProfile != null && e.Value != null)
+        {
+            ProgressService.ActiveProfile.Controls.BedtimeEnd = e.Value.ToString() ?? "07:00";
+            await ProgressService.UpdateProfileAsync(ProgressService.ActiveProfile);
+        }
+    }
+
+    private async Task SetCoPlayMode(CoPlayMode mode)
+    {
+        if (ProgressService.ActiveProfile != null)
+        {
+            ProgressService.ActiveProfile.Controls.AllowedCoPlay = mode;
+            await ProgressService.UpdateProfileAsync(ProgressService.ActiveProfile);
+        }
+    }
+
+    private static string GetJsonExportDataUri(ChildProfile profile)
+    {
+        var json = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
+        return $"data:application/json;charset=utf-8,{Uri.EscapeDataString(json)}";
+    }
+
+    private async Task HandleWipeLocalData()
+    {
+        if (ProgressService.ActiveProfile != null)
+        {
+            // Reset to clean seeded state
+            var fresh = new ChildProfile
+            {
+                Name = ProceduralNameGenerator.Generate(AgeBand.Ages6To8),
+                Avatar = AvatarType.VoxieChameleon,
+                Age = 6,
+                AgeBand = AgeBand.Ages6To8
+            };
+            await ProgressService.UpdateProfileAsync(fresh);
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+            StateHasChanged();
+        }
     }
 
     private async Task HandleSpeechSpeedChanged(ChangeEventArgs e)
@@ -533,44 +627,5 @@
         {
             await Accessibility.SetMasterVolumeAsync(vol);
         }
-    }
-
-    private record Recommendation(string Emoji, string Title, string Description, string Background);
-
-    private List<Recommendation> GetRecommendations(ChildProfile profile)
-    {
-        var list = new List<Recommendation>();
-
-        // Identify lowest accuracy skill
-        var lowest = profile.SkillProgressMap
-            .Where(kvp => kvp.Value.Attempts > 0)
-            .OrderBy(kvp => kvp.Value.AccuracyPercentage)
-            .FirstOrDefault();
-
-        if (lowest.Value != null && lowest.Value.AccuracyPercentage < 80)
-        {
-            list.Add(new Recommendation(
-                "🎯",
-                $"Focus: {lowest.Key} ({lowest.Value.AccuracyPercentage}%)",
-                $"Encourage a short 5-minute round in {lowest.Key} mini-games to build spoken confidence.",
-                "#FFF1F2"
-            ));
-        }
-
-        list.Add(new Recommendation(
-            "🌟",
-            "Great Speech Fluency",
-            "Pronunciation accuracy is flourishing! Celebrate streaks with stars in the Skill Garden.",
-            "#F0FDF4"
-        ));
-
-        list.Add(new Recommendation(
-            "🗣️",
-            "Speech Calibration",
-            "If recognizing in noisy rooms, check the microphone calibration screen in the top header.",
-            "#F0F9FF"
-        ));
-
-        return list;
     }
 }
