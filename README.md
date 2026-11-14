@@ -1,269 +1,296 @@
 # 🦊 VOXIE QUEST — Speak, Play, Learn!
 
-> **Voice-Controlled Educational Web Gaming Tools for Enhanced Learning in the Skill Ecosystem**  
-> Designed for children aged 5–10 to explore phonics, math, colors, animals, and spelling with their natural voice.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nileshkrishesh/VoxieQuest/main/assets_70_30/slide_01_hero.png" alt="Voxie Quest Hero Banner" width="700" style="border-radius: 24px; border: 4px solid #2B2D42; box-shadow: 8px 8px 0px #2B2D42;" />
+</p>
 
-[![.NET 8](https://img.shields.io/badge/.NET-8.0%20WASM-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Blazor WASM](https://img.shields.io/badge/Blazor-WebAssembly%20Standalone-512BD4?logo=blazor)](https://blazor.net/)
-[![Tests](https://img.shields.io/badge/xUnit-113%20Passed-brightgreen)](https://xunit.net/)
-[![Visual Studio](https://img.shields.io/badge/IDE-Visual%20Studio%202022-purple?logo=visualstudio)](https://visualstudio.microsoft.com/)
-[![COPPA Child-Safe](https://img.shields.io/badge/Child--Safe-Zero%20Ads%20%7C%20Zero%20Tracking-06D6A0)](#child-safe-guarantee)
+<p align="center">
+  <strong>Voice-Controlled Educational Web Gaming Tools for Enhanced Learning in the Skill Ecosystem</strong><br />
+  <em>A hand-crafted, picture-book web game empowering children aged 5–10 to explore phonics, mathematics, science, emotional regulation, and storytelling using their natural voice.</em>
+</p>
 
----
-
-## 📖 Table of Contents
-1. [Overview & Tech Stack](#overview--tech-stack)
-2. [Game Realms & Features](#game-realms--features)
-3. [Visual Studio 2022 Quickstart (Ctrl+F5)](#visual-studio-2022-quickstart-ctrlf5)
-4. [Running Unit Tests in Test Explorer](#running-unit-tests-in-test-explorer)
-5. [Publishing & Free Hosting (GitHub Pages & Netlify)](#publishing--free-hosting-github-pages--netlify)
-6. [Curated Free Asset & Sound Resources](#curated-free-asset--sound-resources)
-7. [Assumptions & Known Browser Limits](#assumptions--known-browser-limits)
-8. [Child-Safe Guarantee](#child-safe-guarantee)
+<p align="center">
+  <a href="https://voxie-quest.vercel.app/"><img src="https://img.shields.io/badge/Live%20Demo-voxie--quest.vercel.app-FFC93C?style=for-the-badge&logo=vercel&logoColor=2B2D42" alt="Live Demo" /></a>
+  <a href="#-quickstart-guide"><img src="https://img.shields.io/badge/.NET-8.0%20WASM-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 8" /></a>
+  <a href="#-test-suite"><img src="https://img.shields.io/badge/xUnit-163%20Passed-7ED9A8?style=for-the-badge&logo=xunit&logoColor=2B2D42" alt="Tests Passed" /></a>
+  <a href="#-privacy-first--child-safe-guarantee"><img src="https://img.shields.io/badge/Safety-COPPA%20%7C%20DPDP%202023-5BC0EB?style=for-the-badge&logo=shield&logoColor=2B2D42" alt="Privacy Shield" /></a>
+</p>
 
 ---
 
-## 🛠️ Overview & Tech Stack
+## 📑 Table of Contents
 
-**Voxie Quest** is built with a pure **Blazor WebAssembly standalone (.NET 8)** architecture. All game state machines, scoring algorithms, phonological fuzzy matching, adaptive difficulty systems, and session timers run in pure C# compiled to WebAssembly.
-
-- **C# for 100% of Game Logic:** No Unity, no Node.js build tools, no npm, and no third-party game engine dependencies.
-- **Thin JavaScript Interop:** Confined strictly to browser native APIs (`SpeechRecognition`, Web Audio API `AudioContext` and `AnalyserNode`, and safe `localStorage`).
-- **Storybook Aesthetics:** Hand-drawn children's picture book look with thick rounded outlines (`border: 3.5px solid #2B2D42`), warm pastel design tokens (Sunny Yellow `#FFD166`, Sky Blue `#4EA8DE`, Coral `#EF476F`, Mint `#06D6A0`, Soft Orange `#F78C6B`), paper texture, and local offline fonts (*Fredoka* and *Nunito*).
-- **Phonological Tolerance Engine (`SpeechMatcher.cs`):** Pure C# fuzzy speech evaluator using Levenshtein distance, Soundex, Metaphone, carrier phrase stripping, and childhood phonology transforms (liquid gliding, velar fronting, frontal lisping, and fricative stopping).
-- **Compassionate Feedback:** 3 attempts per question with hints revealed on the 2nd miss. **Never shows "Wrong" or "Incorrect"**, only *"Almost! Try again!"* and positive reinforcement.
-
----
-
-## 🎮 Game Realms & Features
-
-### 1. 🚀 Letter Rocket (`/game/letter-rocket`)
-- **Category:** Letters & Phonics (`SkillCategory.Letters`)
-- **Mechanic:** Say the letter or phoneme displayed in the rocket's porthole.
-- **Animation:** Liquid rocket thrusters ignite with an animated SVG flame blast-off into space.
-
-### 2. 🐸 Number Jump (`/game/number-jump`)
-- **Category:** Arithmetic & Counting (`SkillCategory.Numbers`)
-- **Mechanic:** Speak the sum to simple additions (e.g. `2 + 1 = 3`).
-- **Animation:** An animated frog hops across buoyant, numbered floating lily pads.
-
-### 3. 🎨 Color Splash (`/game/color-splash`)
-- **Category:** Color Identification (`SkillCategory.Colors`)
-- **Mechanic:** Speak the color name shown on the palette.
-- **Animation:** A smiling paint bucket pours and splashes vibrant paint onto black-and-white picture outlines.
-
-### 4. 🦁 Animal Safari (`/game/animal-safari`)
-- **Category:** Auditory Animal Calls (`SkillCategory.Animals`)
-- **Mechanic:** Hear an animal sound (procedurally synthesized or MP3), speak the animal name.
-- **Animation:** Animal leaps out of rustling jungle foliage and hops into a caravan cart trailing Voxie's expedition jeep.
-
-### 5. 🧱 Word Builder (`/game/word-builder`)
-- **Category:** Spelling & Blends (`SkillCategory.Spelling`)
-- **Mechanic:** View floating 3D toy letter blocks (e.g. `[C]` `[A]` `[T]`), speak the word.
-- **Animation:** Blocks magnetically slide together (`blocks-snapping`) and transform into an illustrated picture card.
-
-### 6. 🌸 Skill Garden (`/garden`)
-- Features **5 visual garden plants** (Letters Sunflower, Numbers Tulip, Rainbow Rose, Safari Vine, Word Tree).
-- Plants progress through **5 growth stages** (Seed $\to$ Sprout $\to$ Stem $\to$ Bud $\to$ Radiant Blossom) based on accuracy and stars.
-- Interactive **Watering Can** action showers animated SVG droplets with sparkle chimes.
-
-### 7. 📒 Sticker Book (`/stickers`) & 🏆 Trophy Shelf (`/trophies`)
-- **Sticker Book:** 24 collectible stickers across 4 album sheets (**Safari**, **Cosmic**, **Garden**, **Champions**) with tactile corner-peel animations.
-- **Trophy Shelf:** 3D wooden bookcase presenting 8 prestigious awards with celebration fanfare modals.
-
-### 8. 🛡️ Parent Gate & Parent Dashboard (`/parent`)
-- **Parent Gate:** Child-resistant verification requiring a **3-second hold** on an SVG progress ring or answering an adult math challenge.
-- **Parent Dashboard:** Standalone SVG horizontal mastery charts, daily session time bar charts, weak area learning recommendations, and session limit controls.
-
-### 9. 🌙 Screen Time Rest Break ("Voxie is Sleepy")
-- Configurable session limit (15m, 20m, 30m, 45m; default 20m).
-- Friendly rest break overlay showing sleepy Voxie in a nightcap with floating "Zzz" bubbles.
-
-### 10. ♿ Accessibility Controls
-- **Dyslexia-Friendly Font:** Increased letter tracking (`0.06em`), word spacing, and heavy baselines.
-- **High-Contrast Colorblind Mode:** 4px high-contrast outlines and clear text indicators.
-- **Speech Speed Control:** Adjusts TTS prompts from 0.6x to 1.3x.
-- **Volume & Mute:** Independent sliders for master sound effects and voice prompts.
+1. [🌟 Why Voxie Quest?](#-why-voxie-quest)
+2. [🎮 The 8 Quest Realms](#-the-8-quest-realms)
+3. [🎨 The Picture-Book Design System](#-the-picture-book-design-system)
+4. [🧠 Intelligent Adaptive Difficulty Engine](#-intelligent-adaptive-difficulty-engine)
+5. [🗣️ Childhood Phonological Speech Matcher](#️-childhood-phonological-speech-matcher)
+6. [🏫 Classroom Adventure & Group Mode](#-classroom-adventure--group-mode)
+7. [🌻 Safe Weekly Garden League & India Tour](#-safe-weekly-garden-league--india-tour)
+8. [🏛️ Software Architecture & Component Tree](#️-software-architecture--component-tree)
+9. [🚀 Quickstart Guide](#-quickstart-guide)
+   - [Visual Studio 2022 (Ctrl+F5)](#option-a-visual-studio-2022-f5--ctrlf5)
+   - [.NET 8 CLI](#option-b-net-8-cli)
+10. [🧪 Test Suite (163 Automated Unit Tests)](#-test-suite)
+11. [🌐 Production Deployment (Vercel & Netlify)](#-production-deployment-vercel--netlify)
+12. [🛡️ Privacy-First & Child-Safe Guarantee](#️-privacy-first--child-safe-guarantee)
 
 ---
 
-## 💻 Visual Studio 2022 Quickstart (Ctrl+F5)
+## 🌟 Why Voxie Quest?
 
-You can build, run, and debug Voxie Quest entirely inside **Visual Studio 2022** without command-line dependencies:
+Traditional educational software relies heavily on silent keyboard taps, repetitive mouse clicks, or high-friction logins. Young children learning to read and pronounce words often struggle with complex user interfaces or punitive "incorrect" alerts that induce anxiety.
 
-### Step 1: Open the Solution
-1. Launch **Visual Studio 2022** (v17.8 or newer with the **ASP.NET and web development** workload).
-2. Select **Open a project or solution**.
-3. Browse to the project folder:
-   ```
-   C:\Users\Nilesh gupta\.gemini\antigravity\scratch\VoxieQuest\VoxieQuest.sln
-   ```
-4. Click **Open**.
-
-### Step 2: Set Startup Project
-1. In the **Solution Explorer** pane (right side), locate `src/VoxieQuest.Web`.
-2. Right-click `VoxieQuest.Web` and select **Set as Startup Project**.
-   *(The project name will turn **bold**).*
-
-### Step 3: Run the Application
-1. In the top toolbar, ensure the launch target is set to **VoxieQuest.Web** or **https** / **http**.
-2. Press **`Ctrl + F5`** (*Debug > Start Without Debugging*).
-   - Visual Studio automatically restores NuGet packages, compiles the Blazor WASM binary, launches the local DevServer, and opens your default browser (Google Chrome or Microsoft Edge).
-
-### Step 4: Allow Microphone Access in Chrome / Edge
-1. When the game loads for the first time, your browser will display a permission prompt:
-   ```
-   "localhost:PORT wants to use your microphone" -> Click [Allow]
-   ```
-2. If accidentally dismissed or blocked:
-   - Click the **Tune / Lock icon** (`🔒` or `🎚️`) on the left side of Chrome's address bar.
-   - Set **Microphone** to **Allow**.
-   - Reload the page (`F5`).
-3. Click the **🎙️ Mic Calibration** pill in Voxie Quest's header to test speech detection.
+**Voxie Quest** reimagines educational play from first principles:
+- **Natural Voice-First Gameplay:** Children simply speak, roar, hum, or shout their answers. No typing required.
+- **Zero Glossy Emojis — 100% Picture-Book SVGs:** Hand-crafted illustration aesthetics featuring warm cream paper backgrounds (`#FFF8E7`), bold 4px navy outlines (`#2B2D42`), and tactile hard offset shadows (`5px 5px 0px #2B2D42`).
+- **Compassionate Pedagogy:** 3 progressive attempts per challenge. The word **"Wrong" is never displayed**. Instead, children receive encouraging nudges (*"Almost there! Listen closely!"*) and visual scaffolding.
+- **Client-Side Privacy:** Zero tracking cookies, zero ads, zero passwords, and zero third-party telemetry. All speech evaluation and progression data reside securely in browser storage.
 
 ---
 
-## 🧪 Running Unit Tests in Test Explorer
+## 🎮 The 8 Quest Realms
 
-Voxie Quest includes **113 xUnit tests** covering adaptive difficulty, speech matching, childhood phonology, curriculum JSON schema, session timers, and garden growth.
+Every game is built inside the unified `<GameShell>` architecture with responsive `100dvh` viewport management, dual-pane phone landscape support, and offline sound synthesis.
 
-### In Visual Studio 2022 GUI:
-1. Open the Test Explorer window:
-   - Menu: **Test > Test Explorer** (or press **`Ctrl + E, T`**).
-2. In the Test Explorer toolbar, click the **Run All Tests In View** button (green play icon `▶▶`, or press **`Ctrl + R, A`**).
-3. Test Explorer will discover and execute all 113 tests in `VoxieQuest.Tests`.
-4. All tests will display a green checkmark (`✔ 113 Passed`).
+| Realm | Skill Category | Age Band | Learning Objective & Core Interaction | Interactive Artwork & Animation |
+| :--- | :--- | :---: | :--- | :--- |
+| **1. 🚀 Letter Rocket** | `SkillCategory.Letters` | 5–7 | Phonics, alphabet letter identification, and initial sounds. Say the displayed letter clearly. | Scaling SVG rocket on launchpad; exhaust clouds billow with fiery plume blast-off into starry space. |
+| **2. 🐸 Number Jump** | `SkillCategory.Numbers` | 5–8 | Mental addition, counting, and numerical verbal fluency. Shout the sum to the math challenge. | Buoyant pond scene with animated green frog leaping across floating water lily pads into a sunny meadow. |
+| **3. 🎨 Color Splash** | `SkillCategory.Colors` | 4–7 | Color recognition, shade identification, and speech clarity. Speak the name of the vibrant pigment. | Smiling paint bucket pours vibrant watercolor splashes onto black-and-white drawings, bringing them alive. |
+| **4. 🦁 Animal Safari** | `SkillCategory.Animals` | 5–8 | Auditory discrimination and animal vocabulary. Listen to real calls; roar or speak the animal's name. | Shaking jungle grass reveals cartoon animals who hop onto Voxie's trailing expedition caravan wagon. |
+| **5. 🧱 Word Builder** | `SkillCategory.Spelling` | 6–9 | CVC words, phonics blends, and spelling pronunciation. Speak the word formed by letter tiles. | Floating 3D toy blocks magnetically snap together with wooden clacks to unlock an illustrated gift surprise. |
+| **6. 🔦 Team Light Quest** | `SkillCategory.Social` | 6–10 | Co-op collaboration, physics optics, and reflection angles. Speak *"Voxie, light the way!"* and rotate mirrors. | Hand-drawn sea scene with a wooden sailboat, rocky cliff, and striped lighthouse beaming golden light paths through fog. |
+| **7. ⚖️ Island Balance** | `SkillCategory.Numbers` | 6–10 | Physical balance, lever torque, and mathematical equivalence. Add fruit weights to level the beam. | Tilting palm-log seesaw on a sandy beach fulcrum; pops up a cheerful wooden flag and confetti when balanced. |
+| **8. 🌸 Mood Garden** | `SkillCategory.Storytelling`| 4–10 | Emotional self-regulation, somatic breath pacing, and calm. Hum *"Hooommm"* or breathe with the ring. | Storm clouds dissolve into a smiling morning sun; shivering baby fox wakes up, stretches, and blooms a lotus. |
 
-### Via Command Line (.NET CLI):
+---
+
+## 🎨 The Picture-Book Design System
+
+Voxie Quest adheres to a strict, accessible design token system defined in [`wwwroot/css/app.css`](file:///C:/Users/Nilesh%20gupta/.gemini/antigravity/scratch/VoxieQuest/src/VoxieQuest.Web/wwwroot/css/app.css) and showcased interactively at `/styleguide`:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   PICTURE-BOOK COLOR PALETTE                           │
+├─────────────┬─────────────┬─────────────┬─────────────┬────────────────┤
+│ Sunny Yellow│  Sky Blue   │    Coral    │ Mint Green  │  Soft Orange   │
+│   #FFC93C   │   #5BC0EB   │   #FF6B6B   │   #7ED9A8   │    #FF9F43     │
+├─────────────┴─────────────┴─────────────┴─────────────┴────────────────┤
+│   Cream Paper Background: #FFF8E7   │   Navy Ink Borders: #2B2D42      │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key UI Principles:
+- **Strict 4px Navy Outlines:** Every card, button, token, and illustration is bounded by `4px solid #2B2D42`.
+- **Hard Offset Shadows:** Flat, tactile offset shadows (`5px 5px 0 #2B2D42` and `8px 8px 0 #2B2D42`) that physically depress to `1px 1px 0` on tap.
+- **Zero Glossy Emojis:** Replaced 100% of platform emojis with bespoke, accessible SVG components (`<FoxieFaceIcon>`, `<StarIcon>`, `<SunIcon>`, `<LotusIcon>`, `<ScaleIcon>`, `<BeaconIcon>`, `<BackpackIcon>`, etc.).
+- **Tactile Bouncy Buttons:** Minimum **72px touch targets** (`min-height: 72px`) for children's developing motor skills, complete with Web Audio bubble-pop sound feedback.
+- **Accessibility Modes:** Native support for **Dyslexia Font** (increased tracking and bottom-heavy baselines), **Colorblind Textures** (stripes, dots, and diagonal hatch fills), and **Reduced Motion**.
+
+---
+
+## 🧠 Intelligent Adaptive Difficulty Engine
+
+The difficulty model (`IDifficultyService` & `IAdaptiveDifficultyService`) continuously analyzes player flow without making the child feel tested or discouraged:
+
+```mermaid
+flowchart TD
+    A[Child Answers Challenge] --> B{Speech Match?}
+    B -- Correct --> C[Add to Rolling Window]
+    B -- Miss --> D[Add Miss to Window]
+    C --> E{3 Correct in a row?}
+    E -- Yes --> F[Raise Micro-Level +2 to +5]
+    E -- No --> G[Maintain Current Tier]
+    D --> H{3 Misses in a row?}
+    H -- Yes --> I[Gentle Step Down: Max 1 Tier per Session]
+    H -- No --> J[Provide Silent Scaffolding Hint]
+    F --> K[Target Flow Zone: 70%–80% Success Rate]
+    I --> K
+```
+
+- **Hidden Micro-Level (1–100):** Adjusts numerical bounds, word complexity, letter pools, and timer thresholds smoothly under the hood.
+- **Child-Friendly Tier Labels:** Children only see encouraging botanical stages:
+  - 🌱 **Seedling** (Foundational)
+  - 🌿 **Sapling** (Intermediate)
+  - 🌳 **Big Tree** (Mastery)
+- **Zero Code-Tuning:** All tier parameters are externalized in JSON files located in `wwwroot/data/difficulty/*.json`.
+
+---
+
+## 🗣️ Childhood Phonological Speech Matcher
+
+Young children frequently exhibit normal developmental speech variations (e.g. saying *"wabbit"* for *"rabbit"* or *"fip"* for *"ship"*). Standard speech engines fail them.
+
+Voxie Quest's C# engine (`SpeechMatcher.cs`) applies **developmental phonological transforms**:
+1. **Liquid Gliding:** Normalizes `/r/` and `/l/` $\to$ `/w/` and `/j/` (*"wed"* $\to$ *"red"*).
+2. **Velar Fronting:** Handles `/k/` and `/g/` $\to$ `/t/` and `/d/` (*"tootie"* $\to$ *"cookie"*).
+3. **Stopping of Fricatives:** Compares `/s/`, `/sh/`, `/th/` variations (*"sun"* $\to$ *"tun"*).
+4. **Phonetic Distance:** Combines Soundex, Metaphone, and normalized Levenshtein distance metrics to reward effort over adult-like articulation.
+
+---
+
+## 🏫 Classroom Adventure & Group Mode
+
+Accessible via `/classroom` for teachers and homeschooling pods:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nileshkrishesh/VoxieQuest/main/assets_70_30/slide_08_classroom.png" alt="Classroom Mode UI" width="650" style="border-radius: 20px; border: 4px solid #2B2D42;" />
+</p>
+
+- **64px Touch-Friendly Join Box:** Children type the 6-character room code from the blackboard into a large, centered input (`OAK-742`) with an aligned `BouncyButton`.
+- **Ephemeral In-Memory Pods:** All student state exists in-memory during class time and auto-destructs after 60 minutes.
+- **Zero Student Accounts:** No emails, no student rosters stored, and no tracking.
+- **Class Circle Discussion Cards:** Built-in reflection cards for teachers to guide post-game group debriefs.
+
+---
+
+## 🌻 Safe Weekly Garden League & India Tour
+
+### Weekly Garden League (`/league`)
+- **Safety Rule:** Children are **never ranked against strangers**. Leagues exist exclusively within private family rooms or pre-approved teacher codes.
+- **Safe Display Names:** Auto-generated child-friendly names from curated word lists (*"Brave Panda"*, *"Sunny Otter"*).
+- **Effort-Based Scoring:** Points are awarded for completing rounds, practicing daily streaks, and trying hints.
+- **Daily 150-Point Rest Cap:** Prevents addictive screen pressure by encouraging healthy rest once the cap is achieved.
+- **Under 13 Protection:** Children see only the top 5 friends, star growth, and team flower baskets—never last place.
+
+### Voxie Across India (`/india-map`)
+- Interactive exploration map featuring all Indian states and union territories.
+- Each state unlocks a cultural fun fact and landmark sticker (e.g. Punjab: Golden Temple, Rajasthan: Camel Caravan, Kerala: Backwater Boat).
+- 100% static exploration mode with optional parent-gated anonymous presence aggregation (DPDP Act 2023 compliant).
+
+---
+
+## 🏛️ Software Architecture & Component Tree
+
+```
+VoxieQuest.sln
+│
+├── 📁 src/VoxieQuest.Web/               # Blazor WebAssembly Standalone (.NET 8)
+│   ├── 📁 Components/                  # Reusable Picture-Book UI Layer
+│   │   ├── 📁 Icons/                   # Flat inline SVGs (Sun, Star, Mic, Backpack...)
+│   │   ├── BouncyButton.razor          # Squishy 72px tactile action button
+│   │   ├── GameShell.razor             # Unified 100dvh layout stage
+│   │   ├── GameHeader.razor            # Compact 10-seed sprouting stepper & back nav
+│   │   ├── QuestionCard.razor          # Paper-cut card with speech bubble & Mascot
+│   │   ├── MicButton.razor             # 96px mic sphere with live audio volume rings
+│   │   ├── AnswerChips.razor           # 2x2 touch practice buttons
+│   │   ├── FeedbackBurst.razor         # Gentle confetti or wobble encouragement
+│   │   ├── LevelMap.razor              # 4-zone winding trail of stepping stones
+│   │   ├── EmptyState.razor            # Friendly no-data state
+│   │   └── ErrorBoundaryScreen.razor   # Child-safe recovery screen
+│   │
+│   ├── 📁 Pages/                       # Routing Views
+│   │   ├── Home.razor                  # Waving Voxie, daily goal, quick-play cards
+│   │   ├── GameSelect.razor            # 8 chunky quest cards in 2-column grid
+│   │   ├── ClassroomMode.razor         # Student room joiner & teacher station
+│   │   ├── SkillGarden.razor           # 6 botanical skill plots & watering can
+│   │   ├── StickerBook.razor           # Spiral album with corner-peel stickers
+│   │   ├── LeaguePage.razor            # Weekly team garden league
+│   │   ├── Profile.razor               # 6 animal avatar pickers & name generator
+│   │   ├── ParentDashboard.razor       # Math-gated parental controls & DPDP notice
+│   │   ├── StyleGuide.razor            # Interactive design system token catalog
+│   │   └── 📁 Games/                   # The 8 individual game realms
+│   │
+│   ├── 📁 Services/                    # Pure C# Business Logic & Injected Services
+│   │   ├── SpeechMatcher.cs            # Childhood phonological fuzzy matcher
+│   │   ├── VoiceManager.cs             # Speech recognition & synthesis bridge
+│   │   ├── DifficultyService.cs        # Adaptive micro-level (1-100) engine
+│   │   ├── ProgressService.cs          # Local profile & mastery persistence
+│   │   ├── ClassroomService.cs         # Ephemeral room code coordination
+│   │   ├── StreakService.cs            # Daily streak & flame tracking
+│   │   └── WeeklyLeagueService.cs      # Team garden scoring & daily caps
+│   │
+│   └── 📁 wwwroot/                     # Static Web Assets
+│       ├── 📁 css/                     # app.css (tokens, typography, animations)
+│       ├── 📁 fonts/                   # Offline local Fredoka & Nunito fonts
+│       └── 📁 js/                      # voxieInterop.js (Speech, Web Audio API)
+│
+└── 📁 tests/VoxieQuest.Tests/          # Automated xUnit Test Suite (163 tests)
+```
+
+---
+
+## 🚀 Quickstart Guide
+
+### Option A: Visual Studio 2022 (F5 / Ctrl+F5)
+
+1. **Prerequisites:** Visual Studio 2022 (v17.8+) with the **ASP.NET and web development** workload.
+2. Open `VoxieQuest.sln`.
+3. In **Solution Explorer**, right-click `src/VoxieQuest.Web` and select **Set as Startup Project**.
+4. Press **`Ctrl + F5`** (Start Without Debugging).
+5. Visual Studio will restore packages, compile the Blazor WASM binary, launch the local server, and open your browser at `https://localhost:port`.
+6. When prompted, click **Allow** on the microphone permission dialog.
+
+### Option B: .NET 8 CLI
+
 ```bash
-dotnet test VoxieQuest.sln
+# 1. Clone the repository
+git clone https://github.com/nileshkrishesh/VoxieQuest.git
+cd VoxieQuest
+
+# 2. Restore and Build
+dotnet build src/VoxieQuest.Web/VoxieQuest.Web.csproj
+
+# 3. Run the Web App
+dotnet run --project src/VoxieQuest.Web/VoxieQuest.Web.csproj
 ```
+
+Open your browser and navigate to `http://localhost:5000` or `https://localhost:5001`.
 
 ---
 
-## 🚀 Publishing & Free Hosting (GitHub Pages & Netlify)
+## 🧪 Test Suite
 
-Because Voxie Quest is a standalone static WebAssembly application with zero backend databases or server-side code, it can be hosted for free on **GitHub Pages**, **Netlify**, **Cloudflare Pages**, or **Vercel**.
+The solution contains a comprehensive suite of **163 automated unit tests** covering speech recognition, difficulty curves, childhood phonology transforms, scoring algorithms, and security boundaries:
 
-### Step 1: Publish to a Local Folder in Visual Studio
-1. In Visual Studio, right-click `VoxieQuest.Web` in Solution Explorer $\to$ select **Publish...**
-2. In the Publish wizard:
-   - **Target:** `Folder` $\to$ click **Next**.
-   - **Specific Target:** `Folder` $\to$ click **Next**.
-   - **Folder Location:** Choose an output folder (e.g. `bin\Release\net8.0\publish\`) $\to$ click **Finish**.
-3. Click the **Publish** button.
-4. The output static files are generated in the `publish\wwwroot\` folder:
-   - `index.html`, `_framework/`, `css/`, `js/`, `fonts/`, `data/`, `favicon.png`.
-
----
-
-### Option A: Free Hosting on GitHub Pages
-
-GitHub Pages serves static sites from a repository branch.
-
-#### 1. Adjust Base Href in `index.html`
-In GitHub Pages, repositories are typically hosted at `https://<username>.github.io/<repository-name>/`.
-Open `publish/wwwroot/index.html` and change:
-```html
-<!-- Default localhost base: -->
-<base href="/" />
-
-<!-- Change to your GitHub repository name: -->
-<base href="/VoxieQuest/" />
-```
-
-#### 2. Add `.nojekyll` File
-GitHub Pages uses Jekyll by default, which ignores folders starting with an underscore (such as `_framework/` where Blazor WASM binaries live).
-Create an empty file named `.nojekyll` inside `publish/wwwroot/`:
 ```bash
-# In PowerShell:
-New-Item -ItemType File "publish/wwwroot/.nojekyll"
+dotnet test tests/VoxieQuest.Tests/VoxieQuest.Tests.csproj
 ```
 
-#### 3. Single Page App (SPA) Routing Trick (`404.html`)
-To prevent 404 errors when a user refreshes on routes like `/games` or `/garden`, copy `index.html` as `404.html`:
-```bash
-# In PowerShell:
-Copy-Item "publish/wwwroot/index.html" "publish/wwwroot/404.html"
-```
-
-#### 4. Push to `gh-pages` Branch
-Push the contents of `publish/wwwroot/` to your `gh-pages` branch. Under GitHub repository **Settings > Pages**, select the `gh-pages` branch as source.
-
----
-
-### Option B: Free Hosting on Netlify
-
-Netlify provides instant drag-and-drop or Git-based hosting for Blazor WebAssembly.
-
-#### 1. Add Single Page App Redirects File (`_redirects`)
-Create a plain text file named `_redirects` inside `wwwroot/`:
+### Verified Test Output:
 ```text
-/*    /index.html   200
+Passed!  - Failed: 0, Passed: 163, Skipped: 0, Total: 163, Duration: 510 ms - VoxieQuest.Tests.dll (net8.0)
 ```
 
-#### 2. Deploy
-- **Drag-and-Drop:** Log into [Netlify](https://app.netlify.com/), go to **Sites**, and drag the `publish/wwwroot` folder into the upload dropzone.
-- **Git Continuous Deployment:**
-  - Build command: `dotnet publish -c Release`
-  - Publish directory: `src/VoxieQuest.Web/bin/Release/net8.0/publish/wwwroot`
+---
+
+## 🌐 Production Deployment (Vercel & Netlify)
+
+Because Voxie Quest is a standalone client-side WebAssembly application, it deploys cleanly to any static CDN host:
+
+### Publish Release Artifacts:
+```bash
+dotnet publish src/VoxieQuest.Web/VoxieQuest.Web.csproj -c Release -o publish
+```
+
+### Vercel Deployment Configuration (`vercel.json`):
+```json
+{
+  "outputDirectory": "publish/wwwroot",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
 
 ---
 
-## 🎨 Curated Free Asset & Sound Resources
+## 🛡️ Privacy-First & Child-Safe Guarantee
 
-All visual assets and audio in Voxie Quest are designed to adhere to a warm, hand-drawn children's storybook aesthetic. Here are recommended free (CC0 / OFL / Royalty-Free) sources for expanding the art and audio:
+Voxie Quest was engineered in strict compliance with the **Children's Online Privacy Protection Act (COPPA)** and India's **Digital Personal Data Protection Act (DPDP Act 2023)**:
 
-### 1. Typography & Hand-Drawn Fonts (Open Font License)
-- **[Fredoka](https://fonts.google.com/specimen/Fredoka)** *(Included locally in `wwwroot/fonts/`)*: Warm, rounded geometric sans-serif designed for children's literature.
-- **[Nunito](https://fonts.google.com/specimen/Nunito)** *(Included locally in `wwwroot/fonts/`)*: Soft, well-balanced rounded terminal display typeface.
-- **[OpenDyslexic](https://opendyslexic.org/)**: Open-source typeface with weighted bottoms designed to mitigate dyslexia symptoms.
-- **[Sniglet](https://fonts.google.com/specimen/Sniglet)**: Playful rounded headline font suitable for storybooks.
-
-### 2. Hand-Drawn Vector & SVG Illustrations (CC0 & Permissive)
-- **[Kenney Game Assets](https://kenney.nl/assets)**: Over 40,000 CC0 public domain game assets, including cartoon animals, space rockets, and UI blocks.
-- **[OpenGameArt.org](https://opengameart.org/)**: Community-driven 2D hand-drawn sprites, cartoon creatures, and picture book backgrounds.
-- **[SVGRepo](https://www.svgrepo.com/)**: Clean, scalable SVG icons and illustrations with MIT / CC0 licensing.
-- **[unDraw](https://undraw.co/)**: Open-source vector illustrations easily customizable with Voxie Quest's color tokens.
-
-### 3. Sound Effects & Child-Friendly Audio (CC0 / Creative Commons)
-- **Web Audio API Procedural Synthesis:** Built into `wwwroot/js/voxieInterop.js` — zero-file procedural synthesizer generating wooden clicks, bubble pops, joyful chimes, animal calls, and brass fanfares.
-- **[Freesound.org](https://freesound.org/)**: High-quality CC0 samples of animal sounds (farm animals, birds, zoo calls) and playful toy percussion.
-- **[Sonniss GDC Game Audio Archives](https://sonniss.com/gameaudioarchive)**: Annual commercial-grade royalty-free sound effects packs.
-- **[Kenney Audio Packs](https://kenney.nl/assets/category:Audio)**: Whimsical interface clicks, positive chimes, fanfare melodies, and cartoon boings.
+- 🚫 **Zero Third-Party Ads or Popups**
+- 🚫 **Zero Tracking Pixels or Remote Telemetry**
+- 🚫 **Zero Social Media Plugins**
+- 🚫 **Zero Account Registration or Passwords Required**
+- 🔒 **100% Local Storage:** Child names, avatars, stars, and speech records never leave the local device.
+- 🛡️ **Math-Gated Parent Dashboard:** Settings, screen-time rest limits, and data deletion controls are secured behind an adult verification gate.
 
 ---
 
-## 🔍 Assumptions & Known Browser Limits
-
-### 1. Web Speech API Support
-- **Best Browsers:** Google Chrome, Microsoft Edge, and Apple Safari (desktop and iOS) provide full, native hardware-accelerated Web Speech API support.
-- **Mozilla Firefox:** Firefox disables the Web Speech API by default. If using Firefox, enable `media.webspeech.recognition.enable` in `about:config`, or use the built-in Practice Mode fallback buttons.
-- **Secure Context Required:** Modern browsers require `https://` or `localhost` / `127.0.0.1` to access speech recognition and the microphone.
-
-### 2. Microphone Permissions & Autoplay Audio Policies
-- Browsers enforce an autoplay security policy: Web Audio `AudioContext` starts in a suspended state until the user interacts with the page (e.g. clicking *"Play Adventure"*, *"Water Plants"*, or tapping the microphone). Voxie Quest handles this by resuming audio on the first user interaction.
-- The child must approve the one-time browser microphone prompt.
-
-### 3. Storage Limits & Privacy
-- Progress is stored in browser `localStorage`.
-- Storage quota for `localStorage` across modern browsers is approximately **5MB to 10MB**, which is more than enough for thousands of child profiles and records.
-- Clearing browser cache/cookies will reset local profiles unless exported.
-
-### 4. Vosk Offline Recognition Fallback
-- An offline Vosk-WASM fallback bridge is prepared in `wwwroot/js/voskInterop.js`. Loading full offline neural models requires downloading model weights (`~40MB`), so native browser Web Speech is prioritized for fast loading.
-
----
-
-## 🛡️ Child-Safe Guarantee
-
-Voxie Quest was engineered strictly under **COPPA** (Children's Online Privacy Protection Act) best practices:
-- **Zero Third-Party Advertising:** No banner ads, interstitial popups, or sponsored links.
-- **Zero Analytics SDKs & Telemetry:** No Google Analytics, Meta Pixel, tracking pixels, or remote telemetry servers.
-- **Zero Account Creation:** No passwords, email addresses, phone numbers, or social logins collected.
-- **Zero External Navigation:** Children cannot be directed outside the application boundaries.
-- **Local-Only Persistence:** Child profiles, star counts, and accuracy metrics never leave the user's private browser storage.
-
----
-
-*Voxie Quest — Created with ❤️ for young learners everywhere.*
+<p align="center">
+  <strong>VOXIE QUEST</strong> • <em>Speak, Play, Learn!</em><br />
+  Designed with ❤️ for curious young minds everywhere.
+</p>
