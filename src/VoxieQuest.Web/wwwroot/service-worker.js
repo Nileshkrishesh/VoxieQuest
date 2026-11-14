@@ -1,7 +1,7 @@
 // VOXIE QUEST - Offline Service Worker (PWA)
 // Enables offline play, caching of Blazor WebAssembly assets, and versioned updates
 
-const CACHE_NAME = 'voxie-quest-v1.0.0';
+const CACHE_NAME = 'voxie-quest-v2.5.0-all-games';
 
 const PRECACHE_ASSETS = [
     './',
@@ -9,11 +9,11 @@ const PRECACHE_ASSETS = [
     'favicon.png',
     'icon-192.png',
     'manifest.json',
-    'css/app.css?v=2.2',
-    'css/storybook.css?v=2.2',
-    'js/voxieInterop.js?v=2.2',
-    'js/voice.js?v=2.2',
-    'js/voskInterop.js?v=2.2'
+    'css/app.css?v=2.5',
+    'css/storybook.css?v=2.5',
+    'js/voxieInterop.js?v=2.5',
+    'js/voice.js?v=2.5',
+    'js/voskInterop.js?v=2.5'
 ];
 
 // Install: Pre-cache application shell assets

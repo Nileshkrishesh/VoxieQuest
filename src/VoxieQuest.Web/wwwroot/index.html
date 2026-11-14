@@ -35,16 +35,16 @@
     </div>
 
     <!-- Thin JavaScript interop bridges for Voice, Audio Analyser, and Storage -->
-    <script src="js/voxieInterop.js?v=2.2"></script>
-    <script src="js/voice.js?v=2.2"></script>
-    <script src="js/voskInterop.js?v=2.2"></script>
+    <script src="js/voxieInterop.js?v=2.5"></script>
+    <script src="js/voice.js?v=2.5"></script>
+    <script src="js/voskInterop.js?v=2.5"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 
     <!-- PWA Offline Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('service-worker.js')
+                navigator.serviceWorker.register('service-worker.js?v=2.5')
                     .then(function (reg) {
                         console.log('[VoxiePWA] Service Worker registered with scope:', reg.scope);
                         reg.onupdatefound = function () {
