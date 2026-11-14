@@ -1,5 +1,6 @@
 @inject IStreakService StreakService
 @inject IAccessibilityService Accessibility
+@inject IJSRuntime JS
 @implements IDisposable
 
 <div class="streak-calendar-wrapper">
@@ -32,11 +33,12 @@
     }
 
     <!-- 12-Week Horizontal Scrollable SVG Calendar -->
-    <div class="calendar-scroll-pane">
+    <div class="calendar-scroll-pane" @ref="scrollPaneRef">
         <svg class="streak-calendar-svg" 
              viewBox="0 0 @SvgWidth @SvgHeight" 
              width="@SvgWidth" 
              height="@SvgHeight"
+             preserveAspectRatio="xMidYMid meet"
              xmlns="http://www.w3.org/2000/svg">
             
             <defs>
@@ -206,7 +208,20 @@
     .streak-calendar-svg {
         display: block;
         max-width: 100%;
-        min-width: 380px;
+        min-width: 360px;
+        height: auto;
+    }
+
+    @@media (min-width: 768px) {
+        .streak-calendar-svg {
+            min-width: 480px;
+        }
+    }
+
+    @@media (min-width: 1024px) {
+        .streak-calendar-svg {
+            min-width: 540px;
+        }
     }
 
     .cal-weekday-label {
@@ -304,12 +319,28 @@
     private static readonly string[] WeekdayInitials = { "M", "T", "W", "T", "F", "S", "S" };
     private List<StreakWeekColumn> weeks = new();
     private StreakDayInfo? selectedDay;
+    private ElementReference scrollPaneRef;
 
     protected override void OnInitialized()
     {
         StreakService.OnStreakUpdated += HandleUpdated;
         Accessibility.OnSettingsChanged += HandleUpdated;
         ReloadWeeks();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "let el = document.querySelector('.calendar-scroll-pane'); if (el) { el.scrollLeft = el.scrollWidth; }");
+            }
+            catch
+            {
+                // Fallback gracefully
+            }
+        }
     }
 
     private void ReloadWeeks()

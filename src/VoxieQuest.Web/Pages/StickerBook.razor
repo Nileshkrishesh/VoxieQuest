@@ -278,11 +278,15 @@
     .sticker-showcase-card {
         background: white;
         max-width: 380px;
+        max-height: 90dvh;
+        overflow-y: auto;
         width: 100%;
         text-align: center;
-        padding: 2rem 1.5rem;
-        border: 5px solid var(--color-storybook-ink);
-        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        padding: clamp(1.25rem, 3vw, 2rem) 1.25rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-chunky-lg);
+        box-sizing: border-box;
     }
 
     .sticker-huge-bounce {

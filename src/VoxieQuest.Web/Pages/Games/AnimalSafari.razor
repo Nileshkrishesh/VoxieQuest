@@ -7,14 +7,14 @@
 
     <!-- Top HUD: Round 1 to 10 Stepper & Star Counter -->
     <div class="storybook-card game-hud-card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button class="pill" @onclick="ReturnToMapAsync" type="button">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
                 <span>◀ Map</span>
             </button>
-            <h3 style="margin:0; font-size:1.4rem; color:var(--color-mint); text-shadow:0 1px 0 #fff;">
+            <h3 class="hud-game-title">
                 🦁 @GameTitle
             </h3>
-            <div class="star-badge">
+            <div class="star-badge hud-star-badge">
                 <span>⭐</span>
                 <span>@SessionStars</span>
             </div>
@@ -38,22 +38,24 @@
         <!-- Main Safari Expedition Stage -->
         <div class="storybook-card safari-stage">
             <!-- Voxie Safari Guide & Speech Bubble -->
-            <div class="mascot-stage" style="justify-content:center; position:relative; margin-bottom:1rem;">
-                <Mascot State="@MascotState" Width="120" Height="120" />
-                <StarBurst IsActive="@ShowStarBurst" />
+            <div class="mascot-stage">
+                <div class="mascot-avatar-box">
+                    <Mascot State="@MascotState" Width="100" Height="100" />
+                    <StarBurst IsActive="@ShowStarBurst" />
+                </div>
 
-                <div class="speech-bubble" style="max-width:460px;">
-                    <span style="font-size:1.25rem;">@ActiveChallenge.Prompt</span>
-                    <div style="margin-top:0.4rem; display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center;">
-                        <button class="pill" @onclick="PlayCurrentAnimalSoundAsync" type="button" style="font-size:0.9rem; background:var(--color-sunny-yellow);">
+                <div class="speech-bubble prompt-bubble">
+                    <span class="prompt-text">@ActiveChallenge.Prompt</span>
+                    <div class="prompt-actions-row">
+                        <button class="pill prompt-pill-btn" @onclick="PlayCurrentAnimalSoundAsync" type="button" style="background:var(--color-sunny-yellow);">
                             <span>🔊 Listen to Sound</span>
                         </button>
-                        <button class="pill" @onclick="RepeatPromptAloudAsync" type="button" style="font-size:0.9rem;">
+                        <button class="pill prompt-pill-btn" @onclick="RepeatPromptAloudAsync" type="button">
                             <span>🗣️ Repeat Prompt</span>
                         </button>
                         @if (AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))
                         {
-                            <span class="pill" style="background:#FFE5EC; color:var(--color-coral); border-color:var(--color-coral); font-size:0.85rem;">
+                            <span class="pill hint-pill">
                                 💡 @ActiveChallenge.Hint
                             </span>
                         }
@@ -84,7 +86,7 @@
                     {
                         <!-- Mysterious Rustling Jungle Bush with sound waves -->
                         <div class="jungle-bush-container @(isListeningToAudio ? "bush-listening-glow" : "")" @onclick="PlayCurrentAnimalSoundAsync" title="Click to hear sound!">
-                            <svg width="220" height="150" viewBox="0 0 220 150" fill="none" class="jungle-bush-svg @(isRustling ? "bush-shake" : "bush-idle")">
+                            <svg class="jungle-bush-svg @(isRustling ? "bush-shake" : "bush-idle")" viewBox="0 0 220 150" preserveAspectRatio="xMidYMid meet" fill="none">
                                 <!-- Sound Waves radiating from bush -->
                                 @if (isListeningToAudio)
                                 {
@@ -129,7 +131,7 @@
                 <div class="safari-caravan-strip">
                     <!-- Voxie's Expedition Jeep -->
                     <div class="safari-jeep-wrapper">
-                        <svg width="170" height="95" viewBox="0 0 170 95" fill="none">
+                        <svg class="safari-jeep-svg" viewBox="0 0 170 95" preserveAspectRatio="xMidYMid meet" fill="none">
                             <!-- Jeep Body -->
                             <rect x="25" y="32" width="120" height="36" rx="10" fill="#FFD166" stroke="#2B2D42" stroke-width="4"/>
                             <!-- Jungle camouflage stripes -->
@@ -183,17 +185,17 @@
                 </div>
             </div>
 
-            <!-- Speech Feedback Area (Never 'Wrong'!) -->
-            <div style="min-height:50px; margin: 0.6rem 0;">
+            <!-- Speech Feedback Area -->
+            <div class="feedback-container">
                 @if (!string.IsNullOrWhiteSpace(LastTranscript))
                 {
-                    <div class="pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)"); font-size:1.15rem;">
+                    <div class="pill feedback-pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)");">
                         @(LastAnswerSuccess ? "🌟 Hooray! You said: " : "👂 You said: ") "@LastTranscript"
                     </div>
                 }
                 @if (!string.IsNullOrWhiteSpace(AttemptState.FeedbackMessage))
                 {
-                    <div style="color:var(--color-coral); font-family:var(--font-heading); font-weight:700; font-size:1.1rem; margin-top:0.35rem;">
+                    <div class="feedback-msg">
                         @AttemptState.FeedbackMessage
                     </div>
                 }
@@ -207,13 +209,13 @@
             }
             else
             {
-                <div style="margin: 0.4rem 0;">
+                <div class="mic-thumb-reach">
                     <MicCharacter VolumeLevel="@CurrentVolume" IsListening="@VoiceManager.IsListening" OnClick="ToggleListeningAsync" />
                 </div>
             }
 
-            <div style="margin-top:0.75rem; display:flex; justify-content:center; gap:0.75rem;">
-                <button class="pill" @onclick="SkipRoundAsync" type="button" style="opacity:0.85;">
+            <div class="skip-action-row">
+                <button class="pill skip-btn" @onclick="SkipRoundAsync" type="button">
                     <span>Next Animal ➔</span>
                 </button>
             </div>
@@ -232,36 +234,71 @@
     .game-viewport {
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
         max-width: 780px;
         margin: 0 auto;
         position: relative;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .game-hud-card {
-        padding: 0.85rem 1.4rem;
+        padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(0.75rem, 2vw, 1.4rem);
         background: rgba(255, 253, 247, 0.95);
+        border: var(--border-ink-thick);
+        box-shadow: var(--shadow-chunky-sm);
+        border-radius: var(--border-radius-md);
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .hud-back-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        padding: 0.35rem 0.85rem;
+        font-weight: 800;
+        touch-action: manipulation;
+    }
+
+    .hud-game-title {
+        margin: 0;
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+        color: var(--color-mint);
+        text-align: center;
+        text-shadow: 1px 1px 0 var(--color-storybook-ink);
+    }
+
+    .hud-star-badge {
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        padding: 0.35rem 0.85rem;
+        min-height: 40px;
     }
 
     .round-stepper {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
+        gap: clamp(0.2rem, 1vw, 0.5rem);
         margin-top: 0.6rem;
+        flex-wrap: wrap;
     }
 
     .round-dot {
-        width: 32px;
-        height: 32px;
+        width: clamp(26px, 5vw, 32px);
+        height: clamp(26px, 5vw, 32px);
         border-radius: 50%;
-        border: 2.5px solid var(--color-storybook-ink);
+        border: 2px solid var(--color-storybook-ink);
         background: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: var(--font-heading);
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: clamp(0.72rem, 1.8vw, 0.85rem);
         color: var(--color-storybook-ink);
     }
 
@@ -273,27 +310,87 @@
     .round-dot.current {
         background: var(--color-sunny-yellow);
         transform: scale(1.15);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
     }
 
     .safari-stage {
         text-align: center;
         background: var(--color-cream-paper);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-chunky-md);
+        padding: clamp(0.75rem, 2vw, 1.5rem);
         overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .mascot-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(0.5rem, 2vw, 1rem);
+        position: relative;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .mascot-avatar-box {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .prompt-bubble {
+        max-width: 460px;
+        flex: 1 1 240px;
+    }
+
+    .prompt-text {
+        font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+        font-weight: 800;
+        display: block;
+        line-height: 1.35;
+    }
+
+    .prompt-actions-row {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .prompt-pill-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        font-size: 0.88rem;
+        touch-action: manipulation;
+    }
+
+    .hint-pill {
+        background: #FFE5EC;
+        color: var(--color-coral);
+        border-color: var(--color-coral);
+        font-size: 0.88rem;
+        min-height: var(--tap-min);
+        display: inline-flex;
+        align-items: center;
     }
 
     .safari-arena {
         position: relative;
-        min-height: 280px;
+        min-height: clamp(230px, 32vh, 290px);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
-        padding: 0.5rem 0;
+        padding: clamp(0.4rem, 1.5vw, 0.75rem) 0;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .encounter-zone {
-        min-height: 165px;
+        min-height: 150px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -306,14 +403,22 @@
         flex-direction: column;
         align-items: center;
         transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        touch-action: manipulation;
+        max-width: 220px;
+        width: 100%;
     }
 
-    .jungle-bush-container:hover {
-        transform: scale(1.04);
+    @@media (hover: hover) and (pointer: fine) {
+        .jungle-bush-container:hover {
+            transform: scale(1.04);
+        }
     }
 
     .jungle-bush-svg {
         filter: drop-shadow(0 6px 0 rgba(43, 45, 66, 0.15));
+        width: 100%;
+        height: auto;
+        display: block;
     }
 
     .bush-idle {
@@ -332,7 +437,7 @@
         margin-top: 0.25rem;
         background: white;
         padding: 0.25rem 0.85rem;
-        border-radius: 999px;
+        border-radius: var(--border-radius-pill);
         font-size: 0.85rem;
         font-weight: 700;
         color: var(--color-storybook-ink);
@@ -349,18 +454,19 @@
         flex-direction: column;
         align-items: center;
         background: white;
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 24px;
-        padding: 1rem 1.8rem;
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.8rem);
+        box-shadow: var(--shadow-chunky-md);
+        max-width: 90%;
     }
 
     .animal-avatar-halo {
-        width: 90px;
-        height: 90px;
+        width: clamp(70px, 15vw, 90px);
+        height: clamp(70px, 15vw, 90px);
         border-radius: 50%;
         background: #FEF3C7;
-        border: 3.5px solid var(--color-storybook-ink);
+        border: 3px solid var(--color-storybook-ink);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -368,13 +474,13 @@
     }
 
     .animal-emoji-large {
-        font-size: 3.8rem;
+        font-size: clamp(2.8rem, 8vw, 3.8rem);
         line-height: 1;
     }
 
     .animal-discovered-name {
         font-family: var(--font-heading);
-        font-size: 1.6rem;
+        font-size: clamp(1.2rem, 3vw, 1.6rem);
         font-weight: 800;
         color: var(--color-storybook-ink);
         margin-top: 0.4rem;
@@ -385,21 +491,30 @@
         animation: animal-pop-jump 0.7s var(--spring-bounce) forwards;
     }
 
-    /* Safari Caravan Strip */
     .safari-caravan-strip {
         display: flex;
         align-items: flex-end;
         width: 100%;
         overflow-x: auto;
-        padding: 0.5rem 0.5rem 0.2rem 0.5rem;
+        padding: 0.5rem 0.5rem 0.35rem 0.5rem;
         border-bottom: 3.5px dashed #CBD5E1;
         gap: 0.75rem;
         scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
     }
 
     .safari-jeep-wrapper {
         flex-shrink: 0;
+        max-width: 170px;
+        width: 40%;
         animation: jeep-rumble 0.6s ease-in-out infinite alternate;
+    }
+
+    .safari-jeep-svg {
+        width: 100%;
+        height: auto;
+        display: block;
     }
 
     .safari-wagons-tray {
@@ -407,14 +522,14 @@
         align-items: flex-end;
         gap: 0.6rem;
         flex-grow: 1;
-        min-height: 75px;
+        min-height: 70px;
     }
 
     .empty-caravan-hint {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         font-style: italic;
         color: #64748B;
-        padding-bottom: 0.8rem;
+        padding-bottom: 0.6rem;
     }
 
     .caravan-wagon {
@@ -428,7 +543,7 @@
         width: 52px;
         height: 44px;
         background: #DCFCE7;
-        border: 3px solid var(--color-storybook-ink);
+        border: 2.5px solid var(--color-storybook-ink);
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -454,6 +569,50 @@
         animation: wagon-hop 0.5s var(--spring-bounce);
     }
 
+    .feedback-container {
+        min-height: 48px;
+        margin: 0.5rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .feedback-pill {
+        font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+        max-width: 100%;
+    }
+
+    .feedback-msg {
+        color: var(--color-coral);
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-top: 0.3rem;
+    }
+
+    .mic-thumb-reach {
+        margin: 0.6rem 0;
+        display: flex;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+
+    .skip-action-row {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .skip-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        font-size: 0.95rem;
+        opacity: 0.9;
+        touch-action: manipulation;
+    }
+
     @@keyframes gentle-sway {
         0% { transform: rotate(-2deg); }
         100% { transform: rotate(2deg); }
@@ -476,6 +635,40 @@
         60% { transform: scale(1.15) translateY(-15px); opacity: 1; }
         80% { transform: scale(0.95) translateY(4px); }
         100% { transform: scale(1) translateY(0); }
+    }
+
+    @@keyframes jeep-rumble {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-2px); }
+    }
+
+    @@keyframes wagon-hop {
+        0% { transform: scale(0.2) translateY(20px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    /* Landscape Phones (max-height: 500px) */
+    @@media (max-height: 500px) {
+        .game-viewport {
+            gap: 0.5rem;
+        }
+
+        .mascot-stage {
+            flex-direction: row;
+            margin-bottom: 0.35rem;
+        }
+
+        .safari-arena {
+            min-height: 180px;
+        }
+
+        .encounter-zone {
+            min-height: 100px;
+        }
+
+        .prompt-text {
+            font-size: 1rem;
+        }
     }
 
     @@keyframes jeep-rumble {

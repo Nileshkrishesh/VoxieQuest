@@ -8,21 +8,19 @@
 @implements IDisposable
 
 <div class="home-container">
-    <!-- Top Welcome Hero Card -->
+    <!-- Top Welcome Hero Card (Stacks vertically on phone: Voxie -> bubble -> mic; side by side on laptop) -->
     <div class="storybook-card hero-welcome-card">
         <div class="hero-flex">
-            <!-- Animated Voxie Mascot -->
+            <!-- 1. Animated Voxie Mascot -->
             <div class="mascot-interactive" @onclick="HearVoxieWelcome" title="Tap Voxie to hear greeting!">
                 <Mascot State="@mascotState" Width="130" Height="130" />
                 <span class="tap-hint-pill">Tap Voxie!</span>
             </div>
 
-            <!-- Welcoming Speech Bubble with Pointing Tail and Under 10 Words (No Quotes) -->
+            <!-- 2. Welcoming Speech Bubble with Tail & Under 10 Words -->
             <div class="hero-speech-container">
                 <div class="speech-bubble-handdrawn">
-                    <!-- Bubble tail pointing directly to Voxie Mascot -->
-                    <div class="bubble-tail-left" aria-hidden="true"></div>
-                    
+                    <div class="bubble-tail" aria-hidden="true"></div>
                     <span class="bubble-text">
                         Ready to speak, play, and win stars?
                     </span>
@@ -40,7 +38,7 @@
                 </div>
             </div>
 
-            <!-- Live Wobbly Mic Buddy Widget with 5 Star Volume Lights (No Grey Bar) -->
+            <!-- 3. Live Wobbly Mic Buddy Widget with 5 Star Volume Lights -->
             <div class="mic-live-widget @(isTestingMic ? "mic-widget-listening" : "")" 
                  @onclick="ToggleMicTest" 
                  title="Tap to test microphone!">
@@ -84,7 +82,7 @@
                 <div class="milestone-reward-pill">
                     <span>⭐ +5 Bonus Stars &amp; Sticker Unlocked!</span>
                 </div>
-                <button class="btn-story btn-story-green milestone-btn" @onclick="DismissMilestone">
+                <button class="btn-story btn-story-green milestone-btn" @onclick="DismissMilestone" type="button">
                     <span>Awesome! ➔</span>
                 </button>
             </div>
@@ -103,7 +101,7 @@
         <span class="title-sub">Tap any quest below to start playing aloud</span>
     </div>
 
-    <!-- 5 Super-Fun Voice Games Responsive Grid (3 cols on laptop, 2 on tablet, 1 on phone) -->
+    <!-- 5 Super-Fun Voice Games Responsive Grid: 1 col on phone under 600px, 2 on tablet 600-1023px, 3 on laptop 1024px and up -->
     <div class="games-grid">
         <!-- Game 1: Letter Rocket -->
         <div class="game-card game-card-space" @onclick='() => NavigateTo("game/letter-rocket")'>
@@ -119,7 +117,6 @@
             <h3 class="card-title">Letter Rocket</h3>
             <p class="card-desc">Shout the letter to launch the rocket into the starry galaxy!</p>
             
-            <!-- Big Star-Progress Row Under Game -->
             <div class="game-star-progress-row" title="Explorer Mastery Stars">
                 <span class="progress-label">Progress:</span>
                 <div class="stars-trio">
@@ -151,7 +148,6 @@
             <h3 class="card-title">Number Jump</h3>
             <p class="card-desc">Say the magic sum number to help froggy leap across lily pads!</p>
             
-            <!-- Big Star-Progress Row Under Game -->
             <div class="game-star-progress-row" title="Explorer Mastery Stars">
                 <span class="progress-label">Progress:</span>
                 <div class="stars-trio">
@@ -183,7 +179,6 @@
             <h3 class="card-title">Color Splash</h3>
             <p class="card-desc">Speak the color name to splash magical paint onto cartoon pictures!</p>
             
-            <!-- Big Star-Progress Row Under Game -->
             <div class="game-star-progress-row" title="Explorer Mastery Stars">
                 <span class="progress-label">Progress:</span>
                 <div class="stars-trio">
@@ -215,7 +210,6 @@
             <h3 class="card-title">Animal Safari</h3>
             <p class="card-desc">Hear the animal sound &amp; call their name to invite them on the bus!</p>
             
-            <!-- Big Star-Progress Row Under Game -->
             <div class="game-star-progress-row" title="Explorer Mastery Stars">
                 <span class="progress-label">Progress:</span>
                 <div class="stars-trio">
@@ -247,7 +241,6 @@
             <h3 class="card-title">Word Builder</h3>
             <p class="card-desc">Say the word to snap blocks together and unlock surprise animated toys!</p>
             
-            <!-- Big Star-Progress Row Under Game -->
             <div class="game-star-progress-row" title="Explorer Mastery Stars">
                 <span class="progress-label">Progress:</span>
                 <div class="stars-trio">
@@ -301,7 +294,10 @@
     .home-container {
         display: flex;
         flex-direction: column;
-        gap: 1.75rem;
+        gap: clamp(1.2rem, 3vw, 2rem);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     /* Hero Card with subtle paper texture */
@@ -311,18 +307,21 @@
             radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, transparent 1.5px),
             linear-gradient(135deg, #FFFDF7 0%, #FFF3B0 55%, #FFE5EC 100%);
         background-size: 24px 24px, 100% 100%;
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 28px;
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
-        padding: 1.5rem 2rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-chunky-lg);
+        padding: clamp(1rem, 2.5vw, 1.75rem);
+        width: 100%;
+        box-sizing: border-box;
     }
 
+    /* Mobile First: Stacks vertically (Voxie -> bubble -> mic) */
     .hero-flex {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        gap: 1.5rem;
-        flex-wrap: wrap;
+        gap: clamp(1rem, 2.5vw, 1.5rem);
+        width: 100%;
     }
 
     .mascot-interactive {
@@ -330,17 +329,21 @@
         flex-direction: column;
         align-items: center;
         cursor: pointer;
+        order: 1;
         transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        touch-action: manipulation;
     }
 
-    .mascot-interactive:hover {
-        transform: scale(1.08) rotate(-2deg);
+    @@media (hover: hover) and (pointer: fine) {
+        .mascot-interactive:hover {
+            transform: scale(1.08) rotate(-2deg);
+        }
     }
 
     .tap-hint-pill {
         background: var(--color-sunny-yellow);
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: 999px;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-pill);
         padding: 0.2rem 0.65rem;
         font-family: var(--font-heading);
         font-size: 0.8rem;
@@ -351,51 +354,57 @@
     }
 
     .hero-speech-container {
-        flex: 1;
-        min-width: 260px;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        align-items: center;
+        gap: 0.85rem;
         position: relative;
+        width: 100%;
+        max-width: 520px;
+        order: 2;
     }
 
-    /* Speech Bubble with Handdrawn Tail Pointing to Mascot (No Quote Marks) */
+    /* Speech Bubble with Handdrawn Tail Pointing to Mascot */
     .speech-bubble-handdrawn {
         position: relative;
         background: #FFFDF7;
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 24px;
-        box-shadow: 0 6px 0 var(--color-storybook-ink);
-        padding: 1.15rem 1.6rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-chunky-md);
+        padding: clamp(0.85rem, 2vw, 1.25rem) clamp(1rem, 2.5vw, 1.6rem);
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
     }
 
-    .bubble-tail-left {
+    /* Mobile Tail points UP toward Voxie */
+    .bubble-tail {
         position: absolute;
-        left: -18px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: -16px;
+        left: 50%;
+        transform: translateX(-50%);
         width: 0;
         height: 0;
-        border-top: 12px solid transparent;
-        border-bottom: 12px solid transparent;
-        border-right: 18px solid var(--color-storybook-ink);
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 16px solid var(--color-storybook-ink);
     }
 
-    .bubble-tail-left::after {
+    .bubble-tail::after {
         content: "";
         position: absolute;
-        left: 4px;
-        top: -9px;
+        top: 4px;
+        left: -9px;
         width: 0;
         height: 0;
-        border-top: 9px solid transparent;
-        border-bottom: 9px solid transparent;
-        border-right: 15px solid #FFFDF7;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+        border-bottom: 13px solid #FFFDF7;
     }
 
     .bubble-text {
         font-family: var(--font-heading);
-        font-size: 1.45rem;
+        font-size: clamp(1.15rem, 3vw, 1.45rem);
         color: var(--color-storybook-ink);
         font-weight: 800;
         line-height: 1.35;
@@ -406,14 +415,21 @@
         display: flex;
         gap: 0.75rem;
         flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
     }
 
     .hero-voice-btn, .hero-play-btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        font-size: 1.1rem !important;
+        font-size: clamp(0.95rem, 2vw, 1.1rem) !important;
         padding: 0.65rem 1.25rem !important;
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        flex: 1 1 180px;
+        max-width: 260px;
     }
 
     /* Mic Card with 5 Volume Stars and Real Wobble */
@@ -422,22 +438,28 @@
         flex-direction: column;
         align-items: center;
         background: #FFFFFF;
-        border: 3.5px solid var(--color-storybook-ink);
-        border-radius: 24px;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
         padding: 0.85rem 1.25rem;
-        box-shadow: 0 5px 0 var(--color-storybook-ink);
+        box-shadow: var(--shadow-chunky-md);
         cursor: pointer;
+        order: 3;
+        min-width: 200px;
+        min-height: var(--tap-min);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
+        touch-action: manipulation;
     }
 
-    .mic-live-widget:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
+    @@media (hover: hover) and (pointer: fine) {
+        .mic-live-widget:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-chunky-lg);
+        }
     }
 
     .mic-widget-listening {
         border-color: #06D6A0;
-        box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4), 0 6px 0 var(--color-storybook-ink);
+        box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.4), var(--shadow-chunky-md);
     }
 
     .mic-volume-stars-row {
@@ -449,7 +471,7 @@
         padding: 0.3rem 0.6rem;
         background: #F8FAFC;
         border: 2px solid var(--color-storybook-ink);
-        border-radius: 999px;
+        border-radius: var(--border-radius-pill);
     }
 
     .mic-volume-star {
@@ -458,18 +480,11 @@
 
     .star-lit {
         transform: scale(1.22);
-        animation: starPop 0.25s ease-out;
     }
 
     .star-unlit {
         opacity: 0.45;
         transform: scale(0.95);
-    }
-
-    @@keyframes starPop {
-        0% { transform: scale(0.9); }
-        50% { transform: scale(1.35); }
-        100% { transform: scale(1.22); }
     }
 
     .mic-status-label {
@@ -495,7 +510,7 @@
     }
 
     .title-fun {
-        font-size: 2.2rem;
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
         font-family: var(--font-heading);
         color: var(--color-storybook-ink);
         margin: 0;
@@ -504,7 +519,7 @@
 
     .title-sub {
         font-family: var(--font-body);
-        font-size: 1.1rem;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
         font-weight: 700;
         color: #64748B;
         display: block;
@@ -512,59 +527,63 @@
     }
 
     /* 
-       RESPONSIVE GAMES GRID (Requirement 7)
-       Laptop: 3 columns
-       Tablet: 2 columns
-       Phone: 1 column
+       RESPONSIVE GAMES GRID
+       Phone under 600px: 1 column
+       Tablet 600-1023px: 2 columns
+       Laptop and larger 1024px and up: 3 columns
     */
     .games-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: 1fr;
+        gap: clamp(1rem, 2vw, 1.5rem);
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    @@media (max-width: 960px) {
+    @@media (min-width: 600px) {
         .games-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(240px, 1fr));
         }
     }
 
-    @@media (max-width: 600px) {
+    @@media (min-width: 1024px) {
         .games-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(3, minmax(240px, 1fr));
         }
     }
 
     /* Game Card with Paper Texture and Gentle Bounce */
     .game-card {
-        border: 4px solid var(--color-storybook-ink);
-        border-radius: 26px;
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
-        padding: 1.5rem 1.25rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-chunky-md);
+        padding: clamp(1.2rem, 2.5vw, 1.6rem) clamp(1rem, 2vw, 1.25rem);
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
         cursor: pointer;
         position: relative;
-        /* Gentle hover/press bounce (Requirement 6) */
+        touch-action: manipulation;
         transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
-        /* Subtle paper texture overlay */
         background-image: 
             radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, transparent 1.5px),
             radial-gradient(rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px);
         background-size: 20px 20px;
         background-position: 0 0, 10px 10px;
+        min-height: 280px;
     }
 
-    .game-card:hover {
-        transform: translateY(-8px) scale(1.025);
-        box-shadow: 0 14px 0 var(--color-storybook-ink);
+    @@media (hover: hover) and (pointer: fine) {
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.025);
+            box-shadow: var(--shadow-chunky-lg);
+        }
     }
 
     .game-card:active {
         transform: translateY(3px) scale(0.98);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        box-shadow: var(--shadow-chunky-pressed);
     }
 
     .game-card-space  { background-color: #BAE6FD; }
@@ -577,8 +596,8 @@
         position: absolute;
         top: -14px;
         background: #FFFFFF;
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: 999px;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-pill);
         padding: 0.25rem 0.85rem;
         font-family: var(--font-heading);
         font-size: 0.84rem;
@@ -597,7 +616,7 @@
 
     .card-title {
         font-family: var(--font-heading);
-        font-size: 1.6rem;
+        font-size: clamp(1.3rem, 2.5vw, 1.6rem);
         font-weight: 800;
         color: var(--color-storybook-ink);
         margin: 0 0 0.35rem 0;
@@ -605,7 +624,7 @@
 
     .card-desc {
         font-family: var(--font-body);
-        font-size: 0.98rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: #334155;
         line-height: 1.4;
@@ -613,7 +632,6 @@
         flex: 1;
     }
 
-    /* Big Star-Progress Row Under Each Game (Requirement 6) */
     .game-star-progress-row {
         display: flex;
         align-items: center;
@@ -621,8 +639,8 @@
         gap: 0.5rem;
         width: 100%;
         background: rgba(255, 255, 255, 0.75);
-        border: 2.5px solid var(--color-storybook-ink);
-        border-radius: 16px;
+        border: 2px solid var(--color-storybook-ink);
+        border-radius: var(--border-radius-sm);
         padding: 0.4rem 0.75rem;
         margin-bottom: 1rem;
         box-shadow: 0 2px 0 var(--color-storybook-ink);
@@ -651,45 +669,51 @@
 
     .card-rounds {
         font-family: var(--font-heading);
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         font-weight: 800;
         color: var(--color-storybook-ink);
         background: #FFFFFF;
         border: 2px solid var(--color-storybook-ink);
-        border-radius: 999px;
+        border-radius: var(--border-radius-pill);
         padding: 0.25rem 0.65rem;
         box-shadow: 0 2px 0 var(--color-storybook-ink);
     }
 
     .card-btn {
-        font-size: 1rem !important;
+        font-size: 0.98rem !important;
         padding: 0.5rem 1.25rem !important;
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
     }
 
     /* Rewards Quick Strip */
     .rewards-strip {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1rem;
+        gap: clamp(0.75rem, 2vw, 1rem);
         margin-top: 0.5rem;
     }
 
     .reward-strip-card {
         background: #FFFFFF;
-        border: 3.5px solid var(--color-storybook-ink);
-        border-radius: 20px;
-        box-shadow: 0 5px 0 var(--color-storybook-ink);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-chunky-md);
         padding: 1rem 1.25rem;
         display: flex;
         align-items: center;
         gap: 1rem;
         cursor: pointer;
+        min-height: var(--tap-min);
+        touch-action: manipulation;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .reward-strip-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 0 var(--color-storybook-ink);
+    @@media (hover: hover) and (pointer: fine) {
+        .reward-strip-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-chunky-lg);
+        }
     }
 
     .strip-title {
@@ -714,62 +738,82 @@
         color: var(--color-storybook-ink);
     }
 
-    /* Animations */
-    .anim-float-slow {
-        animation: floatSlow 3s ease-in-out infinite;
-    }
-
-    .anim-float-mid {
-        animation: floatMid 2.4s ease-in-out infinite;
-    }
-
-    @@keyframes floatSlow {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-7px); }
-    }
-
-    @@keyframes floatMid {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
-    }
-
-    @@media (max-width: 768px) {
+    /* Laptop Layout 1024px and up: Side-by-Side Hero Card */
+    @@media (min-width: 1024px) {
         .hero-flex {
-            flex-direction: column;
-            text-align: center;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mascot-interactive {
+            order: 1;
+        }
+
+        .hero-speech-container {
+            order: 2;
+            flex: 1;
+            align-items: flex-start;
+        }
+
+        .speech-bubble-handdrawn {
+            text-align: left;
+        }
+
+        /* Tail points LEFT to Voxie on laptop */
+        .bubble-tail {
+            top: 50%;
+            left: -18px;
+            transform: translateY(-50%);
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-right: 18px solid var(--color-storybook-ink);
+            border-left: none;
+        }
+
+        .bubble-tail::after {
+            top: -9px;
+            left: 4px;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            border-right: 15px solid #FFFDF7;
+            border-left: none;
         }
 
         .hero-action-buttons {
-            justify-content: center;
+            justify-content: flex-start;
         }
 
-        .bubble-tail-left {
-            left: 50%;
-            top: -18px;
-            transform: translateX(-50%);
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-bottom: 18px solid var(--color-storybook-ink);
-            border-top: none;
+        .mic-live-widget {
+            order: 3;
+        }
+    }
+
+    /* Landscape Phones (max-height: 500px) */
+    @@media (max-height: 500px) {
+        .hero-welcome-card {
+            padding: 0.85rem 1.25rem;
         }
 
-        .bubble-tail-left::after {
-            left: -9px;
-            top: 4px;
-            border-left: 9px solid transparent;
-            border-right: 9px solid transparent;
-            border-bottom: 15px solid #FFFDF7;
-            border-top: none;
+        .hero-flex {
+            flex-direction: row;
+            justify-content: space-around;
+            gap: 0.75rem;
+        }
+
+        .hero-action-buttons {
+            flex-direction: row;
+        }
+
+        .bubble-text {
+            font-size: 1.1rem;
         }
     }
 
     /* Milestone Pop-up Modal */
     .milestone-modal-backdrop {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        inset: 0;
         background: rgba(43, 45, 66, 0.6);
         backdrop-filter: blur(4px);
         display: flex;
@@ -781,11 +825,13 @@
 
     .milestone-celebration-card {
         background: #FFFDF7;
-        border: 4px solid #2B2D42;
-        border-radius: 28px;
-        box-shadow: 0 10px 0 #2B2D42;
-        padding: 2rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-chunky-lg);
+        padding: clamp(1.25rem, 3vw, 2rem);
         max-width: 440px;
+        max-height: 90dvh;
+        overflow-y: auto;
         width: 100%;
         text-align: center;
         display: flex;
@@ -800,16 +846,16 @@
     }
 
     .milestone-title {
-        font-family: 'Fredoka', cursive, sans-serif;
-        font-size: 1.8rem;
+        font-family: var(--font-heading);
+        font-size: clamp(1.4rem, 3.5vw, 1.8rem);
         font-weight: 800;
         color: #2B2D42;
         margin: 0;
     }
 
     .milestone-msg {
-        font-family: 'Nunito', sans-serif;
-        font-size: 1.1rem;
+        font-family: var(--font-body);
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
         font-weight: 700;
         color: #4EA8DE;
         margin: 0;
@@ -818,9 +864,9 @@
     .milestone-reward-pill {
         background: #FFF9DB;
         border: 2px solid #2B2D42;
-        border-radius: 999px;
+        border-radius: var(--border-radius-pill);
         padding: 0.4rem 1rem;
-        font-family: 'Fredoka', cursive, sans-serif;
+        font-family: var(--font-heading);
         font-weight: 800;
         font-size: 0.95rem;
         color: #2B2D42;
@@ -830,6 +876,7 @@
         margin-top: 0.5rem;
         font-size: 1.15rem;
         padding: 0.7rem 2rem;
+        min-height: var(--tap-min);
     }
 </style>
 
@@ -884,7 +931,6 @@
             if (progress.Correct >= 3) return 2;
             if (progress.Attempts >= 1) return 1;
         }
-        // Base encouragement level for all adventurers
         return 1;
     }
 

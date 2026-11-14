@@ -1,16 +1,15 @@
 @namespace VoxieQuest.Web.Components
 
-<div class="storybook-card" style="background:#FFFDF7; text-align:center; padding:1.25rem; margin-top:1rem;">
-    <div style="font-family:var(--font-heading); font-weight:700; color:var(--color-sky-blue); font-size:1.1rem; margin-bottom:0.75rem;">
+<div class="storybook-card practice-panel-card">
+    <div class="practice-title">
         🎮 Practice Mode: Tap your answer or type below!
     </div>
 
-    <!-- Big Visual Choice Cards -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.75rem; margin-bottom:1rem;">
+    <!-- Big Visual Choice Cards: 2x2 on phone, single row on laptop, min 64px tall -->
+    <div class="practice-choices-grid">
         @foreach (var choice in choices)
         {
-            <button class="btn-story btn-story-yellow" 
-                    style="font-size:1.2rem; padding:0.9rem; text-transform:capitalize;"
+            <button class="btn-story btn-story-yellow practice-choice-btn" 
                     @onclick="() => ChooseAnswer(choice)" 
                     type="button">
                 <span>@choice</span>
@@ -18,23 +17,100 @@
         }
     </div>
 
-    <!-- Keyboard Input Box -->
-    <div style="display:flex; justify-content:center; gap:0.5rem; max-width:400px; margin:0 auto;">
+    <!-- Keyboard Input Box with 16px text and touch target -->
+    <div class="practice-input-row">
         <input type="text" 
-               class="storybook-card" 
-               style="flex:1; padding:0.6rem 1rem; font-size:1.15rem; border-width:3px; text-align:center;" 
+               class="storybook-card practice-text-input" 
                placeholder="Or type answer here..." 
                @bind="keyboardInput" 
                @bind:event="oninput" 
                @onkeydown="HandleKeyDown" />
-        <button class="btn-story btn-story-mint" 
-                style="padding:0.6rem 1.2rem; font-size:1.1rem;" 
+        <button class="btn-story btn-story-mint practice-submit-btn" 
                 @onclick="SubmitKeyboardAnswer" 
                 type="button">
             <span>OK ✓</span>
         </button>
     </div>
 </div>
+
+<style>
+    .practice-panel-card {
+        background: #FFFDF7;
+        text-align: center;
+        padding: clamp(0.85rem, 2.5vw, 1.25rem);
+        margin-top: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .practice-title {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: var(--color-sky-blue);
+        font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+        margin-bottom: 0.75rem;
+    }
+
+    /* 2x2 grid on phone under 600px, 1 row on laptop 1024px and up */
+    .practice-choices-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    @@media (min-width: 1024px) {
+        .practice-choices-grid {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        }
+    }
+
+    .practice-choice-btn {
+        min-height: 64px !important;
+        min-width: 56px !important;
+        font-size: clamp(1.1rem, 2.5vw, 1.35rem) !important;
+        padding: 0.75rem 1rem !important;
+        text-transform: capitalize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+
+    .practice-input-row {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        max-width: 440px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .practice-text-input {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        font-size: 16px !important;
+        border-width: 2.5px;
+        text-align: center;
+        min-height: var(--tap-min);
+        min-width: 0;
+        touch-action: manipulation;
+    }
+
+    .practice-submit-btn {
+        padding: 0.65rem 1.4rem !important;
+        font-size: 1.1rem !important;
+        min-height: var(--tap-min);
+        min-width: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+</style>
 
 @code {
     [Parameter]
@@ -63,10 +139,9 @@
             Question.TargetAnswer
         };
 
-        // Add 2 or 3 distractors
         foreach (var item in pool.OrderBy(_ => random.Next()))
         {
-            if (set.Count >= 3) break;
+            if (set.Count >= 4) break;
             if (!set.Contains(item)) set.Add(item);
         }
 

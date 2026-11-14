@@ -2,43 +2,42 @@
 @inject IProgressService ProgressService
 @inject IAudioService AudioService
 
-<div style="display:flex; flex-direction:column; gap:1.5rem;">
+<div class="profile-page-container">
     <!-- Profile Page Header -->
-    <div class="storybook-card" style="background:var(--color-sunny-yellow); text-align:center;">
-        <h2 style="font-size:2rem; margin-bottom:0.25rem;">👤 Adventurer Profiles</h2>
-        <p style="font-size:1.1rem; font-weight:700; margin:0;">
+    <div class="storybook-card profile-header-card">
+        <h2 class="profile-header-title">👤 Adventurer Profiles</h2>
+        <p class="profile-header-sub">
             Choose who is playing or create a new profile! (Up to 4 adventurers)
         </p>
     </div>
 
-    <!-- 4 Profile Slots Grid -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+    <!-- 4 Profile Slots Grid: 2 columns on phone, 4 on tablet & up -->
+    <div class="profiles-grid">
         @foreach (var profile in ProgressService.Profiles)
         {
             var isActive = profile.Id == ProgressService.ActiveProfile?.Id;
-            <div class="storybook-card card-hover" 
-                 style="text-align:center; cursor:pointer; border-color:@(isActive ? "var(--color-mint)" : "var(--color-storybook-ink)"); background:@(isActive ? "#E8FBF4" : "var(--color-cream-paper)");"
+            <div class="storybook-card profile-slot-card @(isActive ? "slot-active" : "")" 
                  @onclick="() => SelectProfile(profile.Id)">
-                <div style="font-size:3.5rem; margin-bottom:0.5rem;">
+                <div class="profile-avatar-emoji">
                     @GetAvatarEmoji(profile.Avatar)
                 </div>
-                <h3 style="font-size:1.3rem; margin-bottom:0.25rem;">@profile.Name</h3>
-                <div style="font-weight:700; color:var(--color-coral); margin-bottom:0.5rem;">
+                <h3 class="profile-name-text">@profile.Name</h3>
+                <div class="profile-stats-pill">
                     Age @profile.Age • ⭐ @profile.TotalStars Stars
                 </div>
-                <div style="font-size:0.9rem; color:var(--color-storybook-ink); opacity:0.8; margin-bottom:0.75rem;">
+                <div class="profile-time-text">
                     ⏱️ Played: @profile.FormattedPlayTime
                 </div>
 
                 @if (isActive)
                 {
-                    <span class="pill" style="background:var(--color-mint); color:var(--color-storybook-ink); border-color:var(--color-storybook-ink);">
+                    <span class="pill status-pill-active">
                         ✓ Playing Now!
                     </span>
                 }
                 else
                 {
-                    <span class="pill" style="background:white;">
+                    <span class="pill status-pill-switch">
                         Tap to Switch
                     </span>
                 }
@@ -48,12 +47,11 @@
         <!-- Add Profile Slot (if < 4) -->
         @if (ProgressService.Profiles.Count < 4)
         {
-            <div class="storybook-card" 
-                 style="border-style:dashed; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; min-height:220px;"
+            <div class="storybook-card add-profile-slot" 
                  @onclick="ToggleNewProfileForm">
-                <div style="font-size:3rem; color:var(--color-sky-blue);">➕</div>
-                <h3 style="font-size:1.2rem; color:var(--color-sky-blue);">Add Adventurer</h3>
-                <p style="font-size:0.9rem; margin:0;">@(4 - ProgressService.Profiles.Count) slots remaining</p>
+                <div class="add-plus-icon">➕</div>
+                <h3 class="add-title-text">Add Adventurer</h3>
+                <p class="add-slots-rem">@(4 - ProgressService.Profiles.Count) slots remaining</p>
             </div>
         }
     </div>
@@ -61,40 +59,40 @@
     <!-- Create Profile Card (Visible when toggled) -->
     @if (showNewForm && ProgressService.Profiles.Count < 4)
     {
-        <div class="storybook-card" style="background:#FFF3B0;">
-            <h3 style="font-size:1.4rem; margin-bottom:1rem;">🌟 Create New Adventurer</h3>
-            <div style="display:flex; flex-direction:column; gap:1rem; max-width:440px;">
+        <div class="storybook-card new-profile-card">
+            <h3 class="new-profile-title">🌟 Create New Adventurer</h3>
+            <div class="new-profile-form-body">
                 <div>
-                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Child's Name:</label>
-                    <input type="text" class="storybook-card" style="width:100%; padding:0.6rem 1rem; font-size:1.1rem; border-width:3px;" @bind="newName" placeholder="e.g. Leo, Maya, Sam" />
+                    <label class="form-field-label">Child's Name:</label>
+                    <input type="text" class="storybook-card profile-name-input" @bind="newName" placeholder="e.g. Leo, Maya, Sam" />
                 </div>
 
                 <div>
-                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Choose Companion Avatar:</label>
-                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                    <label class="form-field-label">Choose Companion Avatar:</label>
+                    <!-- Grid of big avatars: 2 cols on phone, 4 on tablet and up -->
+                    <div class="avatar-picker-grid">
                         @foreach (var avatar in Enum.GetValues<AvatarType>())
                         {
                             <button type="button" 
-                                    class="pill" 
-                                    style="font-size:1.2rem; background:@(newAvatar == avatar ? "var(--color-mint)" : "white");"
+                                    class="pill avatar-choice-btn @(newAvatar == avatar ? "avatar-selected" : "")" 
                                     @onclick="() => newAvatar = avatar">
-                                <span>@GetAvatarEmoji(avatar)</span>
-                                <span style="font-size:0.9rem;">@avatar.ToString().Replace("Chameleon","").Replace("Lion","").Replace("Penguin","").Replace("Monkey","")</span>
+                                <span class="avatar-choice-emoji">@GetAvatarEmoji(avatar)</span>
+                                <span class="avatar-choice-name">@avatar.ToString().Replace("Chameleon","").Replace("Lion","").Replace("Penguin","").Replace("Monkey","")</span>
                             </button>
                         }
                     </div>
                 </div>
 
                 <div>
-                    <label style="font-family:var(--font-heading); font-weight:700; display:block; margin-bottom:0.3rem;">Age: @newAge years old</label>
-                    <input type="range" min="5" max="10" step="1" @bind="newAge" style="width:100%;" />
+                    <label class="form-field-label">Age: @newAge years old</label>
+                    <input type="range" min="5" max="10" step="1" @bind="newAge" style="width:100%; min-height:40px;" />
                 </div>
 
-                <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
-                    <button class="btn-story btn-story-mint" type="button" @onclick="CreateProfile">
+                <div class="form-actions-row">
+                    <button class="btn-story btn-story-mint save-adv-btn" type="button" @onclick="CreateProfile">
                         <span>Save Adventurer ✨</span>
                     </button>
-                    <button class="btn-story btn-story-coral" type="button" @onclick="ToggleNewProfileForm">
+                    <button class="btn-story btn-story-coral cancel-adv-btn" type="button" @onclick="ToggleNewProfileForm">
                         <span>Cancel</span>
                     </button>
                 </div>
@@ -105,11 +103,11 @@
     <!-- Active Profile Badges Showcase -->
     @if (ProgressService.ActiveProfile != null)
     {
-        <div class="storybook-card">
-            <h3 style="font-size:1.4rem; margin-bottom:1rem;">
+        <div class="storybook-card badges-card">
+            <h3 class="badges-title">
                 🏆 @ProgressService.ActiveProfile.Name's Badges (@ProgressService.ActiveProfile.Badges.Count unlocked)
             </h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:1rem;">
+            <div class="badges-grid">
                 <div class="badge-item">
                     <span class="badge-icon">🌟</span>
                     <span>First Step</span>
@@ -160,6 +158,245 @@
         </div>
     }
 </div>
+
+<style>
+    .profile-page-container {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1rem, 2.5vw, 1.5rem);
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .profile-header-card {
+        background: var(--color-sunny-yellow);
+        text-align: center;
+        padding: clamp(1rem, 2vw, 1.5rem);
+    }
+
+    .profile-header-title {
+        font-size: clamp(1.4rem, 3.5vw, 2rem);
+        margin-bottom: 0.25rem;
+    }
+
+    .profile-header-sub {
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    /* Grid of profile slots: 2 cols on phone, 4 on tablet & up */
+    .profiles-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: clamp(0.75rem, 2vw, 1rem);
+    }
+
+    @@media (min-width: 768px) {
+        .profiles-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .profile-slot-card {
+        text-align: center;
+        cursor: pointer;
+        background: var(--color-cream-paper);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-chunky-sm);
+        padding: clamp(0.75rem, 2vw, 1.25rem) 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        touch-action: manipulation;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    @@media (hover: hover) and (pointer: fine) {
+        .profile-slot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-chunky-md);
+        }
+    }
+
+    .slot-active {
+        border-color: var(--color-mint);
+        background: #E8FBF4;
+    }
+
+    .profile-avatar-emoji {
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
+        margin-bottom: 0.35rem;
+    }
+
+    .profile-name-text {
+        font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .profile-stats-pill {
+        font-weight: 700;
+        color: var(--color-coral);
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .profile-time-text {
+        font-size: 0.8rem;
+        color: var(--color-storybook-ink);
+        opacity: 0.8;
+        margin-bottom: 0.65rem;
+    }
+
+    .status-pill-active {
+        background: var(--color-mint);
+        color: var(--color-storybook-ink);
+        border-color: var(--color-storybook-ink);
+        font-size: 0.85rem;
+        min-height: 36px;
+    }
+
+    .status-pill-switch {
+        background: white;
+        font-size: 0.85rem;
+        min-height: 36px;
+    }
+
+    .add-profile-slot {
+        border-style: dashed;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        min-height: 200px;
+        touch-action: manipulation;
+    }
+
+    .add-plus-icon {
+        font-size: clamp(2rem, 5vw, 3rem);
+        color: var(--color-sky-blue);
+    }
+
+    .add-title-text {
+        font-size: 1.15rem;
+        color: var(--color-sky-blue);
+    }
+
+    .add-slots-rem {
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .new-profile-card {
+        background: #FFF3B0;
+    }
+
+    .new-profile-title {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .new-profile-form-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 520px;
+    }
+
+    .form-field-label {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.35rem;
+    }
+
+    .profile-name-input {
+        width: 100%;
+        padding: 0.65rem 1rem;
+        font-size: 16px !important;
+        border-width: 2.5px;
+        min-height: var(--tap-min);
+        box-sizing: border-box;
+    }
+
+    /* Avatar Picker: 2 cols on phone, 4 on tablet & up */
+    .avatar-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    @@media (min-width: 600px) {
+        .avatar-picker-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .avatar-choice-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        padding: 0.5rem 0.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        background: white;
+        border: 2px solid var(--color-storybook-ink);
+        box-sizing: border-box;
+    }
+
+    .avatar-choice-emoji {
+        font-size: 1.8rem;
+    }
+
+    .avatar-choice-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .avatar-selected {
+        background: var(--color-mint) !important;
+        box-shadow: 0 3px 0 var(--color-storybook-ink);
+    }
+
+    .form-actions-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .save-adv-btn, .cancel-adv-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        font-size: 1rem !important;
+        padding: 0.65rem 1.4rem !important;
+    }
+
+    .badges-card {
+        background: white;
+    }
+
+    .badges-title {
+        font-size: clamp(1.15rem, 2.5vw, 1.4rem);
+        margin-bottom: 1rem;
+    }
+
+    .badges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.75rem;
+    }
+</style>
 
 @code {
     private bool showNewForm = false;

@@ -7,14 +7,14 @@
 
     <!-- Top HUD: Round 1 to 10 Progress Bar & Star Counter -->
     <div class="storybook-card game-hud-card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button class="pill" @onclick="ReturnToMapAsync" type="button">
+        <div class="hud-top-row">
+            <button class="pill hud-back-btn" @onclick="ReturnToMapAsync" type="button" aria-label="Return to map">
                 <span>◀ Map</span>
             </button>
-            <h3 style="margin:0; font-size:1.4rem; color:var(--color-sunny-yellow);">
+            <h3 class="hud-game-title">
                 🚀 @GameTitle
             </h3>
-            <div class="star-badge">
+            <div class="star-badge hud-star-badge">
                 <span>⭐</span>
                 <span>@SessionStars</span>
             </div>
@@ -37,20 +37,22 @@
     {
         <!-- Main Launchpad Stage -->
         <div class="storybook-card launchpad-stage">
-            <!-- Mascot and Speech Prompt -->
-            <div class="mascot-stage" style="justify-content:center; position:relative; margin-bottom:1rem;">
-                <Mascot State="@MascotState" Width="120" Height="120" />
-                <StarBurst IsActive="@ShowStarBurst" />
+            <!-- Mascot and Speech Prompt: Responsive, shrinks to corner on phone -->
+            <div class="mascot-stage">
+                <div class="mascot-avatar-box">
+                    <Mascot State="@MascotState" Width="100" Height="100" />
+                    <StarBurst IsActive="@ShowStarBurst" />
+                </div>
                 
-                <div class="speech-bubble" style="max-width:440px;">
-                    <span style="font-size:1.3rem;">@ActiveChallenge.Prompt</span>
-                    <div style="margin-top:0.4rem; display:flex; gap:0.5rem;">
-                        <button class="pill" @onclick="RepeatPromptAloudAsync" type="button" style="font-size:0.85rem;">
+                <div class="speech-bubble prompt-bubble">
+                    <span class="prompt-text">@ActiveChallenge.Prompt</span>
+                    <div class="prompt-actions-row">
+                        <button class="pill prompt-pill-btn" @onclick="RepeatPromptAloudAsync" type="button">
                             <span>🔊 Read Aloud</span>
                         </button>
                         @if (AttemptState.ShowHint && !string.IsNullOrWhiteSpace(ActiveChallenge.Hint))
                         {
-                            <span class="pill" style="background:#FFE5EC; color:var(--color-coral); border-color:var(--color-coral); font-size:0.85rem;">
+                            <span class="pill hint-pill">
                                 💡 @ActiveChallenge.Hint
                             </span>
                         }
@@ -58,12 +60,11 @@
                 </div>
             </div>
 
-            <!-- SVG Rocket Launch Arena -->
+            <!-- SVG Rocket Launch Arena: Scales fluidly with viewBox & preserveAspectRatio -->
             <div class="rocket-arena">
-                <!-- SVG Rocket Launchpad -->
                 <div class="rocket-ship-wrapper @(isBlastingOff ? "rocket-launching" : "rocket-docked")">
-                    <svg width="180" height="260" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Exhaust Flames (when launching) -->
+                    <svg class="rocket-svg" viewBox="0 0 180 260" preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Exhaust Flames -->
                         <g class="exhaust-flames @(isBlastingOff ? "flames-active" : "flames-idle")">
                             <path d="M70 200C60 230 75 255 90 260C105 255 120 230 110 200Z" fill="#FFD166"/>
                             <path d="M78 200C72 220 82 245 90 250C98 245 108 220 102 200Z" fill="#EF476F"/>
@@ -83,8 +84,8 @@
                         <circle cx="90" cy="120" r="32" fill="#4EA8DE" stroke="#2B2D42" stroke-width="5"/>
                         <circle cx="90" cy="120" r="26" fill="#E7F5FF"/>
 
-                        <!-- Target Letter / Word displayed proudly in the window -->
-                        <text x="90" y="132" font-family="var(--font-heading)" font-size="36" font-weight="700" fill="#2B2D42" text-anchor="middle">
+                        <!-- Target Letter / Word displayed in window -->
+                        <text x="90" y="132" font-family="var(--font-heading)" font-size="34" font-weight="700" fill="#2B2D42" text-anchor="middle">
                             @ActiveChallenge.DisplayItem
                         </text>
 
@@ -95,7 +96,7 @@
 
                 <!-- Ground Launchpad Gantry -->
                 <div class="launchpad-base">
-                    <svg width="280" height="40" viewBox="0 0 280 40" fill="none">
+                    <svg class="launchpad-svg" viewBox="0 0 280 40" preserveAspectRatio="xMidYMid meet" fill="none">
                         <rect x="20" y="10" width="240" height="20" rx="6" fill="#94A3B8" stroke="#2B2D42" stroke-width="4"/>
                         <line x1="60" y1="10" x2="60" y2="30" stroke="#2B2D42" stroke-width="3"/>
                         <line x1="140" y1="10" x2="140" y2="30" stroke="#2B2D42" stroke-width="3"/>
@@ -104,17 +105,17 @@
                 </div>
             </div>
 
-            <!-- Speech Feedback Area (Never 'Wrong'!) -->
-            <div style="min-height:48px; margin: 0.5rem 0;">
+            <!-- Speech Feedback Area (Encouraging Tone) -->
+            <div class="feedback-container">
                 @if (!string.IsNullOrWhiteSpace(LastTranscript))
                 {
-                    <div class="pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)"); font-size:1.15rem;">
+                    <div class="pill feedback-pill" style="background:@(LastAnswerSuccess ? "var(--color-mint)" : "var(--color-sunny-yellow)");">
                         @(LastAnswerSuccess ? "🌟 Blast Off! You said: " : "👂 You said: ") "@LastTranscript"
                     </div>
                 }
                 @if (!string.IsNullOrWhiteSpace(AttemptState.FeedbackMessage))
                 {
-                    <div style="color:var(--color-coral); font-family:var(--font-heading); font-weight:700; font-size:1.1rem; margin-top:0.3rem;">
+                    <div class="feedback-msg">
                         @AttemptState.FeedbackMessage
                     </div>
                 }
@@ -128,13 +129,13 @@
             }
             else
             {
-                <div style="margin: 0.5rem 0;">
+                <div class="mic-thumb-reach">
                     <MicCharacter VolumeLevel="@CurrentVolume" IsListening="@VoiceManager.IsListening" OnClick="ToggleListeningAsync" />
                 </div>
             }
 
-            <div style="margin-top:1rem; display:flex; justify-content:center; gap:0.75rem;">
-                <button class="pill" @onclick="SkipRoundAsync" type="button" style="opacity:0.8;">
+            <div class="skip-action-row">
+                <button class="pill skip-btn" @onclick="SkipRoundAsync" type="button">
                     <span>Next Rocket ➔</span>
                 </button>
             </div>
@@ -153,36 +154,71 @@
     .game-viewport {
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
-        max-width: 760px;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+        max-width: 780px;
         margin: 0 auto;
         position: relative;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .game-hud-card {
-        padding: 0.85rem 1.4rem;
+        padding: clamp(0.6rem, 1.5vw, 0.85rem) clamp(0.75rem, 2vw, 1.4rem);
         background: rgba(255, 253, 247, 0.95);
+        border: var(--border-ink-thick);
+        box-shadow: var(--shadow-chunky-sm);
+        border-radius: var(--border-radius-md);
+    }
+
+    .hud-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .hud-back-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        padding: 0.35rem 0.85rem;
+        font-weight: 800;
+        touch-action: manipulation;
+    }
+
+    .hud-game-title {
+        margin: 0;
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+        color: var(--color-sunny-yellow);
+        text-align: center;
+        text-shadow: 1px 1px 0 var(--color-storybook-ink);
+    }
+
+    .hud-star-badge {
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        padding: 0.35rem 0.85rem;
+        min-height: 40px;
     }
 
     .round-stepper {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
+        gap: clamp(0.2rem, 1vw, 0.5rem);
         margin-top: 0.6rem;
+        flex-wrap: wrap;
     }
 
     .round-dot {
-        width: 32px;
-        height: 32px;
+        width: clamp(26px, 5vw, 32px);
+        height: clamp(26px, 5vw, 32px);
         border-radius: 50%;
-        border: 2.5px solid var(--color-storybook-ink);
+        border: 2px solid var(--color-storybook-ink);
         background: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: var(--font-heading);
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: clamp(0.72rem, 1.8vw, 0.85rem);
         color: var(--color-storybook-ink);
     }
 
@@ -194,28 +230,111 @@
     .round-dot.current {
         background: var(--color-sunny-yellow);
         transform: scale(1.15);
-        box-shadow: 0 3px 0 var(--color-storybook-ink);
+        box-shadow: 0 2px 0 var(--color-storybook-ink);
     }
 
     .launchpad-stage {
         text-align: center;
         background: var(--color-cream-paper);
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--shadow-chunky-md);
+        padding: clamp(0.75rem, 2vw, 1.5rem);
         overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
 
+    /* Mascot Stage: On phone, shrinks & aligns gracefully */
+    .mascot-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(0.5rem, 2vw, 1rem);
+        position: relative;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .mascot-avatar-box {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .prompt-bubble {
+        max-width: 460px;
+        flex: 1 1 240px;
+    }
+
+    .prompt-text {
+        font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+        font-weight: 800;
+        display: block;
+        line-height: 1.35;
+    }
+
+    .prompt-actions-row {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .prompt-pill-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        font-size: 0.88rem;
+        touch-action: manipulation;
+    }
+
+    .hint-pill {
+        background: #FFE5EC;
+        color: var(--color-coral);
+        border-color: var(--color-coral);
+        font-size: 0.88rem;
+        min-height: var(--tap-min);
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Rocket Arena: Scales smoothly without overflow */
     .rocket-arena {
         position: relative;
-        height: 270px;
+        height: clamp(210px, 32vh, 270px);
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
+        overflow: hidden;
     }
 
     .rocket-ship-wrapper {
         position: absolute;
         bottom: 25px;
         transition: transform 0.2s ease;
+        max-width: 180px;
+        width: 45%;
+    }
+
+    .rocket-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .launchpad-base {
+        width: 100%;
+        max-width: 280px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .launchpad-svg {
+        width: 100%;
+        height: auto;
+        display: block;
     }
 
     .rocket-docked {
@@ -226,13 +345,56 @@
         animation: rocket-blastoff 1.8s var(--spring-bounce) forwards;
     }
 
-    .flames-idle {
-        opacity: 0;
-    }
+    .flames-idle { opacity: 0; }
 
     .flames-active {
         opacity: 1;
         animation: flames-flicker 0.15s ease-in-out infinite alternate;
+    }
+
+    .feedback-container {
+        min-height: 48px;
+        margin: 0.5rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .feedback-pill {
+        font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+        max-width: 100%;
+    }
+
+    .feedback-msg {
+        color: var(--color-coral);
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-top: 0.3rem;
+    }
+
+    /* Large thumb-reach mic container at bottom center */
+    .mic-thumb-reach {
+        margin: 0.6rem 0;
+        display: flex;
+        justify-content: center;
+        touch-action: manipulation;
+    }
+
+    .skip-action-row {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .skip-btn {
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+        font-size: 0.95rem;
+        opacity: 0.9;
+        touch-action: manipulation;
     }
 
     @@keyframes rocket-idle-hover {
@@ -250,6 +412,26 @@
         25% { transform: translateY(4px) scale(0.98); }
         45% { transform: translateY(-40px) scale(1.05); }
         100% { transform: translateY(-380px) scale(0.6); opacity: 0; }
+    }
+
+    /* Landscape Phones (max-height: 500px) */
+    @@media (max-height: 500px) {
+        .game-viewport {
+            gap: 0.5rem;
+        }
+
+        .mascot-stage {
+            flex-direction: row;
+            margin-bottom: 0.35rem;
+        }
+
+        .rocket-arena {
+            height: 160px;
+        }
+
+        .prompt-text {
+            font-size: 1rem;
+        }
     }
 </style>
 
@@ -341,7 +523,6 @@
 
     protected override async Task OnChallengeSolvedAsync(GameChallenge challenge)
     {
-        // Ignite engine & trigger launch animation
         isBlastingOff = true;
         StateHasChanged();
 

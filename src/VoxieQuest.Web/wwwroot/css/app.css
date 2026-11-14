@@ -1,6 +1,6 @@
 /* ==========================================================================
-   VOXIE QUEST - Storybook Design System & Design Tokens
-   Hand-drawn Children's Picture Book Aesthetic (100% Offline)
+   VOXIE QUEST - Responsive Storybook Design System & Design Tokens
+   Mobile-First, Fluid Sizing (clamp), Notched Safe Areas & 100dvh
    ========================================================================== */
 
 /* 1. Local Offline Google Fonts */
@@ -43,51 +43,69 @@
     --font-heading: 'Fredoka', cursive, 'Comic Sans MS', sans-serif;
     --font-body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
 
+    /* Fluid Sizing Tokens & Spacing Scale */
+    --header-h: clamp(58px, 9vh, 72px);
+    --nav-h: clamp(66px, 9.5vh, 78px);
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --space-5: 2.5rem;
+    --radius: clamp(14px, 2.5vw, 24px);
+    --tap-min: 56px;
+
     /* Thick Storybook Outlines & Rounded Borders */
-    --border-ink-thin: 3px solid var(--color-storybook-ink);
-    --border-ink-thick: 4px solid var(--color-storybook-ink);
+    --border-ink-thin: 2.5px solid var(--color-storybook-ink);
+    --border-ink-thick: 3.5px solid var(--color-storybook-ink);
     --border-ink-heavy: 5px solid var(--color-storybook-ink);
     --border-radius-sm: 14px;
-    --border-radius-md: 20px;
+    --border-radius-md: var(--radius);
     --border-radius-lg: 28px;
     --border-radius-pill: 9999px;
 
     /* Chunky Tactile Shadows */
-    --shadow-chunky-sm: 0 4px 0 var(--color-storybook-ink);
-    --shadow-chunky-md: 0 6px 0 var(--color-storybook-ink);
-    --shadow-chunky-lg: 0 10px 0 var(--color-storybook-ink);
+    --shadow-chunky-sm: 0 3px 0 var(--color-storybook-ink);
+    --shadow-chunky-md: 0 5px 0 var(--color-storybook-ink);
+    --shadow-chunky-lg: 0 8px 0 var(--color-storybook-ink);
     --shadow-chunky-pressed: 0 2px 0 var(--color-storybook-ink);
 
     /* Squishy Button Spring Timing */
     --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 3. Base Elements & Paper Canvas Texture */
-* {
+/* 3. Base Elements & Box Sizing (No horizontal page scroll at any width from 320px up) */
+*, *::before, *::after {
     box-sizing: border-box;
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    font-family: var(--font-body);
-    color: var(--color-storybook-ink);
-    background-color: var(--color-cream-paper);
+html {
+    font-size: 16px;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
-/* Subtle hand-made paper fiber & crayon grain overlay using CSS */
 body {
-    background-color: #FFFDF7;
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+    width: 100%;
+    overflow-x: hidden;
+    font-family: var(--font-body);
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+    color: var(--color-storybook-ink);
+    background-color: var(--color-cream-paper);
     background-image: 
         radial-gradient(#E2E8F0 1.5px, transparent 1.5px),
         radial-gradient(rgba(43, 45, 66, 0.04) 1.5px, #FFFDF7 1.5px);
     background-size: 32px 32px;
     background-position: 0 0, 16px 16px;
     position: relative;
+    line-height: 1.45;
 }
 
 /* Crayon Grain Overlay */
@@ -97,19 +115,68 @@ body::after {
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     pointer-events: none;
     opacity: 0.035;
     z-index: 9999;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-h1, h2, h3, h4, h5, .font-heading {
+/* Fluid Typography */
+h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    color: var(--color-storybook-ink);
+    margin: 0 0 var(--space-2) 0;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 3.8vw, 2.15rem);
+    color: var(--color-storybook-ink);
+    margin: 0 0 var(--space-2) 0;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+h3 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+    color: var(--color-storybook-ink);
+    margin: 0 0 var(--space-1) 0;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+h4, h5, .font-heading {
     font-family: var(--font-heading);
     color: var(--color-storybook-ink);
-    margin: 0 0 0.5rem 0;
     font-weight: 700;
     letter-spacing: 0.02em;
+}
+
+/* Images & SVGs: scalable and responsive */
+img, svg {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Prevent iOS auto-zoom on inputs by ensuring text >= 16px */
+input, select, textarea, button {
+    font-family: inherit;
+    font-size: 16px;
+    touch-action: manipulation;
+}
+
+/* Accessible focus ring in palette sky blue */
+:focus-visible {
+    outline: 3px solid var(--color-sky-blue);
+    outline-offset: 3px;
+    border-radius: var(--border-radius-sm);
 }
 
 /* 4. Storybook Card Container */
@@ -118,14 +185,27 @@ h1, h2, h3, h4, h5, .font-heading {
     border: var(--border-ink-thick);
     border-radius: var(--border-radius-md);
     box-shadow: var(--shadow-chunky-md);
-    padding: 1.5rem;
+    padding: clamp(0.9rem, 2.5vw, 1.5rem);
     position: relative;
+    max-width: 100%;
+    box-sizing: border-box;
     transition: transform 0.15s var(--spring-bounce), box-shadow 0.15s var(--spring-bounce);
 }
 
-.storybook-card-hover:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: var(--shadow-chunky-lg);
+/* Touch & Hover Isolation: hover effects ONLY on pointer-capable devices */
+@media (hover: hover) and (pointer: fine) {
+    .storybook-card-hover:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: var(--shadow-chunky-lg);
+    }
+}
+
+/* Tactile Active Pressed State for Touch Devices */
+.storybook-card:active,
+button:active,
+.btn-story:active,
+.pill:active {
+    transform: translateY(2px) scale(0.98);
 }
 
 /* 5. Cloud Wipe Page Transition */
@@ -134,7 +214,7 @@ h1, h2, h3, h4, h5, .font-heading {
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     pointer-events: none;
     z-index: 10000;
     display: flex;
@@ -152,11 +232,7 @@ h1, h2, h3, h4, h5, .font-heading {
         clip-path: circle(0% at 50% 50%);
         opacity: 0.95;
     }
-    45% {
-        clip-path: circle(120% at 50% 50%);
-        opacity: 1;
-    }
-    55% {
+    45%, 55% {
         clip-path: circle(120% at 50% 50%);
         opacity: 1;
     }
@@ -198,4 +274,29 @@ h1, h2, h3, h4, h5, .font-heading {
 
 .anim-wag {
     animation: tail-wag 0.4s ease-in-out infinite;
+}
+
+/* 7. Respect Prefers-Reduced-Motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .anim-bob, .anim-wiggle, .anim-wag, .flame-dance, .star-bounce, .pop-bounce {
+        animation: none !important;
+    }
+
+    .confetti-piece {
+        display: none !important;
+    }
+}
+
+/* 8. Mobile Breakpoint Helpers */
+@media (max-width: 599px) {
+    :root {
+        --tap-min: 56px;
+    }
 }

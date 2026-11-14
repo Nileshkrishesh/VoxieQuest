@@ -224,12 +224,16 @@
     .trophy-modal-card {
         background: white;
         max-width: 440px;
+        max-height: 90dvh;
+        overflow-y: auto;
         width: 100%;
         text-align: center;
-        padding: 2.2rem 1.75rem;
-        border: 5px solid var(--color-storybook-ink);
-        box-shadow: 0 12px 0 var(--color-storybook-ink);
+        padding: clamp(1.25rem, 3vw, 2.2rem) 1.5rem;
+        border: var(--border-ink-thick);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-chunky-lg);
         animation: scale-up-trophy 0.4s var(--spring-bounce);
+        box-sizing: border-box;
     }
 
     .trophy-huge-icon {
