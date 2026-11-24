@@ -22,6 +22,7 @@
            IsRewardOpen="@IsRewardScreenOpen"
            StarsEarned="@(SessionStars >= 6 ? 3 : (SessionStars >= 3 ? 2 : 1))"
            IsMicDenied="false"
+           VoiceErrorMessage="@VoiceErrorMessage"
            HeardTranscript="@LastTranscript"
            LastResultStatus="@(AttemptState.AttemptCount > 0 ? (bool?)LastAnswerSuccess : (LastAnswerSuccess ? (bool?)true : null))"
            OnBack="ReturnToMapAsync"

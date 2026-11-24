@@ -50,15 +50,15 @@ public class BrowserSpeechVoiceService : IVoiceService
         try
         {
             _dotNetRef ??= DotNetObjectReference.Create(this);
-            await _jsRuntime.InvokeVoidAsync("voxieVoiceService.startListening", _dotNetRef, false);
-            _isListening = true;
-            OnListeningStateChanged?.Invoke(true);
+            bool ok = await _jsRuntime.InvokeAsync<bool>("voxieVoiceService.ensurePermissionAndStartListening", _dotNetRef, false);
+            _isListening = ok;
+            OnListeningStateChanged?.Invoke(ok);
         }
         catch (Exception ex)
         {
             _isListening = false;
             OnListeningStateChanged?.Invoke(false);
-            OnError?.Invoke($"Microphone initialization error: {ex.Message}");
+            OnError?.Invoke($"Microphone error: {ex.Message}");
         }
     }
 

@@ -74,6 +74,9 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     /// <summary>Gets whether speech or action animation is actively evaluating.</summary>
     protected bool IsBusyAnimating { get; set; } = false;
 
+    /// <summary>Gets any active voice or microphone warning message.</summary>
+    protected string? VoiceErrorMessage { get; set; } = null;
+
     /// <summary>Gets the skill category represented by this mini-game.</summary>
     protected abstract SkillCategory GameCategory { get; }
 
@@ -301,6 +304,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     /// </summary>
     protected async Task ToggleListeningAsync()
     {
+        VoiceErrorMessage = null;
         if (VoiceManager.IsListening)
         {
             await VoiceManager.StopListeningAsync();
@@ -387,6 +391,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     {
         InvokeAsync(() =>
         {
+            VoiceErrorMessage = err;
             MascotState = Mascot.MascotState.Idle;
             StateHasChanged();
         });

@@ -51,7 +51,14 @@
         <footer class="gameshell-bottom-zone">
             <!-- Real-time Hearing & Immediate Evaluation Banner -->
             <div class="voice-feedback-bar">
-                @if (!string.IsNullOrWhiteSpace(HeardTranscript))
+                @if (!string.IsNullOrWhiteSpace(VoiceErrorMessage))
+                {
+                    <div class="heard-response-banner banner-miss" role="alert">
+                        <span class="banner-icon">⚠️</span>
+                        <span class="banner-text">@VoiceErrorMessage</span>
+                    </div>
+                }
+                else if (!string.IsNullOrWhiteSpace(HeardTranscript))
                 {
                     <div class="heard-response-banner @(LastResultStatus == true ? "banner-success" : (LastResultStatus == false ? "banner-miss" : "banner-hearing"))">
                         <span class="banner-icon">@(LastResultStatus == true ? "🎉" : (LastResultStatus == false ? "🤔" : "🗣️"))</span>
@@ -562,6 +569,7 @@
     [Parameter] public int StarsEarned { get; set; } = 3;
 
     [Parameter] public bool IsMicDenied { get; set; } = false;
+    [Parameter] public string? VoiceErrorMessage { get; set; } = null;
     [Parameter] public string HeardTranscript { get; set; } = string.Empty;
     [Parameter] public bool? LastResultStatus { get; set; } = null;
 

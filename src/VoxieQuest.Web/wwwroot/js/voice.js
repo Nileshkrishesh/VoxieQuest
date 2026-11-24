@@ -7,6 +7,7 @@
     let isManuallyStopped = false;
     let isPushToTalkMode = false;
     let isSpeakingActive = false;
+    let pendingListenRequest = false;
     let restartTimerId = null;
     let speechDebounceTimer = null;
 
@@ -62,6 +63,27 @@
         },
 
         /**
+         * Ensures microphone permission is granted before starting speech recognition.
+         */
+        ensurePermissionAndStartListening: async function (dotNetHelper, pushToTalk) {
+            voiceDotNetRef = dotNetHelper || voiceDotNetRef;
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(t => t.stop());
+                }
+            } catch (err) {
+                console.warn("[VoxieVoice] Microphone permission denied:", err);
+                if (voiceDotNetRef) {
+                    voiceDotNetRef.invokeMethodAsync("OnJsError", "Microphone access is blocked! Please allow microphone access in your browser or address bar.");
+                }
+                return false;
+            }
+            window.voxieVoiceService.startListening(dotNetHelper, pushToTalk);
+            return true;
+        },
+
+        /**
          * Starts speech recognition with multi-alternative capture and mobile-resilient auto-restart.
          */
         startListening: function (dotNetHelper, pushToTalk) {
@@ -74,8 +96,9 @@
                 restartTimerId = null;
             }
 
-            // Do not listen while Voxie is speaking aloud through the device speaker
+            // If Voxie is currently speaking prompt aloud, queue listening to start when speech finishes
             if (isSpeakingActive) {
+                pendingListenRequest = true;
                 return;
             }
 
@@ -363,6 +386,15 @@
                         try { dotNetHelper.invokeMethodAsync("OnJsSpeechFinished"); } catch (_) { }
                     }
                     resolve();
+
+                    if (pendingListenRequest && !isManuallyStopped) {
+                        pendingListenRequest = false;
+                        setTimeout(function () {
+                            if (!isManuallyStopped && !isSpeakingActive) {
+                                window.voxieVoiceService.startListening(voiceDotNetRef, isPushToTalkMode);
+                            }
+                        }, 200);
+                    }
                 }
 
                 utterance.onend = finish;

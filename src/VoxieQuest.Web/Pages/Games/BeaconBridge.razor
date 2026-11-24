@@ -21,6 +21,7 @@
            IsRewardOpen="@(CurrentRound >= 5 && isBeamLit)"
            StarsEarned="3"
            IsMicDenied="false"
+           VoiceErrorMessage="@VoiceErrorMessage"
            HeardTranscript="@LastTranscript"
            LastResultStatus="@(isBeamLit ? (bool?)true : null)"
            OnBack="ReturnToMapAsync"

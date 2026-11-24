@@ -21,6 +21,7 @@
            IsRewardOpen="@(CurrentRound >= 5 && isBalanced)"
            StarsEarned="3"
            IsMicDenied="false"
+           VoiceErrorMessage="@VoiceErrorMessage"
            HeardTranscript="@LastTranscript"
            LastResultStatus="@(isBalanced ? (bool?)true : null)"
            OnBack="ReturnToMapAsync"

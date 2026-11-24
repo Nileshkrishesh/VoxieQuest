@@ -22,6 +22,7 @@
            IsRewardOpen="@(CurrentRound >= 5 && isCalmed)"
            StarsEarned="3"
            IsMicDenied="false"
+           VoiceErrorMessage="@VoiceErrorMessage"
            HeardTranscript="@LastTranscript"
            LastResultStatus="@(isCalmed ? (bool?)true : null)"
            OnBack="ReturnToMapAsync"
