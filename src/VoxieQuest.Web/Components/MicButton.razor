@@ -1,9 +1,10 @@
 @namespace VoxieQuest.Web.Components
+@using VoxieQuest.Web.Models
 @inject IAudioService AudioService
 
 <div class="giant-mic-wrapper">
-    <!-- Concentric Volume Pulsing Rings -->
-    @if (IsListening)
+    <!-- Concentric Volume Pulsing Rings (Live Web Audio Analyser RMS) -->
+    @if (CurrentState == MicState.Listening)
     {
         <div class="volume-ring ring-outer" style="transform: scale(@(1.15f + (VolumeLevel * 0.75f))); opacity: @(0.35f + (VolumeLevel * 0.45f));"></div>
         <div class="volume-ring ring-inner" style="transform: scale(@(1.05f + (VolumeLevel * 0.45f))); opacity: @(0.55f + (VolumeLevel * 0.35f));"></div>
@@ -34,7 +35,7 @@
                 <ellipse cx="40" cy="50" rx="@(5 + (VolumeLevel * 8))" ry="@(4 + (VolumeLevel * 9))" fill="#2B2D42"/>
                 <ellipse cx="40" cy="51" rx="@(3 + (VolumeLevel * 5))" ry="@(2 + (VolumeLevel * 5))" fill="#FF6B6B"/>
             }
-            else if (CurrentState == MicState.Thinking)
+            else if (CurrentState == MicState.Processing)
             {
                 <!-- Thinking Looking Up Eyes -->
                 <circle cx="28" cy="32" r="4" fill="#2B2D42"/>
@@ -45,7 +46,7 @@
                 <!-- O-shape wondering mouth -->
                 <circle cx="40" cy="48" r="4" fill="#2B2D42"/>
             }
-            else if (CurrentState == MicState.Done)
+            else if (CurrentState == MicState.Success)
             {
                 <!-- Cheerful Wink & Rosy Cheeks -->
                 <path d="M23 36C25 33 29 33 31 36" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
@@ -55,9 +56,50 @@
                 <circle cx="23" cy="42" r="3" fill="#FF6B6B" opacity="0.8"/>
                 <circle cx="57" cy="42" r="3" fill="#FF6B6B" opacity="0.8"/>
             }
+            else if (CurrentState == MicState.RequestingPermission)
+            {
+                <!-- Curious Wondering Eyes -->
+                <circle cx="28" cy="35" r="4" fill="#2B2D42"/>
+                <circle cx="52" cy="35" r="4" fill="#2B2D42"/>
+                <path d="M36 49C38 47 42 47 44 49" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+            }
+            else if (CurrentState == MicState.NoSpeech)
+            {
+                <!-- Tilted Head Curious Eyes -->
+                <circle cx="27" cy="34" r="3.5" fill="#2B2D42"/>
+                <circle cx="51" cy="37" r="3.5" fill="#2B2D42"/>
+                <path d="M34 48C38 46 42 49 46 47" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+            }
+            else if (CurrentState == MicState.PermissionDenied)
+            {
+                <!-- Sleeping / Blocked Lock Seed Face -->
+                <path d="M24 36C27 38 31 38 34 36" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M46 36C49 38 53 38 56 36" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Small Lock Icon on Forehead -->
+                <rect x="36" y="24" width="8" height="6" rx="1.5" fill="#2B2D42"/>
+                <path d="M38 24V21C38 19.9 38.9 19 40 19C41.1 19 42 19.9 42 21V24" stroke="#2B2D42" stroke-width="1.8"/>
+                <path d="M36 47H44" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+            }
+            else if (CurrentState == MicState.Unsupported)
+            {
+                <!-- Cute Round Spectacles for Reading/Typing -->
+                <circle cx="30" cy="35" r="7" stroke="#2B2D42" stroke-width="2.5" fill="none"/>
+                <circle cx="50" cy="35" r="7" stroke="#2B2D42" stroke-width="2.5" fill="none"/>
+                <line x1="37" y1="35" x2="43" y2="35" stroke="#2B2D42" stroke-width="2.5"/>
+                <circle cx="30" cy="35" r="2.5" fill="#2B2D42"/>
+                <circle cx="50" cy="35" r="2.5" fill="#2B2D42"/>
+                <path d="M35 48C38 51 42 51 45 48" stroke="#2B2D42" stroke-width="2.5" stroke-linecap="round"/>
+            }
+            else if (CurrentState == MicState.Error)
+            {
+                <!-- Surprised Concerned Face -->
+                <circle cx="28" cy="34" r="4" fill="#2B2D42"/>
+                <circle cx="52" cy="34" r="4" fill="#2B2D42"/>
+                <line x1="35" y1="48" x2="45" y2="48" stroke="#2B2D42" stroke-width="3" stroke-linecap="round"/>
+            }
             else
             {
-                <!-- Friendly Ready Smile -->
+                <!-- Friendly Idle Ready Smile -->
                 <circle cx="29" cy="35" r="3.5" fill="#2B2D42"/>
                 <circle cx="51" cy="35" r="3.5" fill="#2B2D42"/>
                 <circle cx="30.5" cy="33.5" r="1.2" fill="#FFFFFF"/>
@@ -130,9 +172,14 @@
         box-shadow: var(--shadow-hard-pressed);
     }
 
-    /* States */
-    .mic-ready {
+    /* All 9 States */
+    .mic-idle {
         background: var(--color-sunny-yellow);
+    }
+
+    .mic-permission {
+        background: var(--color-sky-blue);
+        animation: pulse-permission 1.2s infinite ease-in-out;
     }
 
     .mic-listening {
@@ -140,12 +187,28 @@
         animation: pulse-border 1.5s infinite ease-in-out;
     }
 
-    .mic-thinking {
+    .mic-processing {
         background: var(--color-sky-blue);
     }
 
-    .mic-done {
+    .mic-success {
+        background: var(--color-sunny-yellow);
+    }
+
+    .mic-nospeech {
         background: var(--color-soft-orange);
+    }
+
+    .mic-denied {
+        background: var(--color-coral);
+    }
+
+    .mic-unsupported {
+        background: var(--color-soft-orange);
+    }
+
+    .mic-error {
+        background: var(--color-coral);
     }
 
     .mic-face-svg {
@@ -158,16 +221,22 @@
         font-size: 0.72rem;
         font-weight: 700;
         color: var(--color-storybook-ink);
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         padding: 0.1rem 0.5rem;
         border-radius: var(--radius-pill);
         border: 1.5px solid var(--color-storybook-ink);
         margin-top: -4px;
+        white-space: nowrap;
     }
 
     @@keyframes pulse-border {
         0%, 100% { box-shadow: var(--shadow-hard-md); }
         50% { box-shadow: 0 0 0 6px rgba(126, 217, 168, 0.4), var(--shadow-hard-md); }
+    }
+
+    @@keyframes pulse-permission {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.04); }
     }
 
     @@media (max-width: 600px) {
@@ -200,17 +269,9 @@
 </style>
 
 @code {
-    public enum MicState
-    {
-        Ready,
-        Listening,
-        Thinking,
-        Done
-    }
-
     [Parameter] public bool IsListening { get; set; } = false;
     [Parameter] public float VolumeLevel { get; set; } = 0.0f;
-    [Parameter] public MicState State { get; set; } = MicState.Ready;
+    [Parameter] public MicState State { get; set; } = MicState.Idle;
     [Parameter] public EventCallback OnToggleListening { get; set; }
 
     private MicState CurrentState => IsListening ? MicState.Listening : State;
@@ -218,24 +279,39 @@
     private string GetStateClass() => CurrentState switch
     {
         MicState.Listening => "mic-listening",
-        MicState.Thinking => "mic-thinking",
-        MicState.Done => "mic-done",
-        _ => "mic-ready"
+        MicState.Processing => "mic-processing",
+        MicState.Success => "mic-success",
+        MicState.RequestingPermission => "mic-permission",
+        MicState.NoSpeech => "mic-nospeech",
+        MicState.PermissionDenied => "mic-denied",
+        MicState.Unsupported => "mic-unsupported",
+        MicState.Error => "mic-error",
+        _ => "mic-idle"
     };
 
     private string GetStatusText() => CurrentState switch
     {
         MicState.Listening => (VolumeLevel > 0.12f ? "I hear you!" : "Listening..."),
-        MicState.Thinking => "Thinking...",
-        MicState.Done => "Super!",
+        MicState.Processing => "Checking...",
+        MicState.Success => "Super! ⭐",
+        MicState.RequestingPermission => "Allow Mic...",
+        MicState.NoSpeech => "Didn't hear you!",
+        MicState.PermissionDenied => "Mic Blocked 🔒",
+        MicState.Unsupported => "Use Buttons ⌨️",
+        MicState.Error => "Mic Issue ⚠️",
         _ => "Tap to Speak"
     };
 
     private string GetAriaLabel() => CurrentState switch
     {
         MicState.Listening => "Microphone is listening. Speak your answer.",
-        MicState.Thinking => "Evaluating your voice answer.",
-        MicState.Done => "Answer received.",
+        MicState.Processing => "Evaluating your voice answer.",
+        MicState.Success => "Answer recognized successfully!",
+        MicState.RequestingPermission => "Requesting microphone permission. Please allow access.",
+        MicState.NoSpeech => "No speech detected. Tap microphone to speak aloud.",
+        MicState.PermissionDenied => "Microphone permission is blocked in browser settings. Use touch buttons below.",
+        MicState.Unsupported => "Speech recognition is not supported in this browser. Use touch buttons below.",
+        MicState.Error => "Microphone error occurred. Tap to retry or use touch buttons below.",
         _ => "Tap microphone to speak aloud."
     };
 

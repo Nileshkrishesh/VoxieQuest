@@ -349,10 +349,9 @@
         else ResetWeights();
     }
 
-    private MicButton.MicState GetMicButtonState()
+    private MicState GetMicButtonState()
     {
-        if (isBalanced) return MicButton.MicState.Done;
-        if (VoiceManager.IsListening) return MicButton.MicState.Listening;
-        return MicButton.MicState.Ready;
+        if (isBalanced || IsBusyAnimating) return MicState.Success;
+        return VoiceManager.CurrentState;
     }
 }

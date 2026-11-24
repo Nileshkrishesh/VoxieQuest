@@ -226,20 +226,28 @@
         <h2 class="section-heading">6. Giant Voice Mic Character Button</h2>
         <div class="mics-showcase-row">
             <div class="mic-demo-box">
-                <MicButton State="MicButton.MicState.Ready" />
-                <span class="mic-caption">Ready / Idle</span>
+                <MicButton State="MicState.Idle" />
+                <span class="mic-caption">Idle / Ready</span>
             </div>
             <div class="mic-demo-box">
                 <MicButton IsListening="true" VolumeLevel="0.7f" />
                 <span class="mic-caption">Listening (Active Volume)</span>
             </div>
             <div class="mic-demo-box">
-                <MicButton State="MicButton.MicState.Thinking" />
-                <span class="mic-caption">Evaluating Speech</span>
+                <MicButton State="MicState.Processing" />
+                <span class="mic-caption">Checking / Thinking</span>
             </div>
             <div class="mic-demo-box">
-                <MicButton State="MicButton.MicState.Done" />
+                <MicButton State="MicState.Success" />
                 <span class="mic-caption">Super Answer!</span>
+            </div>
+            <div class="mic-demo-box">
+                <MicButton State="MicState.NoSpeech" />
+                <span class="mic-caption">No Speech / Didn't Hear</span>
+            </div>
+            <div class="mic-demo-box">
+                <MicButton State="MicState.PermissionDenied" />
+                <span class="mic-caption">Mic Blocked 🔒</span>
             </div>
         </div>
     </section>

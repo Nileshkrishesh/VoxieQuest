@@ -42,6 +42,11 @@ public class VoiceManager : IVoiceService
     public bool IsListening => _activeService.IsListening;
 
     /// <inheritdoc />
+    public MicState CurrentState => _currentEngine == VoiceEngineType.PracticeManual 
+        ? MicState.Idle 
+        : _activeService.CurrentState;
+
+    /// <inheritdoc />
     public string EngineName => _currentEngine switch
     {
         VoiceEngineType.OfflineVosk => _offlineService.EngineName,
@@ -63,6 +68,16 @@ public class VoiceManager : IVoiceService
 
     /// <inheritdoc />
     public event Action<bool>? OnListeningStateChanged;
+
+    /// <inheritdoc />
+    public event Action<MicState>? OnStateChanged;
+
+    /// <inheritdoc />
+    public void SetState(MicState state)
+    {
+        _activeService.SetState(state);
+        OnStateChanged?.Invoke(state);
+    }
 
     /// <summary>Event raised when the active recognition engine switches.</summary>
     public event Action<VoiceEngineType>? OnEngineSwitched;
@@ -110,9 +125,8 @@ public class VoiceManager : IVoiceService
     {
         if (_currentEngine == VoiceEngineType.PracticeManual)
         {
-            // Practice mode does not capture microphone
-            OnListeningStateChanged?.Invoke(true);
-            return;
+            // If user explicitly asks to start listening, switch back to Browser Web Speech engine
+            SetEngine(VoiceEngineType.BrowserWebSpeech);
         }
 
         await _activeService.StartListeningAsync();
@@ -121,25 +135,13 @@ public class VoiceManager : IVoiceService
     /// <inheritdoc />
     public async Task StopListeningAsync()
     {
-        if (_currentEngine == VoiceEngineType.PracticeManual)
-        {
-            OnListeningStateChanged?.Invoke(false);
-            return;
-        }
-
         await _activeService.StopListeningAsync();
     }
 
     /// <inheritdoc />
     public async Task<bool> RequestPermissionAsync()
     {
-        var hasPermission = await _activeService.RequestPermissionAsync();
-        if (!hasPermission)
-        {
-            // If browser microphone is rejected, offer fallback
-            SetEngine(VoiceEngineType.PracticeManual);
-        }
-        return hasPermission;
+        return await _activeService.RequestPermissionAsync();
     }
 
     /// <inheritdoc />
@@ -181,18 +183,18 @@ public class VoiceManager : IVoiceService
             }
         };
 
+        service.OnStateChanged += state =>
+        {
+            if (service == _activeService && _currentEngine != VoiceEngineType.PracticeManual)
+            {
+                OnStateChanged?.Invoke(state);
+            }
+        };
+
         service.OnError += err =>
         {
             if (service == _activeService)
             {
-                // Auto-fallback: if browser API fails or lacks permission, offer offline or practice mode
-                if (err.Contains("not supported", StringComparison.OrdinalIgnoreCase) ||
-                    err.Contains("denied", StringComparison.OrdinalIgnoreCase) ||
-                    err.Contains("permission", StringComparison.OrdinalIgnoreCase))
-                {
-                    SetEngine(VoiceEngineType.PracticeManual);
-                }
-
                 OnError?.Invoke(err);
             }
         };

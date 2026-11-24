@@ -14,7 +14,7 @@
            MascotMood="@MascotState"
            IsListening="@VoiceManager.IsListening"
            VolumeLevel="@CurrentVolume"
-           MicButtonState="@(IsBusyAnimating ? MicButton.MicState.Done : (VoiceManager.IsListening ? MicButton.MicState.Listening : MicButton.MicState.Ready))"
+           MicButtonState="@(IsBusyAnimating ? MicState.Success : VoiceManager.CurrentState)"
            IsPracticeMode="@(VoiceManager.CurrentEngine == VoiceEngineType.PracticeManual)"
            PracticeChoices="@GetPracticeChoices()"
            ShowSuccessBurst="@ShowStarBurst"

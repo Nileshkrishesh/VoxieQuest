@@ -491,10 +491,9 @@
         await HandleManualBreathCycle();
     }
 
-    private MicButton.MicState GetMicButtonState()
+    private MicState GetMicButtonState()
     {
-        if (isCalmed) return MicButton.MicState.Done;
-        if (VoiceManager.IsListening) return MicButton.MicState.Listening;
-        return MicButton.MicState.Ready;
+        if (isCalmed || IsBusyAnimating) return MicState.Success;
+        return VoiceManager.CurrentState;
     }
 }

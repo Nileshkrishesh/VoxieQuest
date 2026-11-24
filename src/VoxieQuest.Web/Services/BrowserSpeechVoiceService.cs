@@ -13,6 +13,7 @@ public class BrowserSpeechVoiceService : IVoiceService
     private DotNetObjectReference<BrowserSpeechVoiceService>? _dotNetRef;
     private bool _isListening = false;
     private float _currentVolume = 0.0f;
+    private MicState _currentState = MicState.Idle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BrowserSpeechVoiceService"/> class.
@@ -25,6 +26,9 @@ public class BrowserSpeechVoiceService : IVoiceService
 
     /// <inheritdoc />
     public bool IsListening => _isListening;
+
+    /// <inheritdoc />
+    public MicState CurrentState => _currentState;
 
     /// <inheritdoc />
     public string EngineName => "Browser Web Speech";
@@ -45,18 +49,57 @@ public class BrowserSpeechVoiceService : IVoiceService
     public event Action<bool>? OnListeningStateChanged;
 
     /// <inheritdoc />
+    public event Action<MicState>? OnStateChanged;
+
+    /// <inheritdoc />
+    public void SetState(MicState state)
+    {
+        if (_currentState != state)
+        {
+            _currentState = state;
+            OnStateChanged?.Invoke(state);
+            try
+            {
+                var stateName = state switch
+                {
+                    MicState.RequestingPermission => "requesting_permission",
+                    MicState.Listening => "listening",
+                    MicState.Processing => "processing",
+                    MicState.Success => "success",
+                    MicState.NoSpeech => "no_speech",
+                    MicState.PermissionDenied => "permission_denied",
+                    MicState.Unsupported => "unsupported",
+                    MicState.Error => "error",
+                    _ => "idle"
+                };
+                _ = _jsRuntime.InvokeVoidAsync("voxieVoiceService.setState", stateName);
+            }
+            catch
+            {
+                // Ignore JS sync issues
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public async Task StartListeningAsync()
     {
         try
         {
             _dotNetRef ??= DotNetObjectReference.Create(this);
+            SetState(MicState.RequestingPermission);
             bool ok = await _jsRuntime.InvokeAsync<bool>("voxieVoiceService.ensurePermissionAndStartListening", _dotNetRef, false);
             _isListening = ok;
+            if (ok)
+            {
+                SetState(MicState.Listening);
+            }
             OnListeningStateChanged?.Invoke(ok);
         }
         catch (Exception ex)
         {
             _isListening = false;
+            SetState(MicState.Error);
             OnListeningStateChanged?.Invoke(false);
             OnError?.Invoke($"Microphone error: {ex.Message}");
         }
@@ -77,6 +120,7 @@ public class BrowserSpeechVoiceService : IVoiceService
         {
             _isListening = false;
             _currentVolume = 0.0f;
+            SetState(MicState.Idle);
             OnListeningStateChanged?.Invoke(false);
             OnVolumeChanged?.Invoke(0.0f);
         }
@@ -198,6 +242,30 @@ public class BrowserSpeechVoiceService : IVoiceService
     public void OnJsSpeechFinished()
     {
         // Vocalization finished
+    }
+
+    /// <summary>
+    /// Invoked by voice.js when physical microphone hardware or recognition state changes.
+    /// </summary>
+    [JSInvokable]
+    public void OnJsVoiceStateChanged(string state)
+    {
+        var newState = state?.ToLowerInvariant() switch
+        {
+            "requesting_permission" => MicState.RequestingPermission,
+            "listening" => MicState.Listening,
+            "processing" => MicState.Processing,
+            "success" => MicState.Success,
+            "no_speech" => MicState.NoSpeech,
+            "permission_denied" => MicState.PermissionDenied,
+            "unsupported" => MicState.Unsupported,
+            "error" => MicState.Error,
+            _ => MicState.Idle
+        };
+
+        _currentState = newState;
+        _isListening = (newState == MicState.Listening || newState == MicState.Processing);
+        OnStateChanged?.Invoke(newState);
     }
 
     /// <summary>

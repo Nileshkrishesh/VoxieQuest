@@ -13,6 +13,7 @@ public class OfflineVoiceService : IVoiceService
     private DotNetObjectReference<OfflineVoiceService>? _dotNetRef;
     private bool _isListening = false;
     private float _currentVolume = 0.0f;
+    private MicState _currentState = MicState.Idle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OfflineVoiceService"/> class.
@@ -25,6 +26,9 @@ public class OfflineVoiceService : IVoiceService
 
     /// <inheritdoc />
     public bool IsListening => _isListening;
+
+    /// <inheritdoc />
+    public MicState CurrentState => _currentState;
 
     /// <inheritdoc />
     public string EngineName => "Offline WASM (Vosk)";
@@ -43,6 +47,19 @@ public class OfflineVoiceService : IVoiceService
 
     /// <inheritdoc />
     public event Action<bool>? OnListeningStateChanged;
+
+    /// <inheritdoc />
+    public event Action<MicState>? OnStateChanged;
+
+    /// <inheritdoc />
+    public void SetState(MicState state)
+    {
+        if (_currentState != state)
+        {
+            _currentState = state;
+            OnStateChanged?.Invoke(state);
+        }
+    }
 
     /// <inheritdoc />
     public async Task StartListeningAsync()

@@ -1,6 +1,48 @@
 namespace VoxieQuest.Web.Models;
 
 /// <summary>
+/// Operational hardware and logical state of the microphone and speech recognition pipeline.
+/// </summary>
+public enum MicState
+{
+    /// <summary>Waiting for user interaction.</summary>
+    Idle = 0,
+
+    /// <summary>Backwards-compatible alias for Idle.</summary>
+    Ready = 0,
+
+    /// <summary>Prompting browser/OS for microphone permission.</summary>
+    RequestingPermission = 1,
+
+    /// <summary>Microphone is actively capturing audio and listening.</summary>
+    Listening = 2,
+
+    /// <summary>Acoustic speech detected, actively converting speech into text.</summary>
+    Processing = 3,
+
+    /// <summary>Backwards-compatible alias for Processing.</summary>
+    Thinking = 3,
+
+    /// <summary>Spoken words were successfully recognized and matched.</summary>
+    Success = 4,
+
+    /// <summary>Backwards-compatible alias for Success.</summary>
+    Done = 4,
+
+    /// <summary>Microphone is active but no speech was detected after timeout.</summary>
+    NoSpeech = 5,
+
+    /// <summary>User has blocked or denied microphone access in the browser.</summary>
+    PermissionDenied = 6,
+
+    /// <summary>Browser does not support the speech recognition engine.</summary>
+    Unsupported = 7,
+
+    /// <summary>An actual microphone or recognition error occurred.</summary>
+    Error = 8
+}
+
+/// <summary>
 /// Operational mode for listening to the child's voice.
 /// </summary>
 public enum VoiceMode

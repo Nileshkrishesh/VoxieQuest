@@ -1,4 +1,5 @@
 @namespace VoxieQuest.Web.Components
+@using VoxieQuest.Web.Models
 @inject IAudioService AudioService
 
 <div class="gameshell-root @ThemeClass">
@@ -58,6 +59,34 @@
                         <span class="banner-text">@VoiceErrorMessage</span>
                     </div>
                 }
+                else if (MicButtonState == MicState.PermissionDenied)
+                {
+                    <div class="heard-response-banner banner-miss" role="alert">
+                        <span class="banner-icon">🔒</span>
+                        <span class="banner-text">Microphone access is blocked! Tap the lock icon in your address bar to allow, or use touch buttons below.</span>
+                    </div>
+                }
+                else if (MicButtonState == MicState.Unsupported)
+                {
+                    <div class="heard-response-banner banner-miss" role="alert">
+                        <span class="banner-icon">💻</span>
+                        <span class="banner-text">Microphone recognition not supported in this browser. Please use the touch buttons below!</span>
+                    </div>
+                }
+                else if (MicButtonState == MicState.NoSpeech)
+                {
+                    <div class="heard-response-banner banner-miss">
+                        <span class="banner-icon">🤔</span>
+                        <span class="banner-text">Didn't catch any speech! Tap the mic to try again or tap an answer below.</span>
+                    </div>
+                }
+                else if (MicButtonState == MicState.RequestingPermission)
+                {
+                    <div class="heard-response-banner banner-listening">
+                        <span class="banner-icon">🎤</span>
+                        <span class="banner-text">Asking for microphone access... Please tap "Allow"!</span>
+                    </div>
+                }
                 else if (!string.IsNullOrWhiteSpace(HeardTranscript))
                 {
                     <div class="heard-response-banner @(LastResultStatus == true ? "banner-success" : (LastResultStatus == false ? "banner-miss" : "banner-hearing"))">
@@ -77,7 +106,7 @@
                         }
                     </div>
                 }
-                else if (IsListening)
+                else if (IsListening || MicButtonState == MicState.Listening)
                 {
                     <div class="heard-response-banner banner-listening">
                         <span class="banner-icon">🎤</span>
@@ -557,7 +586,7 @@
 
     [Parameter] public bool IsListening { get; set; } = false;
     [Parameter] public float VolumeLevel { get; set; } = 0.0f;
-    [Parameter] public MicButton.MicState MicButtonState { get; set; } = MicButton.MicState.Ready;
+    [Parameter] public MicState MicButtonState { get; set; } = MicState.Idle;
 
     [Parameter] public bool IsPracticeMode { get; set; } = false;
     [Parameter] public List<string> PracticeChoices { get; set; } = new();

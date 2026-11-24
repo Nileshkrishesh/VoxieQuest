@@ -96,6 +96,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     {
         VoiceManager.OnResult += HandleVoiceResult;
         VoiceManager.OnVolumeChanged += HandleVolumeChanged;
+        VoiceManager.OnStateChanged += HandleVoiceStateChanged;
         VoiceManager.OnError += HandleVoiceError;
 
         await StartGameSessionAsync();
@@ -181,6 +182,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
             MascotState = Mascot.MascotState.Happy;
             ShowStarBurst = true;
 
+            VoiceManager.SetState(MicState.Success);
             await VoiceManager.StopListeningAsync();
             await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
 
@@ -381,6 +383,26 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
         }
     }
 
+    private void HandleVoiceStateChanged(MicState state)
+    {
+        InvokeAsync(() =>
+        {
+            if (state == MicState.Listening)
+            {
+                MascotState = Mascot.MascotState.Listening;
+            }
+            else if (state == MicState.Processing)
+            {
+                MascotState = Mascot.MascotState.Thinking;
+            }
+            else if (state == MicState.Success)
+            {
+                MascotState = Mascot.MascotState.Happy;
+            }
+            StateHasChanged();
+        });
+    }
+
     private void HandleVolumeChanged(float vol)
     {
         CurrentVolume = vol;
@@ -401,6 +423,7 @@ public abstract class BaseGameComponent : ComponentBase, IAsyncDisposable
     {
         VoiceManager.OnResult -= HandleVoiceResult;
         VoiceManager.OnVolumeChanged -= HandleVolumeChanged;
+        VoiceManager.OnStateChanged -= HandleVoiceStateChanged;
         VoiceManager.OnError -= HandleVoiceError;
         await VoiceManager.StopListeningAsync();
     }

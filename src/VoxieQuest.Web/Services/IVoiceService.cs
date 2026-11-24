@@ -10,6 +10,9 @@ public interface IVoiceService : IAsyncDisposable
     /// <summary>Gets whether the voice engine is currently actively listening to the microphone.</summary>
     bool IsListening { get; }
 
+    /// <summary>Gets the current real-time hardware and logical microphone state.</summary>
+    MicState CurrentState { get; }
+
     /// <summary>Gets the display name of this recognition engine backend.</summary>
     string EngineName { get; }
 
@@ -27,6 +30,12 @@ public interface IVoiceService : IAsyncDisposable
 
     /// <summary>Event triggered when listening state starts or stops.</summary>
     event Action<bool>? OnListeningStateChanged;
+
+    /// <summary>Event triggered when the microphone hardware or logical state changes.</summary>
+    event Action<MicState>? OnStateChanged;
+
+    /// <summary>Sets the microphone state explicitly.</summary>
+    void SetState(MicState state);
 
     /// <summary>Starts listening for verbal answers.</summary>
     Task StartListeningAsync();
