@@ -290,7 +290,14 @@ Voxie Quest was engineered in strict compliance with the **Children's Online Pri
 
 ---
 
+## 👨‍💻 Project Credits & Mentorship
+
+- **Developed By:** **Nilesh Gupta**
+- **Under the Guidance of:** **Palvi Soni Ma'am**
+
+---
+
 <p align="center">
   <strong>VOXIE QUEST</strong> • <em>Speak, Play, Learn!</em><br />
-  Designed with ❤️ for curious young minds everywhere.
+  Made with ✨ by <strong>Nilesh Gupta</strong> under the mentorship of <strong>Palvi Soni Ma'am</strong>.
 </p>
