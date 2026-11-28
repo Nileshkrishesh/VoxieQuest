@@ -1,105 +1,130 @@
+@namespace VoxieQuest.Web.Components
 @inject IAudioService AudioService
 
 @if (IsVisible)
 {
-    <div class="parent-gate-overlay">
+    <div class="parent-gate-overlay" role="dialog" aria-modal="true" aria-label="Grown-Ups Verification">
         <div class="storybook-card gate-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <span style="font-size:2rem;">🔒</span>
-                    <h3 style="margin:0; font-size:1.4rem; color:var(--color-storybook-ink);">@Title</h3>
+            <!-- Header with Shield Icon & Close Button -->
+            <div class="gate-header-row">
+                <div class="gate-title-group">
+                    <ShieldIcon Size="32" FillColor="#FF6B6B" />
+                    <h3 class="gate-title-text">@Title</h3>
                 </div>
-                <button class="pill" type="button" @onclick="HandleCancel">✕</button>
+                <button class="pill gate-close-btn" type="button" @onclick="HandleCancel" aria-label="Close">✕</button>
             </div>
 
-            <!-- Tab Switcher: Hold 3 Seconds vs Math Question -->
-            <div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1.25rem;">
-                <button class="pill @(activeTab == GateTab.Hold ? "active-tab" : "")" 
-                        type="button" 
-                        @onclick="() => activeTab = GateTab.Hold">
-                    <span>⏱️ Hold 3 Seconds</span>
-                </button>
+            <!-- Tab Switcher: 1-Tap Quick Math vs 4-Digit PIN / Year -->
+            <div class="gate-tab-switcher">
                 <button class="pill @(activeTab == GateTab.Math ? "active-tab" : "")" 
                         type="button" 
-                        @onclick="() => activeTab = GateTab.Math">
-                    <span>➕ Math Question</span>
+                        @onclick="() => SwitchTab(GateTab.Math)">
+                    <span>➕ Quick Math (1-Tap)</span>
+                </button>
+                <button class="pill @(activeTab == GateTab.Pin ? "active-tab" : "")" 
+                        type="button" 
+                        @onclick="() => SwitchTab(GateTab.Pin)">
+                    <span>🔢 PIN / Birth Year</span>
                 </button>
             </div>
 
-            @if (activeTab == GateTab.Hold)
+            @if (activeTab == GateTab.Math)
             {
-                <!-- Hold for 3 Seconds Mode -->
-                <div class="hold-zone">
-                    <p style="font-size:1rem; font-weight:700; color:#4B5563; margin-bottom:1rem;">
-                        Press and hold the golden button below for <strong>3 seconds</strong> to unlock:
+                <!-- Mode 1: Quick Adult Math Challenge (Instant 1-Tap Choice Buttons) -->
+                <div class="math-gate-zone">
+                    <p class="gate-instructions">
+                        Grown-ups check: Tap the correct answer below:
                     </p>
 
-                    <div class="hold-button-container"
-                         @onmousedown="StartHolding" 
-                         @onmouseup="StopHolding" 
-                         @onmouseleave="StopHolding"
-                         @ontouchstart="StartHolding" 
-                         @ontouchend="StopHolding">
-
-                        <!-- Circular SVG Progress Meter -->
-                        <svg width="140" height="140" viewBox="0 0 140 140" class="hold-progress-svg">
-                            <circle cx="70" cy="70" r="58" stroke="#E2E8F0" stroke-width="8" fill="none" />
-                            <circle cx="70" cy="70" r="58" 
-                                    stroke="var(--color-mint)" 
-                                    stroke-width="8" 
-                                    fill="none" 
-                                    stroke-dasharray="364.4" 
-                                    stroke-dashoffset="@(364.4 - (364.4 * (_holdProgress / 100.0)))" 
-                                    stroke-linecap="round"
-                                    transform="rotate(-90 70 70)" />
-                        </svg>
-
-                        <!-- Central Button -->
-                        <div class="hold-central-btn @(isHolding ? "holding-down" : "")">
-                            <span style="font-size:2.2rem;">🔓</span>
-                            <span style="font-size:0.85rem; font-weight:800;">
-                                @(isHolding ? $"{Math.Max(1, 3 - (int)(_holdProgress / 33.3))}s" : "HOLD")
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <!-- Math Challenge Mode (Grown-Ups only) -->
-                <div class="math-zone">
-                    <p style="font-size:1rem; font-weight:700; color:#4B5563; margin-bottom:0.75rem;">
-                        Solve the grown-ups arithmetic question:
-                    </p>
-
-                    <div class="math-problem-box">
-                        <span style="font-family:var(--font-heading); font-size:1.8rem; font-weight:800; color:var(--color-storybook-ink);">
+                    <!-- Large Equation Display -->
+                    <div class="math-problem-banner">
+                        <span class="math-equation-text">
                             @mathNum1 @mathOperator @mathNum2 = ?
                         </span>
                     </div>
 
-                    <div style="display:flex; gap:0.5rem; justify-content:center; margin:1rem 0;">
+                    <!-- 4 Instant-Tap Multiple Choice Buttons (2x2 Grid) -->
+                    <div class="math-choices-grid">
+                        @foreach (var choice in mathChoices)
+                        {
+                            <button class="pill math-choice-btn" 
+                                    type="button" 
+                                    @onclick="() => VerifyChoice(choice)">
+                                @choice
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Optional Manual Text Input for Desktop Keyboard -->
+                    <div class="math-manual-input-row">
                         <input type="number" 
-                               class="storybook-card math-input" 
-                               placeholder="Answer"
+                               class="storybook-card math-number-box" 
+                               placeholder="Or type here..." 
                                @bind="userMathAnswer" 
-                               @onkeydown="HandleKeyDown" />
-                        <button class="btn-story btn-story-mint" type="button" @onclick="VerifyMathAnswer">
+                               @onkeydown="HandleKeyDown" 
+                               aria-label="Type math answer" />
+                        <button class="pill math-submit-pill" type="button" @onclick="VerifyTypedAnswer">
                             <span>Check ➔</span>
                         </button>
                     </div>
 
                     @if (hasMathError)
                     {
-                        <div style="color:var(--color-coral); font-weight:700; font-size:0.95rem;">
-                            Incorrect answer. Please try again!
+                        <div class="gate-error-message" role="alert">
+                            Almost! Here is a new question to try.
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <!-- Mode 2: 4-Digit PIN or Birth Year Verification -->
+                <div class="pin-gate-zone">
+                    <p class="gate-instructions">
+                        Enter any grown-up birth year (e.g. <strong>1992</strong>) or PIN (<strong>1234</strong>):
+                    </p>
+
+                    <!-- PIN Dots / Digits Display -->
+                    <div class="pin-display-card">
+                        @for (int i = 0; i < 4; i++)
+                        {
+                            var digit = i < enteredPin.Length ? enteredPin[i].ToString() : "•";
+                            <span class="pin-digit-slot @(i < enteredPin.Length ? "slot-filled" : "")">@digit</span>
+                        }
+                    </div>
+
+                    <!-- Clean 3x4 On-Screen Keypad -->
+                    <div class="pin-keypad-grid">
+                        @for (int d = 1; d <= 9; d++)
+                        {
+                            var num = d.ToString();
+                            <button class="pill pin-key-btn" type="button" @onclick="() => AppendDigit(num)">
+                                @num
+                            </button>
+                        }
+                        <button class="pill pin-key-btn key-clear" type="button" @onclick="ClearPin" title="Clear">
+                            <span>C</span>
+                        </button>
+                        <button class="pill pin-key-btn" type="button" @onclick='() => AppendDigit("0")'>
+                            0
+                        </button>
+                        <button class="pill pin-key-btn key-backspace" type="button" @onclick="BackspacePin" title="Delete">
+                            <span>⌫</span>
+                        </button>
+                    </div>
+
+                    @if (hasPinError)
+                    {
+                        <div class="gate-error-message" role="alert">
+                            Please enter a valid adult year (before 2012) or 1234.
                         </div>
                     }
                 </div>
             }
 
-            <div style="margin-top:1.25rem; font-size:0.85rem; color:#6B7280; font-style:italic;">
-                🛡️ This barrier ensures children stay in safe game realms.
+            <!-- Child-Safe Policy Footnote -->
+            <div class="gate-safety-footnote">
+                <span>🛡️ This barrier ensures children stay safely in learning gameplay.</span>
             </div>
         </div>
     </div>
@@ -110,106 +135,286 @@
         position: fixed;
         inset: 0;
         background: rgba(43, 45, 66, 0.75);
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(6px);
         z-index: 10000;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 1.5rem;
-    }
-
-    .gate-card {
-        background: #FFFDF7;
-        max-width: 440px;
-        max-height: 90dvh;
-        overflow-y: auto;
-        width: 100%;
-        text-align: center;
-        padding: clamp(1rem, 2.5vw, 1.75rem);
-        border: var(--border-ink-thick);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-chunky-lg);
+        padding: 1rem;
         box-sizing: border-box;
     }
 
-    .active-tab {
-        background: var(--color-sunny-yellow) !important;
-        transform: scale(1.05);
+    .gate-card {
+        background: var(--color-paper-light, #FFFDF7);
+        max-width: 440px;
+        width: 100%;
+        max-height: 92dvh;
+        overflow-y: auto;
+        padding: clamp(1.2rem, 3vw, 1.8rem);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-lg, 24px);
+        box-shadow: var(--shadow-hard-lg, 8px 8px 0 #2B2D42);
+        text-align: center;
+        box-sizing: border-box;
     }
 
-    /* Hold Zone */
-    .hold-button-container {
-        position: relative;
-        width: 140px;
-        height: 140px;
-        margin: 0 auto;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .hold-progress-svg {
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-
-    .hold-central-btn {
-        position: absolute;
-        inset: 12px;
-        border-radius: 50%;
-        background: #FFD166;
-        border: 3.5px solid var(--color-storybook-ink);
+    .gate-header-row {
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 0 var(--color-storybook-ink);
-        transition: transform 0.1s ease;
+        margin-bottom: 1rem;
     }
 
-    .hold-central-btn.holding-down {
-        transform: scale(0.94);
-        background: #06D6A0;
+    .gate-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .gate-title-text {
+        margin: 0;
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink, #2B2D42);
+    }
+
+    .gate-close-btn {
+        background: #FFFFFF;
+        border: 2.5px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        font-weight: 800;
+        font-size: 1.1rem;
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+    }
+
+    .gate-tab-switcher {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .gate-tab-switcher .pill {
+        background: #FFFFFF;
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 0.4rem 0.9rem;
+        font-family: var(--font-heading);
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        cursor: pointer;
+        transition: transform 0.1s var(--spring-squish), background 0.15s ease;
+    }
+
+    .gate-tab-switcher .active-tab {
+        background: var(--color-sunny-yellow, #FFC93C) !important;
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+        transform: scale(1.04);
+    }
+
+    .gate-instructions {
+        font-family: var(--font-body, 'Nunito', sans-serif);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #4B5563;
+        margin: 0 0 1rem 0;
     }
 
     /* Math Zone */
-    .math-problem-box {
-        background: #F1F5F9;
-        border: 3px solid var(--color-storybook-ink);
-        border-radius: 16px;
-        padding: 0.75rem 1.5rem;
-        display: inline-block;
-        box-shadow: 0 4px 0 var(--color-storybook-ink);
+    .math-problem-banner {
+        background: var(--color-cream-paper, #FFF8E7);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-md, 16px);
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.2rem;
+        box-shadow: var(--shadow-hard-md, 4px 4px 0 #2B2D42);
     }
 
-    .math-input {
-        width: 120px;
-        font-size: 1.4rem;
+    .math-equation-text {
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 2rem;
         font-weight: 800;
+        color: var(--color-storybook-ink, #2B2D42);
+        letter-spacing: 0.05em;
+    }
+
+    .math-choices-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .math-choice-btn {
+        background: var(--color-paper-light, #FFFFFF);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-md, 16px);
+        box-shadow: var(--shadow-hard-md, 4px 4px 0 #2B2D42);
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink, #2B2D42);
+        min-height: 60px;
+        cursor: pointer;
+        transition: transform 0.1s var(--spring-squish), box-shadow 0.1s ease, background 0.15s ease;
+    }
+
+    .math-choice-btn:hover {
+        background: var(--color-mint, #7ED9A8);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hard-lg, 6px 6px 0 #2B2D42);
+    }
+
+    .math-choice-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: var(--shadow-hard-pressed, 1px 1px 0 #2B2D42);
+    }
+
+    .math-manual-input-row {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .math-number-box {
+        width: 140px;
+        min-height: 48px;
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: var(--radius-md);
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
         text-align: center;
-        padding: 0.4rem;
+        padding: 0.3rem 0.5rem;
+        box-sizing: border-box;
+    }
+
+    .math-submit-pill {
+        min-height: 48px;
+        background: var(--color-mint, #7ED9A8);
+        border: 3px solid var(--color-storybook-ink);
+        border-radius: var(--radius-pill);
+        padding: 0.3rem 1rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        cursor: pointer;
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+    }
+
+    /* PIN Zone */
+    .pin-display-card {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .pin-digit-slot {
+        width: 52px;
+        height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFFFFF;
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-md, 14px);
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--color-storybook-ink);
+    }
+
+    .slot-filled {
+        background: var(--color-sunny-yellow, #FFC93C);
+    }
+
+    .pin-keypad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .pin-key-btn {
+        min-height: 54px;
+        background: #FFFFFF;
+        border: var(--border-storybook, 3.5px solid #2B2D42);
+        border-radius: var(--radius-md, 14px);
+        box-shadow: var(--shadow-hard-sm, 3px 3px 0 #2B2D42);
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--color-storybook-ink);
+        cursor: pointer;
+        transition: transform 0.08s var(--spring-squish);
+    }
+
+    .pin-key-btn:hover {
+        background: #F8FAFC;
+        transform: translateY(-2px);
+    }
+
+    .pin-key-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: var(--shadow-hard-pressed);
+    }
+
+    .key-clear {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .key-backspace {
+        background: #E2E8F0;
+    }
+
+    .gate-error-message {
+        margin-top: 0.75rem;
+        color: var(--color-coral, #FF6B6B);
+        font-family: var(--font-heading);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .gate-safety-footnote {
+        margin-top: 1.25rem;
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        color: #64748B;
+        font-style: italic;
     }
 </style>
 
 @code {
-    private enum GateTab { Hold, Math }
-    private GateTab activeTab = GateTab.Hold;
+    private enum GateTab { Math, Pin }
+    private GateTab activeTab = GateTab.Math; // Default to fast 1-tap math question
 
     [Parameter] public bool IsVisible { get; set; } = false;
     [Parameter] public string Title { get; set; } = "Grown-Ups Verification";
     [Parameter] public EventCallback<bool> OnVerified { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
-    private bool isHolding = false;
-    private double _holdProgress = 0.0;
-    private System.Threading.Timer? _holdTimer;
-
+    // Math Challenge State
     private int mathNum1 = 14;
     private int mathNum2 = 18;
     private string mathOperator = "+";
-    private int expectedAnswer = 32;
+    private int expectedMathAnswer = 32;
+    private List<int> mathChoices = new();
     private int? userMathAnswer;
     private bool hasMathError = false;
+
+    // PIN / Year State
+    private string enteredPin = string.Empty;
+    private bool hasPinError = false;
 
     protected override void OnInitialized()
     {
@@ -220,10 +425,22 @@
     {
         if (IsVisible)
         {
-            _holdProgress = 0.0;
-            isHolding = false;
             hasMathError = false;
+            hasPinError = false;
             userMathAnswer = null;
+            enteredPin = string.Empty;
+            GenerateMathChallenge();
+        }
+    }
+
+    private void SwitchTab(GateTab tab)
+    {
+        activeTab = tab;
+        hasMathError = false;
+        hasPinError = false;
+        enteredPin = string.Empty;
+        if (tab == GateTab.Math)
+        {
             GenerateMathChallenge();
         }
     }
@@ -231,13 +448,23 @@
     private void GenerateMathChallenge()
     {
         var rand = new Random();
-        if (rand.Next(2) == 0)
+        int opType = rand.Next(3);
+
+        if (opType == 0)
         {
-            // Addition: two double digits (e.g. 17 + 28)
+            // Addition: e.g. 14 + 18
             mathNum1 = rand.Next(12, 35);
             mathNum2 = rand.Next(11, 35);
             mathOperator = "+";
-            expectedAnswer = mathNum1 + mathNum2;
+            expectedMathAnswer = mathNum1 + mathNum2;
+        }
+        else if (opType == 1)
+        {
+            // Subtraction: e.g. 45 - 18
+            mathNum1 = rand.Next(25, 55);
+            mathNum2 = rand.Next(10, 24);
+            mathOperator = "-";
+            expectedMathAnswer = mathNum1 - mathNum2;
         }
         else
         {
@@ -245,50 +472,29 @@
             mathNum1 = rand.Next(6, 10);
             mathNum2 = rand.Next(6, 10);
             mathOperator = "×";
-            expectedAnswer = mathNum1 * mathNum2;
+            expectedMathAnswer = mathNum1 * mathNum2;
         }
-    }
 
-    private void StartHolding()
-    {
-        isHolding = true;
-        _holdProgress = 0.0;
-
-        _holdTimer?.Dispose();
-        _holdTimer = new System.Threading.Timer(_ =>
+        // Generate 3 plausible distractors
+        var choicesSet = new HashSet<int> { expectedMathAnswer };
+        while (choicesSet.Count < 4)
         {
-            InvokeAsync(async () =>
+            int offset = rand.Next(-6, 7);
+            if (offset == 0) offset = 2;
+            int candidate = expectedMathAnswer + offset;
+            if (candidate > 0 && candidate != expectedMathAnswer)
             {
-                if (!isHolding) return;
-                _holdProgress += 3.33; // 100% in ~30 ticks (approx 3.0s with 100ms interval)
-
-                if (_holdProgress >= 100.0)
-                {
-                    _holdProgress = 100.0;
-                    StopHolding();
-                    await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
-                    await OnVerified.InvokeAsync(true);
-                }
-                StateHasChanged();
-            });
-        }, null, 0, 100);
-    }
-
-    private void StopHolding()
-    {
-        isHolding = false;
-        _holdTimer?.Dispose();
-        _holdTimer = null;
-        if (_holdProgress < 100.0)
-        {
-            _holdProgress = 0.0;
+                choicesSet.Add(candidate);
+            }
         }
-        StateHasChanged();
+
+        mathChoices = choicesSet.OrderBy(_ => rand.Next()).ToList();
+        userMathAnswer = null;
     }
 
-    private async Task VerifyMathAnswer()
+    private async Task VerifyChoice(int chosen)
     {
-        if (userMathAnswer == expectedAnswer)
+        if (chosen == expectedMathAnswer)
         {
             hasMathError = false;
             await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
@@ -298,6 +504,23 @@
         {
             hasMathError = true;
             await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+            GenerateMathChallenge();
+        }
+    }
+
+    private async Task VerifyTypedAnswer()
+    {
+        if (userMathAnswer.HasValue && userMathAnswer.Value == expectedMathAnswer)
+        {
+            hasMathError = false;
+            await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+            await OnVerified.InvokeAsync(true);
+        }
+        else
+        {
+            hasMathError = true;
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+            GenerateMathChallenge();
         }
     }
 
@@ -305,13 +528,71 @@
     {
         if (e.Key == "Enter")
         {
-            await VerifyMathAnswer();
+            await VerifyTypedAnswer();
+        }
+    }
+
+    private async Task AppendDigit(string digit)
+    {
+        if (enteredPin.Length < 4)
+        {
+            enteredPin += digit;
+            hasPinError = false;
+            await AudioService.PlaySoundAsync(SoundEffect.Pop);
+
+            if (enteredPin.Length == 4)
+            {
+                await ValidatePinAsync();
+            }
+        }
+    }
+
+    private void BackspacePin()
+    {
+        if (enteredPin.Length > 0)
+        {
+            enteredPin = enteredPin.Substring(0, enteredPin.Length - 1);
+            hasPinError = false;
+        }
+    }
+
+    private void ClearPin()
+    {
+        enteredPin = string.Empty;
+        hasPinError = false;
+    }
+
+    private async Task ValidatePinAsync()
+    {
+        // 1234 is the universal adult default PIN
+        // OR any birth year <= 2011 (adult / teenager age 15+)
+        bool isCorrect = false;
+
+        if (enteredPin == "1234")
+        {
+            isCorrect = true;
+        }
+        else if (int.TryParse(enteredPin, out int year) && year >= 1930 && year <= 2011)
+        {
+            isCorrect = true;
+        }
+
+        if (isCorrect)
+        {
+            hasPinError = false;
+            await AudioService.PlaySoundAsync(SoundEffect.SuccessChime);
+            await OnVerified.InvokeAsync(true);
+        }
+        else
+        {
+            hasPinError = true;
+            await AudioService.PlaySoundAsync(SoundEffect.EncourageChime);
+            enteredPin = string.Empty;
         }
     }
 
     private async Task HandleCancel()
     {
-        StopHolding();
         await OnCancel.InvokeAsync();
     }
 }
