@@ -4,7 +4,8 @@ from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
-
+#mrvivek0988@
+#
 # ----------------- PALETTE -----------------
 CREAM = RGBColor(255, 253, 247)      # #FFFDF7
 NAVY = RGBColor(30, 42, 74)          # #1E2A4A
