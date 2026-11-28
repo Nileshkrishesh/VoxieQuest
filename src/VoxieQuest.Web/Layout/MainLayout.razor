@@ -118,6 +118,17 @@
     <!-- Main Game Page Body -->
     <main class="storybook-main-body @(IsGameRoute ? "game-route-body" : "")">
         @Body
+
+        @if (!IsGameRoute)
+        {
+            <footer class="storybook-app-footer" role="contentinfo">
+                <div class="footer-badge-pill">
+                    <StarIcon Size="20" FillColor="#FFC93C" />
+                    <span class="footer-author-text">Made by <strong>Nilesh Gupta</strong></span>
+                    <StarIcon Size="20" FillColor="#5BC0EB" />
+                </div>
+            </footer>
+        }
     </main>
 
     @if (!IsGameRoute)
@@ -361,6 +372,8 @@
     /* Main Content Body */
     .storybook-main-body {
         flex: 1;
+        display: flex;
+        flex-direction: column;
         padding-top: calc(var(--header-height, 64px) + 16px);
         padding-bottom: calc(var(--nav-height, 72px) + max(0.5rem, env(safe-area-inset-bottom)) + 24px);
         padding-left: max(1rem, env(safe-area-inset-left));
@@ -369,6 +382,45 @@
         margin: 0 auto;
         width: 100%;
         box-sizing: border-box;
+    }
+
+    /* Storybook App Footer */
+    .storybook-app-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2.5rem 1rem 0.5rem;
+        margin-top: auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .footer-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        background: var(--color-paper-light, #FFFDF9);
+        border: var(--border-storybook, 4px solid #2B2D42);
+        border-radius: var(--radius-pill, 999px);
+        padding: 0.45rem 1.25rem;
+        box-shadow: var(--shadow-hard-md, 4px 4px 0 #2B2D42);
+        font-family: var(--font-heading, 'Fredoka', cursive);
+        font-size: clamp(0.95rem, 2vw, 1.15rem);
+        color: var(--color-storybook-ink, #2B2D42);
+        text-align: center;
+        transition: transform 0.15s var(--spring-squish), box-shadow 0.15s ease;
+    }
+
+    .footer-badge-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hard-lg, 6px 6px 0 #2B2D42);
+    }
+
+    .footer-author-text strong {
+        font-weight: 700;
+        color: var(--color-storybook-ink, #2B2D42);
+        text-decoration: underline wavy var(--color-sunny-yellow, #FFC93C);
+        text-underline-offset: 3px;
     }
 
     .storybook-main-body.game-route-body {
